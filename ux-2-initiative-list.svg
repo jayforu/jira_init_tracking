@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Segoe UI, Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="1100" height="720" fill="#F4F5F7"/>
+
+  <!-- Nav Bar -->
+  <rect width="1100" height="52" fill="#0052CC"/>
+  <text x="24" y="33" fill="white" font-size="17" font-weight="bold">Initiative Tracker</text>
+  <text x="850" y="33" fill="#A8C4F5" font-size="12">lmsportal.atlassian.net</text>
+  <rect x="1010" y="14" width="70" height="26" rx="4" fill="#0747A6"/>
+  <text x="1022" y="31" fill="white" font-size="12">⚙ Settings</text>
+
+  <!-- Screen label -->
+  <rect x="0" y="52" width="1100" height="28" fill="#DEEBFF"/>
+  <text x="24" y="70" fill="#0052CC" font-size="12" font-weight="bold">SCREEN 2 OF 3 — Initiative List: Pick a project, see its initiatives</text>
+
+  <!-- Project Tabs -->
+  <rect x="0" y="80" width="1100" height="44" fill="white" stroke="#DFE1E6" stroke-width="0"/>
+  <line x1="0" y1="124" x2="1100" y2="124" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Tab: Scheduling (active) -->
+  <rect x="24" y="80" width="130" height="44" fill="white"/>
+  <line x1="24" y1="124" x2="154" y2="124" stroke="#0052CC" stroke-width="3"/>
+  <text x="46" y="107" fill="#0052CC" font-size="13" font-weight="bold">Scheduling</text>
+  <rect x="120" y="92" width="22" height="16" rx="8" fill="#0052CC"/>
+  <text x="126" y="104" fill="white" font-size="10" font-weight="bold">12</text>
+
+  <!-- Tab: PHP A (inactive) -->
+  <rect x="160" y="80" width="90" height="44" fill="#F4F5F7"/>
+  <text x="178" y="107" fill="#6B778C" font-size="13">PHP A</text>
+  <rect x="218" y="92" width="18" height="16" rx="8" fill="#DFE1E6"/>
+  <text x="222" y="104" fill="#6B778C" font-size="10">4</text>
+
+  <!-- Tab: + Add -->
+  <rect x="256" y="80" width="80" height="44" fill="#F4F5F7"/>
+  <text x="272" y="107" fill="#6B778C" font-size="13">+ Add</text>
+
+  <!-- Page Header -->
+  <rect x="24" y="136" width="1052" height="56" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="44" y="158" fill="#172B4D" font-size="18" font-weight="bold">Scheduling — Active Initiatives</text>
+  <text x="44" y="178" fill="#6B778C" font-size="12">12 initiatives · Last synced 3 min ago</text>
+
+  <!-- Search -->
+  <rect x="600" y="146" width="260" height="34" rx="4" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="618" y="168" fill="#6B778C" font-size="13">🔍  Search initiatives...</text>
+
+  <!-- Show Done toggle -->
+  <rect x="876" y="150" width="130" height="26" rx="13" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <rect x="878" y="152" width="22" height="22" rx="11" fill="#DFE1E6"/>
+  <text x="908" y="168" fill="#6B778C" font-size="11">Show Done</text>
+
+  <!-- Refresh -->
+  <rect x="1020" y="150" width="44" height="26" rx="4" fill="#0052CC"/>
+  <text x="1030" y="167" fill="white" font-size="11">↺</text>
+
+  <!-- Table Header -->
+  <rect x="24" y="204" width="1052" height="30" rx="0" fill="#EBECF0"/>
+  <text x="44" y="223" fill="#6B778C" font-size="11" font-weight="bold">INITIATIVE</text>
+  <text x="440" y="223" fill="#6B778C" font-size="11" font-weight="bold">EPICS</text>
+  <text x="530" y="223" fill="#6B778C" font-size="11" font-weight="bold">DEV PROGRESS</text>
+  <text x="700" y="223" fill="#6B778C" font-size="11" font-weight="bold">TEST STATUS</text>
+  <text x="870" y="223" fill="#6B778C" font-size="11" font-weight="bold">HEALTH</text>
+  <text x="970" y="223" fill="#6B778C" font-size="11" font-weight="bold">LAST UPDATED</text>
+
+  <!-- Row 1 — PHP Upgrade 2025 (At Risk) -->
+  <rect x="24" y="234" width="1052" height="56" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="234" width="4" height="56" fill="#FF991F"/>
+  <text x="44" y="256" fill="#172B4D" font-size="14" font-weight="bold">PHP Upgrade 2025</text>
+  <text x="44" y="274" fill="#6B778C" font-size="11">SCHED-4548  ·  Assigned: Jayraj V.</text>
+  <text x="440" y="262" fill="#172B4D" font-size="14">5</text>
+  <!-- Dev progress -->
+  <rect x="530" y="250" width="120" height="8" rx="4" fill="#EBECF0"/>
+  <rect x="530" y="250" width="72" height="8" rx="4" fill="#36B37E"/>
+  <text x="658" y="260" fill="#172B4D" font-size="12">60%</text>
+  <!-- Test status pills -->
+  <rect x="700" y="248" width="44" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="710" y="261" fill="#006644" font-size="10" font-weight="bold">14✓</text>
+  <rect x="750" y="248" width="36" height="18" rx="4" fill="#FFEBE6"/>
+  <text x="758" y="261" fill="#BF2600" font-size="10" font-weight="bold">4✗</text>
+  <rect x="792" y="248" width="44" height="18" rx="4" fill="#FFFAE6"/>
+  <text x="800" y="261" fill="#974F0C" font-size="10" font-weight="bold">3 WIP</text>
+  <!-- Health -->
+  <rect x="860" y="248" width="64" height="22" rx="11" fill="#FF991F"/>
+  <text x="873" y="263" fill="white" font-size="11" font-weight="bold">At Risk</text>
+  <text x="970" y="263" fill="#6B778C" font-size="12">2h ago</text>
+  <!-- Click hint -->
+  <text x="1052" y="256" fill="#0052CC" font-size="18">›</text>
+
+  <!-- Row 2 — S3 Bucket Security (Good) -->
+  <rect x="24" y="290" width="1052" height="56" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="290" width="4" height="56" fill="#36B37E"/>
+  <text x="44" y="312" fill="#172B4D" font-size="14" font-weight="bold">S3 Bucket Security Project</text>
+  <text x="44" y="330" fill="#6B778C" font-size="11">SCHED-4453  ·  Assigned: Jayraj V.</text>
+  <text x="440" y="318" fill="#172B4D" font-size="14">3</text>
+  <rect x="530" y="306" width="120" height="8" rx="4" fill="#EBECF0"/>
+  <rect x="530" y="306" width="102" height="8" rx="4" fill="#36B37E"/>
+  <text x="658" y="316" fill="#172B4D" font-size="12">85%</text>
+  <rect x="700" y="304" width="44" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="710" y="317" fill="#006644" font-size="10" font-weight="bold">22✓</text>
+  <rect x="750" y="304" width="36" height="18" rx="4" fill="#FFEBE6"/>
+  <text x="758" y="317" fill="#BF2600" font-size="10" font-weight="bold">1✗</text>
+  <rect x="792" y="304" width="44" height="18" rx="4" fill="#FFFAE6"/>
+  <text x="800" y="317" fill="#974F0C" font-size="10" font-weight="bold">0 WIP</text>
+  <rect x="860" y="304" width="52" height="22" rx="11" fill="#36B37E"/>
+  <text x="873" y="319" fill="white" font-size="11" font-weight="bold">Good</text>
+  <text x="970" y="319" fill="#6B778C" font-size="12">1h ago</text>
+  <text x="1052" y="312" fill="#0052CC" font-size="18">›</text>
+
+  <!-- Row 3 — Self Scheduling (At Risk) -->
+  <rect x="24" y="346" width="1052" height="56" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="346" width="4" height="56" fill="#FF991F"/>
+  <text x="44" y="368" fill="#172B4D" font-size="14" font-weight="bold">Self Scheduling Assignment</text>
+  <text x="44" y="386" fill="#6B778C" font-size="11">SCHED-2726  ·  Unassigned</text>
+  <text x="440" y="374" fill="#172B4D" font-size="14">6</text>
+  <rect x="530" y="362" width="120" height="8" rx="4" fill="#EBECF0"/>
+  <rect x="530" y="362" width="36" height="8" rx="4" fill="#FF991F"/>
+  <text x="658" y="372" fill="#172B4D" font-size="12">30%</text>
+  <rect x="700" y="360" width="44" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="710" y="373" fill="#006644" font-size="10" font-weight="bold">3✓</text>
+  <rect x="750" y="360" width="36" height="18" rx="4" fill="#FFEBE6"/>
+  <text x="758" y="373" fill="#BF2600" font-size="10" font-weight="bold">5✗</text>
+  <rect x="792" y="360" width="44" height="18" rx="4" fill="#FFFAE6"/>
+  <text x="800" y="373" fill="#974F0C" font-size="10" font-weight="bold">2 WIP</text>
+  <rect x="860" y="360" width="64" height="22" rx="11" fill="#FF991F"/>
+  <text x="873" y="375" fill="white" font-size="11" font-weight="bold">At Risk</text>
+  <text x="970" y="375" fill="#6B778C" font-size="12">3h ago</text>
+  <text x="1052" y="368" fill="#0052CC" font-size="18">›</text>
+
+  <!-- Row 4 — Kubernetes (Blocked) -->
+  <rect x="24" y="402" width="1052" height="56" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="402" width="4" height="56" fill="#FF5630"/>
+  <text x="44" y="424" fill="#172B4D" font-size="14" font-weight="bold">Setup Kubernetes Foundations</text>
+  <text x="44" y="442" fill="#6B778C" font-size="11">SCHED-5679  ·  Assigned: Jayraj V.</text>
+  <text x="440" y="430" fill="#172B4D" font-size="14">4</text>
+  <rect x="530" y="418" width="120" height="8" rx="4" fill="#EBECF0"/>
+  <rect x="530" y="418" width="24" height="8" rx="4" fill="#FF5630"/>
+  <text x="658" y="428" fill="#172B4D" font-size="12">20%</text>
+  <rect x="700" y="416" width="44" height="18" rx="4" fill="#DFE1E6"/>
+  <text x="706" y="429" fill="#6B778C" font-size="10" font-weight="bold">0 tests</text>
+  <rect x="860" y="416" width="68" height="22" rx="11" fill="#FF5630"/>
+  <text x="871" y="431" fill="white" font-size="11" font-weight="bold">Blocked</text>
+  <text x="970" y="430" fill="#6B778C" font-size="12">5h ago</text>
+  <text x="1052" y="424" fill="#0052CC" font-size="18">›</text>
+
+  <!-- Row 5 — Time Card (Done, subtle) -->
+  <rect x="24" y="458" width="1052" height="44" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="458" width="4" height="44" fill="#DFE1E6"/>
+  <text x="44" y="476" fill="#97A0AF" font-size="13">Time Card Enhancements</text>
+  <text x="44" y="492" fill="#C1C7D0" font-size="11">SCHED-4885  ·  DONE</text>
+  <text x="440" y="480" fill="#97A0AF" font-size="13">3</text>
+  <rect x="530" y="468" width="120" height="8" rx="4" fill="#EBECF0"/>
+  <rect x="530" y="468" width="120" height="8" rx="4" fill="#36B37E"/>
+  <text x="658" y="478" fill="#97A0AF" font-size="12">100%</text>
+  <rect x="700" y="466" width="44" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="706" y="479" fill="#6B778C" font-size="10">18✓</text>
+  <rect x="860" y="466" width="44" height="20" rx="10" fill="#DFE1E6"/>
+  <text x="872" y="480" fill="#6B778C" font-size="11">Done</text>
+
+  <!-- Done toggle callout -->
+  <line x1="876" y1="163" x2="200" y2="460" stroke="#6B778C" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="28" y="458" width="0" height="0"/>
+  <rect x="100" y="500" width="230" height="36" rx="6" fill="#F4F5F7" stroke="#6B778C" stroke-width="1"/>
+  <text x="112" y="516" fill="#6B778C" font-size="11" font-weight="bold">Toggle "Show Done" reveals</text>
+  <text x="112" y="530" fill="#6B778C" font-size="11">completed initiatives (faded)</text>
+
+  <!-- Click to drilldown callout -->
+  <line x1="1060" y1="262" x2="1085" y2="310" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="970" y="308" width="120" height="36" rx="6" fill="#DEEBFF" stroke="#0052CC" stroke-width="1"/>
+  <text x="982" y="324" fill="#0052CC" font-size="11" font-weight="bold">Click row to open</text>
+  <text x="982" y="338" fill="#0052CC" font-size="11">Initiative Detail →</text>
+
+  <!-- Summary Bar -->
+  <rect x="24" y="520" width="1052" height="56" rx="6" fill="#172B4D"/>
+  <text x="44" y="542" fill="white" font-size="12" font-weight="bold">Scheduling Summary</text>
+  <text x="44" y="560" fill="#A8C4F5" font-size="11">Active initiatives only</text>
+  <rect x="200" y="528" width="1" height="36" fill="#344563"/>
+  <text x="216" y="542" fill="#A8C4F5" font-size="11">Total Epics</text>
+  <text x="216" y="560" fill="white" font-size="16" font-weight="bold">18</text>
+  <rect x="300" y="528" width="1" height="36" fill="#344563"/>
+  <text x="316" y="542" fill="#A8C4F5" font-size="11">Avg Dev</text>
+  <text x="316" y="560" fill="white" font-size="16" font-weight="bold">49%</text>
+  <rect x="400" y="528" width="1" height="36" fill="#344563"/>
+  <text x="416" y="542" fill="#A8C4F5" font-size="11">Tests Passing</text>
+  <text x="416" y="560" fill="#36B37E" font-size="16" font-weight="bold">62%</text>
+  <rect x="530" y="528" width="1" height="36" fill="#344563"/>
+  <text x="546" y="542" fill="#A8C4F5" font-size="11">On Track</text>
+  <text x="546" y="560" fill="#36B37E" font-size="16" font-weight="bold">1 / 4</text>
+  <rect x="640" y="528" width="1" height="36" fill="#344563"/>
+  <text x="656" y="542" fill="#A8C4F5" font-size="11">At Risk</text>
+  <text x="656" y="560" fill="#FF991F" font-size="16" font-weight="bold">2</text>
+  <rect x="730" y="528" width="1" height="36" fill="#344563"/>
+  <text x="746" y="542" fill="#A8C4F5" font-size="11">Blocked</text>
+  <text x="746" y="560" fill="#FF5630" font-size="16" font-weight="bold">1</text>
+  <rect x="820" y="528" width="1" height="36" fill="#344563"/>
+  <text x="836" y="542" fill="#A8C4F5" font-size="11">Test Cases Written</text>
+  <text x="836" y="560" fill="white" font-size="16" font-weight="bold">42</text>
+
+</svg>

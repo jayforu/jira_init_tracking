@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="780" viewBox="0 0 1100 780" font-family="Segoe UI, Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="1100" height="780" fill="#F4F5F7"/>
+
+  <!-- Nav Bar -->
+  <rect width="1100" height="52" fill="#0052CC"/>
+  <text x="24" y="33" fill="white" font-size="17" font-weight="bold">Initiative Tracker</text>
+  <text x="850" y="33" fill="#A8C4F5" font-size="12">lmsportal.atlassian.net</text>
+  <rect x="1010" y="14" width="70" height="26" rx="4" fill="#0747A6"/>
+  <text x="1022" y="31" fill="white" font-size="12">⚙ Settings</text>
+
+  <!-- Screen label -->
+  <rect x="0" y="52" width="1100" height="28" fill="#DEEBFF"/>
+  <text x="24" y="70" fill="#0052CC" font-size="12" font-weight="bold">SCREEN 3 OF 3 — Initiative Detail: Epic-level dev + test breakdown</text>
+
+  <!-- Breadcrumb -->
+  <rect x="0" y="80" width="1100" height="36" fill="white" stroke="#DFE1E6" stroke-width="0"/>
+  <line x1="0" y1="116" x2="1100" y2="116" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="24" y="102" fill="#0052CC" font-size="13">← Scheduling</text>
+  <text x="118" y="102" fill="#6B778C" font-size="13"> / </text>
+  <text x="132" y="102" fill="#172B4D" font-size="13" font-weight="bold">PHP Upgrade 2025</text>
+
+  <!-- Initiative Header -->
+  <rect x="24" y="124" width="1052" height="72" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+  <rect x="24" y="124" width="6" height="72" rx="3" fill="#FF991F"/>
+  <text x="46" y="148" fill="#172B4D" font-size="20" font-weight="bold">PHP Upgrade 2025</text>
+  <rect x="240" y="132" width="90" height="22" rx="4" fill="#FFFAE6" stroke="#FF991F" stroke-width="1"/>
+  <text x="256" y="147" fill="#974F0C" font-size="11" font-weight="bold">At Risk</text>
+  <text x="46" y="170" fill="#6B778C" font-size="12">SCHED-4548  ·  5 epics  ·  Avg dev 60%  ·  Test pass rate 67%</text>
+  <!-- Open in Jira link -->
+  <rect x="880" y="138" width="140" height="28" rx="4" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="898" y="156" fill="#0052CC" font-size="12">↗ Open in Jira</text>
+  <!-- Refresh -->
+  <rect x="1032" y="138" width="36" height="28" rx="4" fill="#0052CC"/>
+  <text x="1042" y="156" fill="white" font-size="13">↺</text>
+
+  <!-- Column Headers -->
+  <rect x="24" y="208" width="1052" height="30" fill="#EBECF0"/>
+  <text x="44" y="227" fill="#6B778C" font-size="11" font-weight="bold">EPIC</text>
+  <text x="340" y="227" fill="#6B778C" font-size="11" font-weight="bold">DEV STATUS</text>
+  <text x="480" y="227" fill="#6B778C" font-size="11" font-weight="bold">SUBTASKS</text>
+  <text x="610" y="227" fill="#6B778C" font-size="11" font-weight="bold">TEST CASES</text>
+  <text x="750" y="227" fill="#6B778C" font-size="11" font-weight="bold">PASS</text>
+  <text x="810" y="227" fill="#6B778C" font-size="11" font-weight="bold">FAIL</text>
+  <text x="870" y="227" fill="#6B778C" font-size="11" font-weight="bold">NOT RUN</text>
+  <text x="970" y="227" fill="#6B778C" font-size="11" font-weight="bold">HEALTH</text>
+
+  <!-- ── EPIC ROW 1 — PHP Upgrade 2025 (Good) ── -->
+  <rect x="24" y="238" width="1052" height="64" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="238" width="4" height="64" fill="#36B37E"/>
+  <text x="44" y="258" fill="#0052CC" font-size="13" font-weight="bold">PHP Upgrade 2025</text>
+  <text x="44" y="274" fill="#6B778C" font-size="11">SCHED-19206</text>
+  <text x="44" y="290" fill="#6B778C" font-size="10">Code Titans</text>
+  <!-- Dev Status -->
+  <rect x="330" y="248" width="120" height="22" rx="11" fill="#E3FCEF"/>
+  <text x="346" y="263" fill="#006644" font-size="11" font-weight="bold">In Development</text>
+  <!-- Subtasks -->
+  <text x="480" y="258" fill="#172B4D" font-size="12" font-weight="bold">12 / 20</text>
+  <rect x="480" y="264" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <rect x="480" y="264" width="60" height="7" rx="3" fill="#36B37E"/>
+  <text x="586" y="272" fill="#6B778C" font-size="10">60%</text>
+  <!-- Test Cases -->
+  <text x="610" y="258" fill="#172B4D" font-size="12" font-weight="bold">18 written</text>
+  <rect x="610" y="264" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <rect x="610" y="264" width="90" height="7" rx="3" fill="#36B37E"/>
+  <text x="716" y="272" fill="#6B778C" font-size="10">90%</text>
+  <!-- Pass -->
+  <rect x="740" y="248" width="48" height="22" rx="4" fill="#E3FCEF"/>
+  <text x="751" y="263" fill="#006644" font-size="12" font-weight="bold">14 ✓</text>
+  <!-- Fail -->
+  <rect x="800" y="248" width="44" height="22" rx="4" fill="#FFEBE6"/>
+  <text x="810" y="263" fill="#BF2600" font-size="12" font-weight="bold">2 ✗</text>
+  <!-- Not Run -->
+  <rect x="860" y="248" width="60" height="22" rx="4" fill="#FFFAE6"/>
+  <text x="868" y="263" fill="#974F0C" font-size="12">2 WIP</text>
+  <!-- Health -->
+  <rect x="958" y="248" width="52" height="22" rx="11" fill="#36B37E"/>
+  <text x="968" y="263" fill="white" font-size="11" font-weight="bold">Good</text>
+  <!-- Jira link -->
+  <text x="1040" y="263" fill="#0052CC" font-size="18">↗</text>
+
+  <!-- ── EPIC ROW 2 — MySQL8 Load Testing (At Risk) ── -->
+  <rect x="24" y="302" width="1052" height="64" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="302" width="4" height="64" fill="#FF991F"/>
+  <text x="44" y="322" fill="#0052CC" font-size="13" font-weight="bold">MySQL8 Load Testing</text>
+  <text x="44" y="338" fill="#6B778C" font-size="11">SCHED-21572</text>
+  <text x="44" y="354" fill="#6B778C" font-size="10">Redline Engineers</text>
+  <rect x="330" y="312" width="80" height="22" rx="11" fill="#DEEBFF"/>
+  <text x="347" y="327" fill="#0052CC" font-size="11" font-weight="bold">In Review</text>
+  <text x="480" y="322" fill="#172B4D" font-size="12" font-weight="bold">8 / 10</text>
+  <rect x="480" y="328" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <rect x="480" y="328" width="80" height="7" rx="3" fill="#36B37E"/>
+  <text x="586" y="336" fill="#6B778C" font-size="10">80%</text>
+  <text x="610" y="322" fill="#172B4D" font-size="12" font-weight="bold">6 written</text>
+  <rect x="610" y="328" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <rect x="610" y="328" width="38" height="7" rx="3" fill="#FF991F"/>
+  <text x="716" y="336" fill="#6B778C" font-size="10">38%</text>
+  <rect x="740" y="312" width="48" height="22" rx="4" fill="#E3FCEF"/>
+  <text x="754" y="327" fill="#006644" font-size="12" font-weight="bold">3 ✓</text>
+  <rect x="800" y="312" width="44" height="22" rx="4" fill="#FFEBE6"/>
+  <text x="810" y="327" fill="#BF2600" font-size="12" font-weight="bold">2 ✗</text>
+  <rect x="860" y="312" width="60" height="22" rx="4" fill="#DFE1E6"/>
+  <text x="868" y="327" fill="#6B778C" font-size="12">1 TODO</text>
+  <rect x="952" y="312" width="64" height="22" rx="11" fill="#FF991F"/>
+  <text x="965" y="327" fill="white" font-size="11" font-weight="bold">At Risk</text>
+  <text x="1040" y="327" fill="#0052CC" font-size="18">↗</text>
+
+  <!-- ── EPIC ROW 3 — MySql 8 Big Bang (Blocked) ── -->
+  <rect x="24" y="366" width="1052" height="64" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="366" width="4" height="64" fill="#FF5630"/>
+  <text x="44" y="386" fill="#0052CC" font-size="13" font-weight="bold">MySql 8 Upgrade - Big Bang Approach</text>
+  <text x="44" y="402" fill="#6B778C" font-size="11">SCHED-22301</text>
+  <text x="44" y="418" fill="#6B778C" font-size="10">ThunderClock</text>
+  <rect x="330" y="376" width="136" height="22" rx="11" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="344" y="391" fill="#6B778C" font-size="11" font-weight="bold">Ready for Execution</text>
+  <text x="480" y="386" fill="#172B4D" font-size="12" font-weight="bold">0 / 14</text>
+  <rect x="480" y="392" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <text x="586" y="400" fill="#6B778C" font-size="10">0%</text>
+  <text x="610" y="386" fill="#6B778C" font-size="12">0 written</text>
+  <rect x="610" y="392" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <rect x="740" y="376" width="178" height="22" rx="4" fill="#DFE1E6"/>
+  <text x="796" y="391" fill="#6B778C" font-size="11">No test cases yet</text>
+  <rect x="952" y="376" width="68" height="22" rx="11" fill="#FF5630"/>
+  <text x="962" y="391" fill="white" font-size="11" font-weight="bold">Blocked</text>
+  <text x="1040" y="391" fill="#0052CC" font-size="18">↗</text>
+
+  <!-- ── EPIC ROW 4 — PHP-FPM NGINX (Good) ── -->
+  <rect x="24" y="430" width="1052" height="64" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="430" width="4" height="64" fill="#36B37E"/>
+  <text x="44" y="450" fill="#0052CC" font-size="13" font-weight="bold">Split PHP-FPM and NGINX Config</text>
+  <text x="44" y="466" fill="#6B778C" font-size="11">SCHED-6048</text>
+  <text x="44" y="482" fill="#6B778C" font-size="10">Code Titans</text>
+  <rect x="330" y="440" width="80" height="22" rx="11" fill="#E3FCEF"/>
+  <text x="344" y="455" fill="#006644" font-size="11" font-weight="bold">Testing</text>
+  <text x="480" y="450" fill="#172B4D" font-size="12" font-weight="bold">9 / 9</text>
+  <rect x="480" y="456" width="100" height="7" rx="3" fill="#36B37E"/>
+  <text x="586" y="464" fill="#6B778C" font-size="10">100%</text>
+  <text x="610" y="450" fill="#172B4D" font-size="12" font-weight="bold">10 written</text>
+  <rect x="610" y="456" width="100" height="7" rx="3" fill="#36B37E"/>
+  <text x="716" y="464" fill="#6B778C" font-size="10">100%</text>
+  <rect x="740" y="440" width="48" height="22" rx="4" fill="#E3FCEF"/>
+  <text x="751" y="455" fill="#006644" font-size="12" font-weight="bold">10 ✓</text>
+  <rect x="800" y="440" width="44" height="22" rx="4" fill="#E3FCEF"/>
+  <text x="810" y="455" fill="#006644" font-size="12" font-weight="bold">0 ✗</text>
+  <rect x="860" y="440" width="60" height="22" rx="4" fill="#E3FCEF"/>
+  <text x="868" y="455" fill="#006644" font-size="12">0 left</text>
+  <rect x="958" y="440" width="52" height="22" rx="11" fill="#36B37E"/>
+  <text x="968" y="455" fill="white" font-size="11" font-weight="bold">Good</text>
+  <text x="1040" y="455" fill="#0052CC" font-size="18">↗</text>
+
+  <!-- ── EPIC ROW 5 — Schema Caching (N/A) ── -->
+  <rect x="24" y="494" width="1052" height="64" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="24" y="494" width="4" height="64" fill="#DFE1E6"/>
+  <text x="44" y="514" fill="#97A0AF" font-size="13" font-weight="bold">Fix Schema Caching In Creds</text>
+  <text x="44" y="530" fill="#C1C7D0" font-size="11">SCHED-5795</text>
+  <text x="44" y="546" fill="#C1C7D0" font-size="10">Unassigned</text>
+  <rect x="330" y="504" width="130" height="22" rx="11" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="344" y="519" fill="#97A0AF" font-size="11">Ready for Dev</text>
+  <text x="480" y="514" fill="#97A0AF" font-size="12">0 / 8</text>
+  <rect x="480" y="520" width="100" height="7" rx="3" fill="#EBECF0"/>
+  <text x="610" y="514" fill="#97A0AF" font-size="12">0 written</text>
+  <rect x="740" y="504" width="178" height="22" rx="4" fill="#F4F5F7"/>
+  <text x="800" y="519" fill="#97A0AF" font-size="11">Not started</text>
+  <rect x="958" y="504" width="44" height="22" rx="11" fill="#DFE1E6"/>
+  <text x="968" y="519" fill="#6B778C" font-size="11">N/A</text>
+  <text x="1040" y="519" fill="#0052CC" font-size="18">↗</text>
+
+  <!-- ── ANNOTATIONS ── -->
+
+  <!-- Annotation: team name per epic -->
+  <line x1="44" y1="418" x2="24" y2="596" stroke="#6B778C" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="24" y="596" width="190" height="36" rx="6" fill="#F4F5F7" stroke="#6B778C" stroke-width="1"/>
+  <text x="36" y="612" fill="#6B778C" font-size="11" font-weight="bold">Team name visible per epic</text>
+  <text x="36" y="626" fill="#6B778C" font-size="11">(Code Titans, ThunderClock…)</text>
+
+  <!-- Annotation: click Jira link -->
+  <line x1="1046" y1="327" x2="1070" y2="596" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="940" y="596" width="150" height="36" rx="6" fill="#DEEBFF" stroke="#0052CC" stroke-width="1"/>
+  <text x="952" y="612" fill="#0052CC" font-size="11" font-weight="bold">Opens epic directly</text>
+  <text x="952" y="626" fill="#0052CC" font-size="11">in Jira (new tab)</text>
+
+  <!-- Annotation: test coverage bar -->
+  <line x1="660" y1="340" x2="500" y2="596" stroke="#6554C0" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="370" y="594" width="210" height="40" rx="6" fill="#EAE6FF" stroke="#6554C0" stroke-width="1"/>
+  <text x="382" y="610" fill="#403294" font-size="11" font-weight="bold">Coverage bar = Test issues</text>
+  <text x="382" y="624" fill="#403294" font-size="11">linked to epic via Jira links</text>
+
+  <!-- Summary Bar -->
+  <rect x="24" y="648" width="1052" height="56" rx="6" fill="#172B4D"/>
+  <text x="44" y="670" fill="white" font-size="12" font-weight="bold">PHP Upgrade 2025 — Summary</text>
+  <text x="44" y="688" fill="#A8C4F5" font-size="11">5 epics</text>
+  <rect x="200" y="658" width="1" height="36" fill="#344563"/>
+  <text x="216" y="670" fill="#A8C4F5" font-size="11">Avg Dev</text>
+  <text x="216" y="688" fill="white" font-size="16" font-weight="bold">68%</text>
+  <rect x="310" y="658" width="1" height="36" fill="#344563"/>
+  <text x="326" y="670" fill="#A8C4F5" font-size="11">Test Cases</text>
+  <text x="326" y="688" fill="white" font-size="16" font-weight="bold">34</text>
+  <rect x="420" y="658" width="1" height="36" fill="#344563"/>
+  <text x="436" y="670" fill="#A8C4F5" font-size="11">Pass Rate</text>
+  <text x="436" y="688" fill="#36B37E" font-size="16" font-weight="bold">79%</text>
+  <rect x="540" y="658" width="1" height="36" fill="#344563"/>
+  <text x="556" y="670" fill="#A8C4F5" font-size="11">Blocked Epics</text>
+  <text x="556" y="688" fill="#FF5630" font-size="16" font-weight="bold">1</text>
+  <rect x="660" y="658" width="1" height="36" fill="#344563"/>
+  <text x="676" y="670" fill="#A8C4F5" font-size="11">At Risk Epics</text>
+  <text x="676" y="688" fill="#FF991F" font-size="16" font-weight="bold">1</text>
+  <rect x="780" y="658" width="1" height="36" fill="#344563"/>
+  <text x="796" y="670" fill="#A8C4F5" font-size="11">Good Epics</text>
+  <text x="796" y="688" fill="#36B37E" font-size="16" font-weight="bold">2</text>
+
+</svg>

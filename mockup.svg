@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" font-family="Segoe UI, Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#F4F5F7"/>
+
+  <!-- Top Nav Bar -->
+  <rect width="1200" height="52" fill="#0052CC"/>
+  <text x="24" y="33" fill="white" font-size="18" font-weight="bold">Initiative Tracker</text>
+  <text x="900" y="33" fill="#A8C4F5" font-size="13">lmsportal.atlassian.net</text>
+  <rect x="1100" y="12" width="80" height="28" rx="4" fill="#0747A6"/>
+  <text x="1114" y="30" fill="white" font-size="12">Refresh</text>
+
+  <!-- Page Title -->
+  <text x="24" y="90" fill="#172B4D" font-size="22" font-weight="bold">Scheduling — Active Initiatives</text>
+  <text x="24" y="112" fill="#6B778C" font-size="13">4 initiatives · Last synced 2 min ago</text>
+
+  <!-- Legend -->
+  <rect x="900" y="70" width="12" height="12" rx="2" fill="#36B37E"/>
+  <text x="918" y="81" fill="#6B778C" font-size="12">On Track</text>
+  <rect x="980" y="70" width="12" height="12" rx="2" fill="#FF991F"/>
+  <text x="998" y="81" fill="#6B778C" font-size="12">At Risk</text>
+  <rect x="1050" y="70" width="12" height="12" rx="2" fill="#FF5630"/>
+  <text x="1068" y="81" fill="#6B778C" font-size="12">Blocked</text>
+  <rect x="1110" y="70" width="12" height="12" rx="2" fill="#DFE1E6"/>
+  <text x="1128" y="81" fill="#6B778C" font-size="12">N/A</text>
+
+  <!-- ============================================================ -->
+  <!-- INITIATIVE 1 — EXPANDED -->
+  <!-- ============================================================ -->
+  <rect x="16" y="128" width="1168" height="36" rx="6" fill="#DEEBFF"/>
+  <polygon points="28,144 38,138 38,150" fill="#0052CC"/>
+  <!-- collapse arrow (expanded) -->
+  <polygon points="28,150 44,150 36,142" fill="#0052CC"/>
+  <text x="52" y="152" fill="#0052CC" font-size="14" font-weight="bold">PHP Upgrade 2025</text>
+  <text x="52" y="152" fill="#0052CC" font-size="14" font-weight="bold">   </text>
+  <text x="280" y="152" fill="#6B778C" font-size="12">SCHED-19206</text>
+
+  <!-- Initiative summary chips -->
+  <rect x="400" y="136" width="90" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="420" y="150" fill="#006644" font-size="11" font-weight="bold">5 Epics</text>
+  <rect x="500" y="136" width="110" height="20" rx="10" fill="#FFFAE6"/>
+  <text x="515" y="150" fill="#974F0C" font-size="11">Dev: 60% done</text>
+  <rect x="620" y="136" width="130" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="635" y="150" fill="#006644" font-size="11">Tests: 78% pass</text>
+  <rect x="1120" y="136" width="52" height="20" rx="10" fill="#FF991F"/>
+  <text x="1130" y="150" fill="white" font-size="11" font-weight="bold">At Risk</text>
+
+  <!-- Epic column headers -->
+  <rect x="16" y="166" width="1168" height="24" fill="#EBECF0"/>
+  <text x="52" y="182" fill="#6B778C" font-size="11" font-weight="bold">EPIC</text>
+  <text x="420" y="182" fill="#6B778C" font-size="11" font-weight="bold">DEV STATUS</text>
+  <text x="580" y="182" fill="#6B778C" font-size="11" font-weight="bold">SUBTASKS</text>
+  <text x="700" y="182" fill="#6B778C" font-size="11" font-weight="bold">TEST COVERAGE</text>
+  <text x="880" y="182" fill="#6B778C" font-size="11" font-weight="bold">TEST EXECUTION</text>
+  <text x="1080" y="182" fill="#6B778C" font-size="11" font-weight="bold">HEALTH</text>
+
+  <!-- Epic Row 1 -->
+  <rect x="16" y="190" width="1168" height="44" rx="0" fill="white"/>
+  <rect x="16" y="233" width="1168" height="1" fill="#EBECF0"/>
+  <rect x="28" y="198" width="3" height="28" rx="2" fill="#36B37E"/>
+  <text x="40" y="210" fill="#172B4D" font-size="13" font-weight="bold">PHP Upgrade 2025</text>
+  <text x="40" y="226" fill="#6B778C" font-size="11">SCHED-19206</text>
+  <!-- Dev Status badge -->
+  <rect x="410" y="200" width="120" height="22" rx="11" fill="#E3FCEF"/>
+  <text x="428" y="215" fill="#006644" font-size="11" font-weight="bold">In Development</text>
+  <!-- Subtasks progress -->
+  <text x="580" y="210" fill="#172B4D" font-size="12">12 / 20</text>
+  <rect x="580" y="216" width="80" height="6" rx="3" fill="#EBECF0"/>
+  <rect x="580" y="216" width="48" height="6" rx="3" fill="#36B37E"/>
+  <!-- Test Coverage -->
+  <text x="700" y="210" fill="#172B4D" font-size="12">18 cases written</text>
+  <rect x="700" y="216" width="100" height="6" rx="3" fill="#EBECF0"/>
+  <rect x="700" y="216" width="90" height="6" rx="3" fill="#36B37E"/>
+  <!-- Test Execution -->
+  <rect x="880" y="200" width="50" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="893" y="213" fill="#006644" font-size="10" font-weight="bold">14 ✓</text>
+  <rect x="936" y="200" width="50" height="18" rx="4" fill="#FFEBE6"/>
+  <text x="951" y="213" fill="#BF2600" font-size="10" font-weight="bold">2 ✗</text>
+  <rect x="992" y="200" width="50" height="18" rx="4" fill="#FFFAE6"/>
+  <text x="1002" y="213" fill="#974F0C" font-size="10" font-weight="bold">2 WIP</text>
+  <!-- Health -->
+  <rect x="1080" y="202" width="52" height="20" rx="10" fill="#36B37E"/>
+  <text x="1089" y="216" fill="white" font-size="11" font-weight="bold">Good</text>
+
+  <!-- Epic Row 2 -->
+  <rect x="16" y="234" width="1168" height="44" fill="#FAFBFC"/>
+  <rect x="16" y="277" width="1168" height="1" fill="#EBECF0"/>
+  <rect x="28" y="242" width="3" height="28" rx="2" fill="#FF991F"/>
+  <text x="40" y="254" fill="#172B4D" font-size="13" font-weight="bold">MySQL8 Load Testing</text>
+  <text x="40" y="270" fill="#6B778C" font-size="11">SCHED-21572</text>
+  <rect x="410" y="244" width="80" height="22" rx="11" fill="#DEEBFF"/>
+  <text x="426" y="259" fill="#0052CC" font-size="11" font-weight="bold">In Review</text>
+  <text x="580" y="254" fill="#172B4D" font-size="12">8 / 10</text>
+  <rect x="580" y="260" width="80" height="6" rx="3" fill="#EBECF0"/>
+  <rect x="580" y="260" width="64" height="6" rx="3" fill="#36B37E"/>
+  <text x="700" y="254" fill="#172B4D" font-size="12">6 cases written</text>
+  <rect x="700" y="260" width="100" height="6" rx="3" fill="#EBECF0"/>
+  <rect x="700" y="260" width="40" height="6" rx="3" fill="#FF991F"/>
+  <!-- Test Execution -->
+  <rect x="880" y="244" width="50" height="18" rx="4" fill="#E3FCEF"/>
+  <text x="893" y="257" fill="#006644" font-size="10" font-weight="bold">3 ✓</text>
+  <rect x="936" y="244" width="50" height="18" rx="4" fill="#FFEBE6"/>
+  <text x="951" y="257" fill="#BF2600" font-size="10" font-weight="bold">2 ✗</text>
+  <rect x="992" y="244" width="50" height="18" rx="4" fill="#DFE1E6"/>
+  <text x="999" y="257" fill="#6B778C" font-size="10" font-weight="bold">1 TODO</text>
+  <rect x="1080" y="246" width="64" height="20" rx="10" fill="#FF991F"/>
+  <text x="1089" y="260" fill="white" font-size="11" font-weight="bold">At Risk</text>
+
+  <!-- Epic Row 3 -->
+  <rect x="16" y="278" width="1168" height="44" fill="white"/>
+  <rect x="16" y="321" width="1168" height="1" fill="#EBECF0"/>
+  <rect x="28" y="286" width="3" height="28" rx="2" fill="#FF5630"/>
+  <text x="40" y="298" fill="#172B4D" font-size="13" font-weight="bold">MySql 8 Upgrade - Big Bang Approach</text>
+  <text x="40" y="314" fill="#6B778C" font-size="11">SCHED-22301</text>
+  <rect x="410" y="288" width="130" height="22" rx="11" fill="#FFFAE6"/>
+  <text x="422" y="303" fill="#974F0C" font-size="11" font-weight="bold">Ready for Execution</text>
+  <text x="580" y="298" fill="#172B4D" font-size="12">0 / 14</text>
+  <rect x="580" y="304" width="80" height="6" rx="3" fill="#EBECF0"/>
+  <text x="700" y="298" fill="#6B778C" font-size="12">0 cases written</text>
+  <rect x="700" y="304" width="100" height="6" rx="3" fill="#EBECF0"/>
+  <rect x="880" y="288" width="80" height="18" rx="4" fill="#DFE1E6"/>
+  <text x="893" y="301" fill="#6B778C" font-size="10" font-weight="bold">Not started</text>
+  <rect x="1080" y="290" width="68" height="20" rx="10" fill="#FF5630"/>
+  <text x="1088" y="304" fill="white" font-size="11" font-weight="bold">Blocked</text>
+
+  <!-- ============================================================ -->
+  <!-- INITIATIVE 2 — COLLAPSED -->
+  <!-- ============================================================ -->
+  <rect x="16" y="338" width="1168" height="36" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+  <polygon points="28,352 38,356 28,360" fill="#6B778C"/>
+  <text x="52" y="362" fill="#172B4D" font-size="14" font-weight="bold">S3 Bucket Security Project</text>
+  <text x="310" y="362" fill="#6B778C" font-size="12">SCHED-4548</text>
+  <rect x="430" y="346" width="70" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="445" y="360" fill="#006644" font-size="11">3 Epics</text>
+  <rect x="510" y="346" width="110" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="525" y="360" fill="#006644" font-size="11">Dev: 85% done</text>
+  <rect x="630" y="346" width="130" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="645" y="360" fill="#006644" font-size="11">Tests: 92% pass</text>
+  <rect x="1120" y="346" width="52" height="20" rx="10" fill="#36B37E"/>
+  <text x="1129" y="360" fill="white" font-size="11" font-weight="bold">Good</text>
+
+  <!-- ============================================================ -->
+  <!-- INITIATIVE 3 — COLLAPSED -->
+  <!-- ============================================================ -->
+  <rect x="16" y="384" width="1168" height="36" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+  <polygon points="28,398 38,402 28,406" fill="#6B778C"/>
+  <text x="52" y="408" fill="#172B4D" font-size="14" font-weight="bold">Setup Kubernetes Foundations</text>
+  <text x="316" y="408" fill="#6B778C" font-size="12">SCHED-5679</text>
+  <rect x="430" y="392" width="70" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="445" y="406" fill="#006644" font-size="11">4 Epics</text>
+  <rect x="510" y="392" width="110" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="525" y="406" fill="#006644" font-size="11">Dev: 100% done</text>
+  <rect x="630" y="392" width="130" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="645" y="406" fill="#006644" font-size="11">Tests: 100% pass</text>
+  <rect x="1120" y="392" width="52" height="20" rx="10" fill="#36B37E"/>
+  <text x="1129" y="406" fill="white" font-size="11" font-weight="bold">Done</text>
+
+  <!-- ============================================================ -->
+  <!-- INITIATIVE 4 — COLLAPSED -->
+  <!-- ============================================================ -->
+  <rect x="16" y="430" width="1168" height="36" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+  <polygon points="28,444 38,448 28,452" fill="#6B778C"/>
+  <text x="52" y="454" fill="#172B4D" font-size="14" font-weight="bold">Self Scheduling Assignment</text>
+  <text x="298" y="454" fill="#6B778C" font-size="12">SCHED-2726</text>
+  <rect x="430" y="438" width="70" height="20" rx="10" fill="#FFFAE6"/>
+  <text x="445" y="452" fill="#974F0C" font-size="11">6 Epics</text>
+  <rect x="510" y="438" width="110" height="20" rx="10" fill="#FFFAE6"/>
+  <text x="525" y="452" fill="#974F0C" font-size="11">Dev: 30% done</text>
+  <rect x="630" y="438" width="130" height="20" rx="10" fill="#FFEBE6"/>
+  <text x="645" y="452" fill="#BF2600" font-size="11">Tests: 10% pass</text>
+  <rect x="1120" y="438" width="52" height="20" rx="10" fill="#FF991F"/>
+  <text x="1129" y="452" fill="white" font-size="11" font-weight="bold">At Risk</text>
+
+  <!-- ============================================================ -->
+  <!-- ANNOTATION CALLOUTS -->
+  <!-- ============================================================ -->
+
+  <!-- Callout 1 — Health Roll-up -->
+  <line x1="1080" y1="216" x2="1160" y2="530" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="1020" y="530" width="165" height="52" rx="6" fill="#DEEBFF" stroke="#0052CC" stroke-width="1"/>
+  <text x="1030" y="548" fill="#0052CC" font-size="11" font-weight="bold">Health = Dev % +</text>
+  <text x="1030" y="562" fill="#0052CC" font-size="11">Test pass rate combined</text>
+  <text x="1030" y="576" fill="#0052CC" font-size="11">auto-calculated</text>
+
+  <!-- Callout 2 — X-ray data -->
+  <line x1="992" y1="257" x2="880" y2="620" stroke="#6554C0" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="720" y="618" width="200" height="40" rx="6" fill="#EAE6FF" stroke="#6554C0" stroke-width="1"/>
+  <text x="730" y="634" fill="#403294" font-size="11" font-weight="bold">Pulled from X-ray Cloud API</text>
+  <text x="730" y="648" fill="#403294" font-size="11">Pass / Fail / WIP counts</text>
+
+  <!-- Callout 3 — Subtask progress -->
+  <line x1="620" y1="222" x2="420" y2="620" stroke="#36B37E" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="260" y="618" width="200" height="40" rx="6" fill="#E3FCEF" stroke="#36B37E" stroke-width="1"/>
+  <text x="270" y="634" fill="#006644" font-size="11" font-weight="bold">Pulled from Jira REST API</text>
+  <text x="270" y="648" fill="#006644" font-size="11">Sub-task done / total</text>
+
+  <!-- Callout 4 — Expand/Collapse -->
+  <line x1="40" y1="356" x2="80" y2="700" stroke="#FF991F" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="20" y="698" width="200" height="40" rx="6" fill="#FFFAE6" stroke="#FF991F" stroke-width="1"/>
+  <text x="30" y="714" fill="#974F0C" font-size="11" font-weight="bold">Click to expand / collapse</text>
+  <text x="30" y="728" fill="#974F0C" font-size="11">each initiative's epics</text>
+
+  <!-- ============================================================ -->
+  <!-- BOTTOM SUMMARY BAR -->
+  <!-- ============================================================ -->
+  <rect x="16" y="760" width="1168" height="60" rx="6" fill="#172B4D"/>
+  <text x="40" y="786" fill="white" font-size="13" font-weight="bold">Overall Summary</text>
+  <text x="40" y="806" fill="#A8C4F5" font-size="12">Across all initiatives</text>
+
+  <rect x="200" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="220" y="786" fill="#A8C4F5" font-size="11">Total Epics</text>
+  <text x="220" y="806" fill="white" font-size="18" font-weight="bold">18</text>
+
+  <rect x="310" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="330" y="786" fill="#A8C4F5" font-size="11">Avg Dev Progress</text>
+  <text x="330" y="806" fill="white" font-size="18" font-weight="bold">69%</text>
+
+  <rect x="440" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="460" y="786" fill="#A8C4F5" font-size="11">Test Cases Written</text>
+  <text x="460" y="806" fill="white" font-size="18" font-weight="bold">42</text>
+
+  <rect x="560" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="580" y="786" fill="#A8C4F5" font-size="11">Tests Passing</text>
+  <text x="580" y="806" fill="#36B37E" font-size="18" font-weight="bold">78%</text>
+
+  <rect x="680" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="700" y="786" fill="#A8C4F5" font-size="11">Initiatives On Track</text>
+  <text x="700" y="806" fill="#36B37E" font-size="18" font-weight="bold">2 / 4</text>
+
+  <rect x="810" y="770" width="1" height="40" fill="#344563"/>
+
+  <text x="830" y="786" fill="#A8C4F5" font-size="11">Blocked Epics</text>
+  <text x="830" y="806" fill="#FF5630" font-size="18" font-weight="bold">1</text>
+
+</svg>

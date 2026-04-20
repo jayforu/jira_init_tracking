@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" font-family="Segoe UI, Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="1100" height="620" fill="#F4F5F7"/>
+
+  <!-- Nav Bar -->
+  <rect width="1100" height="52" fill="#0052CC"/>
+  <text x="24" y="33" fill="white" font-size="17" font-weight="bold">Initiative Tracker</text>
+  <rect x="960" y="14" width="110" height="26" rx="4" fill="#0747A6"/>
+  <text x="975" y="31" fill="white" font-size="12">⚙ Settings</text>
+
+  <!-- Screen label -->
+  <rect x="0" y="52" width="1100" height="28" fill="#DEEBFF"/>
+  <text x="24" y="70" fill="#0052CC" font-size="12" font-weight="bold">SCREEN 1 OF 3 — Settings: Configure Tracked Projects</text>
+
+  <!-- Page content area -->
+  <rect x="24" y="96" width="1052" height="500" rx="6" fill="white" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Page title -->
+  <text x="48" y="134" fill="#172B4D" font-size="20" font-weight="bold">Tracked Projects</text>
+  <text x="48" y="154" fill="#6B778C" font-size="13">Add the Jira projects you want to monitor. Each project's initiatives will appear in the main dashboard.</text>
+
+  <!-- Divider -->
+  <line x1="48" y1="170" x2="1052" y2="170" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Add Project Form -->
+  <text x="48" y="200" fill="#172B4D" font-size="14" font-weight="bold">Add a Project</text>
+
+  <!-- Project Key input -->
+  <text x="48" y="228" fill="#6B778C" font-size="12">Project Key</text>
+  <rect x="48" y="234" width="180" height="36" rx="4" fill="white" stroke="#0052CC" stroke-width="2"/>
+  <text x="62" y="257" fill="#172B4D" font-size="14">SCHED</text>
+  <text x="200" y="257" fill="#CCCCCC" font-size="14">|</text>
+
+  <!-- Display Name input -->
+  <text x="252" y="228" fill="#6B778C" font-size="12">Display Name</text>
+  <rect x="252" y="234" width="240" height="36" rx="4" fill="white" stroke="#DFE1E6" stroke-width="1.5"/>
+  <text x="266" y="257" fill="#6B778C" font-size="14">e.g. Scheduling</text>
+
+  <!-- Validate hint -->
+  <text x="48" y="286" fill="#6B778C" font-size="11">Key must match exactly as it appears in Jira (e.g. SCHED, PHP, OPS)</text>
+
+  <!-- Add button -->
+  <rect x="508" y="234" width="100" height="36" rx="4" fill="#0052CC"/>
+  <text x="535" y="257" fill="white" font-size="13" font-weight="bold">+ Add</text>
+
+  <!-- Divider -->
+  <line x1="48" y1="306" x2="1052" y2="306" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Configured Projects Table -->
+  <text x="48" y="334" fill="#172B4D" font-size="14" font-weight="bold">Configured Projects</text>
+
+  <!-- Table header -->
+  <rect x="48" y="344" width="980" height="32" rx="4" fill="#F4F5F7"/>
+  <text x="68" y="364" fill="#6B778C" font-size="12" font-weight="bold">DISPLAY NAME</text>
+  <text x="300" y="364" fill="#6B778C" font-size="12" font-weight="bold">PROJECT KEY</text>
+  <text x="480" y="364" fill="#6B778C" font-size="12" font-weight="bold">INITIATIVES TRACKED</text>
+  <text x="700" y="364" fill="#6B778C" font-size="12" font-weight="bold">STATUS</text>
+  <text x="920" y="364" fill="#6B778C" font-size="12" font-weight="bold">ACTIONS</text>
+
+  <!-- Row 1 — Scheduling -->
+  <rect x="48" y="376" width="980" height="52" fill="white" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="48" y="376" width="4" height="52" fill="#36B37E"/>
+  <text x="68" y="397" fill="#172B4D" font-size="14" font-weight="bold">Scheduling</text>
+  <text x="68" y="415" fill="#6B778C" font-size="11">lmsportal.atlassian.net/projects/SCHED</text>
+  <text x="300" y="405" fill="#172B4D" font-size="14">SCHED</text>
+  <text x="480" y="405" fill="#172B4D" font-size="14">12 active</text>
+  <rect x="700" y="388" width="70" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="714" y="402" fill="#006644" font-size="11" font-weight="bold">Connected</text>
+  <!-- Remove button -->
+  <rect x="910" y="388" width="80" height="26" rx="4" fill="white" stroke="#FF5630" stroke-width="1"/>
+  <text x="928" y="405" fill="#FF5630" font-size="12">Remove</text>
+
+  <!-- Row 2 — PHP A -->
+  <rect x="48" y="428" width="980" height="52" fill="#FAFBFC" stroke="#DFE1E6" stroke-width="0.5"/>
+  <rect x="48" y="428" width="4" height="52" fill="#36B37E"/>
+  <text x="68" y="449" fill="#172B4D" font-size="14" font-weight="bold">PHP A</text>
+  <text x="68" y="467" fill="#6B778C" font-size="11">lmsportal.atlassian.net/projects/PHP</text>
+  <text x="300" y="457" fill="#172B4D" font-size="14">PHP</text>
+  <text x="480" y="457" fill="#172B4D" font-size="14">4 active</text>
+  <rect x="700" y="440" width="70" height="20" rx="10" fill="#E3FCEF"/>
+  <text x="714" y="454" fill="#006644" font-size="11" font-weight="bold">Connected</text>
+  <rect x="910" y="440" width="80" height="26" rx="4" fill="white" stroke="#FF5630" stroke-width="1"/>
+  <text x="928" y="457" fill="#FF5630" font-size="12">Remove</text>
+
+  <!-- Row 3 — being added (in-progress state) -->
+  <rect x="48" y="480" width="980" height="52" fill="#FFFAE6" stroke="#FF991F" stroke-width="0.5" stroke-dasharray="4,2"/>
+  <rect x="48" y="480" width="4" height="52" fill="#FF991F"/>
+  <text x="68" y="501" fill="#172B4D" font-size="14" font-weight="bold">Overhead</text>
+  <text x="68" y="519" fill="#6B778C" font-size="11">lmsportal.atlassian.net/projects/OPS</text>
+  <text x="300" y="509" fill="#172B4D" font-size="14">OPS</text>
+  <text x="480" y="509" fill="#6B778C" font-size="14">Validating...</text>
+  <rect x="700" y="492" width="80" height="20" rx="10" fill="#FFFAE6" stroke="#FF991F" stroke-width="1"/>
+  <text x="710" y="506" fill="#974F0C" font-size="11" font-weight="bold">Validating...</text>
+  <rect x="910" y="492" width="80" height="26" rx="4" fill="#F4F5F7" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="928" y="509" fill="#6B778C" font-size="12">Remove</text>
+
+  <!-- Callout: validating state -->
+  <line x1="782" y1="506" x2="870" y2="570" stroke="#FF991F" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="770" y="568" width="250" height="36" rx="6" fill="#FFFAE6" stroke="#FF991F" stroke-width="1"/>
+  <text x="782" y="582" fill="#974F0C" font-size="11" font-weight="bold">API call to confirm project exists</text>
+  <text x="782" y="596" fill="#974F0C" font-size="11">before saving to localStorage</text>
+
+  <!-- Nav arrow hint -->
+  <rect x="48" y="544" width="200" height="32" rx="6" fill="#0052CC"/>
+  <text x="64" y="564" fill="white" font-size="12" font-weight="bold">Go to Dashboard →</text>
+  <text x="260" y="564" fill="#6B778C" font-size="11">Takes you to the Initiative List for your first project</text>
+
+</svg>
