@@ -9,6 +9,10 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
 const adapter = new FileSync(path.join(dataDir, 'tracker.json'))
 const db = low(adapter)
 
-db.defaults({ projects: [], pinned_initiatives: [] }).write()
+db.defaults({
+  projects: [],
+  pinned_initiatives: [],
+  auth: {}
+}).write()
 
 module.exports = db

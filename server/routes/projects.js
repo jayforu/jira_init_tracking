@@ -1,15 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../db')
-const { JiraClient } = require('@local/jira-client')
-
-function getClient() {
-  return new JiraClient({
-    host: process.env.JIRA_HOST,
-    email: process.env.JIRA_EMAIL,
-    token: process.env.JIRA_TOKEN
-  })
-}
 
 router.get('/', (req, res) => {
   res.json(db.get('projects').value())
@@ -22,7 +13,7 @@ router.post('/', async (req, res) => {
   const upperKey = key.toUpperCase()
 
   try {
-    await getClient().getProject(upperKey)
+    await req.jira.getProject(upperKey)
   } catch {
     return res.status(404).json({ error: `Project "${upperKey}" not found in Jira` })
   }

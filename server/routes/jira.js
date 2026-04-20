@@ -1,14 +1,5 @@
 const express = require('express')
 const router = express.Router()
-const { JiraClient } = require('@local/jira-client')
-
-function getClient() {
-  return new JiraClient({
-    host: process.env.JIRA_HOST,
-    email: process.env.JIRA_EMAIL,
-    token: process.env.JIRA_TOKEN
-  })
-}
 
 const TEST_STATUS_MAP = {
   passed: 'pass', done: 'pass',
@@ -29,7 +20,7 @@ router.get('/initiatives', async (req, res) => {
   const jql = `project = ${project} AND issuetype = Initiative${donePart} ORDER BY created DESC`
 
   try {
-    const issues = await getClient().searchJQL(jql, ['summary', 'status', 'assignee'])
+    const issues = await req.jira.searchJQL(jql, ['summary', 'status', 'assignee'])
     res.json(issues.map(i => ({
       key: i.key,
       summary: i.fields.summary,
@@ -38,7 +29,7 @@ router.get('/initiatives', async (req, res) => {
       assignee: i.fields.assignee?.displayName || null
     })))
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.response?.data || err.message })
   }
 })
 
@@ -49,7 +40,7 @@ router.get('/epics', async (req, res) => {
   const jql = `parent = ${parent} AND issuetype = Epic ORDER BY created ASC`
 
   try {
-    const issues = await getClient().searchJQL(jql, ['summary', 'status', 'assignee', 'customfield_10014'])
+    const issues = await req.jira.searchJQL(jql, ['summary', 'status', 'assignee'])
     res.json(issues.map(i => ({
       key: i.key,
       summary: i.fields.summary,
@@ -58,7 +49,7 @@ router.get('/epics', async (req, res) => {
       assignee: i.fields.assignee?.displayName || null
     })))
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.response?.data || err.message })
   }
 })
 
@@ -69,12 +60,12 @@ router.get('/subtasks', async (req, res) => {
   const jql = `parent = ${parent} AND issuetype in (Story, Sub-task, Task)`
 
   try {
-    const issues = await getClient().searchJQL(jql, ['summary', 'status'])
+    const issues = await req.jira.searchJQL(jql, ['summary', 'status'])
     const total = issues.length
     const done = issues.filter(i => i.fields.status?.statusCategory?.name === 'Done').length
     res.json({ total, done })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.response?.data || err.message })
   }
 })
 
@@ -83,7 +74,7 @@ router.get('/tests', async (req, res) => {
   if (!epicKey) return res.status(400).json({ error: 'epicKey param required' })
 
   try {
-    const links = await getClient().getIssueLinks(epicKey)
+    const links = await req.jira.getIssueLinks(epicKey)
     const testKeys = links
       .filter(l => {
         const linked = l.inwardIssue || l.outwardIssue
@@ -94,7 +85,7 @@ router.get('/tests', async (req, res) => {
     if (!testKeys.length) return res.json({ total: 0, pass: 0, fail: 0, wip: 0, notrun: 0, tests: [] })
 
     const jql = `key in (${testKeys.join(',')})`
-    const issues = await getClient().searchJQL(jql, ['summary', 'status'])
+    const issues = await req.jira.searchJQL(jql, ['summary', 'status'])
 
     const counts = { pass: 0, fail: 0, wip: 0, notrun: 0 }
     const tests = issues.map(i => {
@@ -105,7 +96,7 @@ router.get('/tests', async (req, res) => {
 
     res.json({ total: issues.length, ...counts, tests })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.response?.data || err.message })
   }
 })
 
