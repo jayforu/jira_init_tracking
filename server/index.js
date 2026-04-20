@@ -9,7 +9,7 @@ app.use(cors())
 app.use(express.json())
 
 // Auth routes — no token required
-app.use('/auth', require('./auth'))
+app.use('/oauth/jira', require('./auth'))
 
 // All /api routes require a valid OAuth token
 app.use('/api', jiraClientMiddleware)
@@ -22,5 +22,5 @@ app.get('/api/health', (_, res) => res.json({ ok: true }))
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
-  console.log(`To connect Jira: http://localhost:${PORT}/auth/login`)
+  console.log(`To connect Jira: http://localhost:${PORT}/oauth/jira/login`)
 })
