@@ -30,5 +30,10 @@ export default function useProjects() {
     setProjects(p => p.filter(pr => pr.key !== key))
   }
 
-  return { projects, loading, error, addProject, removeProject, reload: load }
+  const updateProject = async (key, updates) => {
+    const { data } = await axios.patch(`/api/projects/${key}`, updates)
+    setProjects(p => p.map(pr => pr.key === key ? data : pr))
+  }
+
+  return { projects, loading, error, addProject, removeProject, updateProject, reload: load }
 }

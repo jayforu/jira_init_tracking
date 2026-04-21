@@ -1,8 +1,11 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import useProjects from '../hooks/useProjects'
 import usePins from '../hooks/usePins'
 import useInitiatives from '../hooks/useInitiatives'
+import useSyncStatus from '../hooks/useSyncStatus'
+import usePIAssignments from '../hooks/usePIAssignments'
+import usePIs from '../hooks/usePIs'
 import HealthChip from '../components/HealthChip'
 import SummaryBar from '../components/SummaryBar'
 
@@ -21,18 +24,29 @@ export default function InitiativeListPage() {
   const { projects, loading: projLoading } = useProjects()
   const [activeProject, setActiveProject] = useState(null)
   const [search, setSearch] = useState('')
-  const [pinnedOnly, setPinnedOnly] = useState(true)
+  const [pinnedOnly, setPinnedOnly] = useState(false)
   const [showDone, setShowDone] = useState(false)
   const [showAll, setShowAll] = useState(false)
 
   const currentProject = activeProject || projects[0]?.key
-  const { initiatives, loading, error, lastSynced, reload } = useInitiatives(currentProject, showDone)
+  const { initiatives, loading, error, reload } = useInitiatives(currentProject, showDone)
   const { pins, pin, unpin, isPinned } = usePins(currentProject)
+  const { syncState, triggerSync } = useSyncStatus(currentProject)
+  const { piByInitiative, piIdByInitiative, assignToPI } = usePIAssignments()
+  const { pis } = usePIs()
+
+  // Reload initiatives after sync completes
+  useEffect(() => {
+    if (syncState?.status === 'idle' && syncState?.last_synced_at) reload()
+  }, [syncState?.status, syncState?.last_synced_at])
 
   const filtered = useMemo(() => {
     return initiatives.filter(i => {
       if (!showDone && i.statusCategory === 'Done') return false
-      if (search && !i.summary.toLowerCase().includes(search.toLowerCase())) return false
+      if (search) {
+        const q = search.toLowerCase()
+        if (!i.summary.toLowerCase().includes(q) && !i.key.toLowerCase().includes(q)) return false
+      }
       return true
     })
   }, [initiatives, search, showDone])
@@ -86,10 +100,18 @@ export default function InitiativeListPage() {
             </h1>
             <span className="page-header__sub">
               {pins.length} tracked · {initiatives.length} total
-              {lastSynced && ` · Last synced ${timeSince(lastSynced)}`}
+              {syncState?.last_synced_at && ` · Synced ${timeSince(new Date(syncState.last_synced_at))}`}
+              {syncState?.status === 'error' && <span style={{ color: '#FF5630' }}> · Sync error</span>}
             </span>
           </div>
-          <button className="btn btn--ghost btn--sm" onClick={reload}>↺ Refresh</button>
+          <button
+            className="btn btn--ghost btn--sm"
+            onClick={triggerSync}
+            disabled={syncState?.status === 'syncing'}
+            title={syncState?.error || undefined}
+          >
+            {syncState?.status === 'syncing' ? '⟳ Syncing…' : '⟳ Sync Jira'}
+          </button>
         </div>
 
         <div className="toolbar">
@@ -117,40 +139,46 @@ export default function InitiativeListPage() {
               <tr>
                 <th style={{ width: 32 }}></th>
                 <th>Initiative</th>
-                <th>Epics</th>
-                <th>Dev Progress</th>
-                <th>Tests</th>
-                <th>Health</th>
+                <th>Assignee</th>
+                <th>Status</th>
+                <th style={{ width: 160 }}>PI</th>
               </tr>
             </thead>
             <tbody>
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#6B778C' }}>
+                  <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#6B778C' }}>
                     {pinnedOnly ? 'No pinned initiatives. Click 📌 to pin one.' : 'No initiatives found.'}
                   </td>
                 </tr>
               )}
 
               {pinned.map(i => (
-                <InitiativeRow key={i.key} initiative={i} pinned={true} onPin={togglePin} onClick={() => navigate(`/initiative/${i.key}`)} />
+                <InitiativeRow
+                  key={i.key} initiative={i} pinned={true}
+                  onPin={togglePin} onClick={() => navigate(`/initiative/${i.key}`)}
+                  piName={piByInitiative[i.key]}
+                  currentPiId={piIdByInitiative[i.key]}
+                  pis={pis}
+                  onAssignPI={(piId) => assignToPI(i.key, currentProject, piId)}
+                />
               ))}
 
               {!pinnedOnly && unpinned.length > 0 && (
                 <>
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={5}>
                       <div style={{ padding: '6px 12px', fontSize: 11, color: '#6B778C', fontWeight: 700, background: '#F4F5F7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         All Initiatives ({unpinned.length})
                       </div>
                     </td>
                   </tr>
                   {(showAll ? unpinned : unpinned.slice(0, 5)).map(i => (
-                    <InitiativeRow key={i.key} initiative={i} pinned={false} onPin={togglePin} onClick={() => navigate(`/initiative/${i.key}`)} dimmed />
+                    <InitiativeRow key={i.key} initiative={i} pinned={false} onPin={togglePin} onClick={() => navigate(`/initiative/${i.key}`)} dimmed piName={piByInitiative[i.key]} />
                   ))}
                   {!showAll && unpinned.length > 5 && (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={5}>
                         <div className="show-more" onClick={() => setShowAll(true)}>
                           Show {unpinned.length - 5} more ↓
                         </div>
@@ -162,7 +190,7 @@ export default function InitiativeListPage() {
 
               {pinnedOnly && unpinned.length > 0 && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={5}>
                     <div className="show-more" onClick={() => setPinnedOnly(false)}>
                       Show all {unpinned.length} more initiatives ↓
                     </div>
@@ -179,8 +207,30 @@ export default function InitiativeListPage() {
   )
 }
 
-function InitiativeRow({ initiative, pinned, onPin, onClick, dimmed }) {
-  const { key, summary, status } = initiative
+const STATUS_COLORS = {
+  'In Development': { bg: '#DEEBFF', color: '#0052CC' },
+  'Done':           { bg: '#E3FCEF', color: '#006644' },
+  'Blocked':        { bg: '#FFEBE6', color: '#BF2600' },
+  'At Risk':        { bg: '#FFFAE6', color: '#974F0C' },
+  'Backlog':        { bg: '#EBECF0', color: '#42526E' },
+  'In Review':      { bg: '#EAE6FF', color: '#403294' },
+}
+
+function InitiativeRow({ initiative, pinned, onPin, onClick, dimmed, piName, currentPiId, pis, onAssignPI }) {
+  const { key, summary, status, assignee } = initiative
+  const badge = STATUS_COLORS[status] || { bg: '#EBECF0', color: '#42526E' }
+  const [saving, setSaving] = useState(false)
+
+  const handlePiChange = async (e) => {
+    e.stopPropagation()
+    setSaving(true)
+    try {
+      await onAssignPI(e.target.value || null)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <tr className={dimmed ? 'dimmed' : ''} style={{ cursor: 'pointer' }} onClick={onClick}>
       <td style={{ padding: '0 0 0 8px' }}>
@@ -189,23 +239,41 @@ function InitiativeRow({ initiative, pinned, onPin, onClick, dimmed }) {
         </button>
       </td>
       <td>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 12px 12px 0' }}>
-          <div style={{ width: 4, minHeight: 44, borderRadius: 2, background: '#DFE1E6', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 0' }}>
+          <div style={{ width: 3, minHeight: 32, borderRadius: 2, background: badge.color, flexShrink: 0, opacity: 0.4 }} />
           <div>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>{summary}</div>
-            <div style={{ fontSize: 11, color: '#6B778C' }}>{key}</div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{summary}</div>
+            <div style={{ fontSize: 11, color: '#6B778C', marginTop: 1 }}>{key}</div>
           </div>
         </div>
       </td>
-      <td style={{ padding: '12px' }}>—</td>
-      <td style={{ padding: '12px' }}>—</td>
-      <td style={{ padding: '12px' }}>—</td>
-      <td style={{ padding: '12px' }}>
-        <span style={{
-          display: 'inline-block', padding: '3px 10px', borderRadius: 12,
-          fontSize: 11, fontWeight: 700,
-          background: '#DEEBFF', color: '#0052CC'
-        }}>{status}</span>
+      <td style={{ padding: '8px 12px', fontSize: 12, color: '#42526E' }}>
+        {assignee || <span style={{ color: '#97A0AF' }}>Unassigned</span>}
+      </td>
+      <td style={{ padding: '8px 12px' }}>
+        <span style={{ display: 'inline-block', padding: '2px 9px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: badge.bg, color: badge.color }}>
+          {status}
+        </span>
+      </td>
+      <td style={{ padding: '8px 12px' }} onClick={e => e.stopPropagation()}>
+        {pinned && pis ? (
+          <select
+            className="pi-select"
+            value={currentPiId || ''}
+            onChange={handlePiChange}
+            disabled={saving}
+            title="Assign to a Program Increment"
+          >
+            <option value="">— No PI —</option>
+            {pis.map(pi => (
+              <option key={pi.id} value={pi.id}>{pi.name}</option>
+            ))}
+          </select>
+        ) : (
+          piName
+            ? <span style={{ fontSize: 11, background: '#EAE6FF', color: '#403294', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>{piName}</span>
+            : <span style={{ color: '#DFE1E6', fontSize: 11 }}>—</span>
+        )}
       </td>
     </tr>
   )

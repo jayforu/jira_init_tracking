@@ -1,0 +1,207 @@
+<svg width="960" height="500" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+<defs>
+  <clipPath id="c0"><rect x="330" y="110" width="326" height="36" rx="6"/></clipPath>
+  <clipPath id="c1"><rect x="267" y="182" width="445" height="36" rx="6"/></clipPath>
+  <clipPath id="c2"><rect x="249" y="254" width="352" height="36" rx="6"/></clipPath>
+  <clipPath id="c3"><rect x="381" y="326" width="385" height="36" rx="6"/></clipPath>
+  <clipPath id="c4"><rect x="432" y="398" width="448" height="36" rx="6"/></clipPath>
+</defs>
+
+<!-- Background -->
+<rect width="960" height="500" fill="#f1f5f9" rx="16"/>
+
+<!-- Header -->
+<rect width="960" height="64" fill="#0f172a" rx="16"/>
+<rect y="50" width="960" height="14" fill="#0f172a"/>
+<text x="24" y="36" fill="white" font-size="19" font-weight="700" letter-spacing="-0.5">Initiative Release Timeline</text>
+<text x="24" y="55" fill="#475569" font-size="12">Q1–Q2 2026  ·  Sorted by release readiness score  ·  Today: Apr 21</text>
+
+<!-- Column header bar -->
+<rect x="0" y="64" width="960" height="28" fill="#1e293b"/>
+
+<!-- Panel separators -->
+<line x1="216" y1="92" x2="216" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="880" y1="64" x2="880" y2="452" stroke="#334155" stroke-width="1"/>
+
+<!-- Column headers -->
+<text x="28" y="83" fill="#64748b" font-size="10" font-weight="700" letter-spacing="0.8">INITIATIVE</text>
+<text x="222" y="83" fill="#64748b" font-size="10">JAN</text>
+<text x="333" y="83" fill="#64748b" font-size="10">FEB</text>
+<text x="435" y="83" fill="#64748b" font-size="10">MAR</text>
+<text x="549" y="83" fill="#64748b" font-size="10">APR</text>
+<text x="659" y="83" fill="#64748b" font-size="10">MAY</text>
+<text x="772" y="83" fill="#64748b" font-size="10">JUN</text>
+<text x="920" y="80" fill="#64748b" font-size="10" font-weight="700" letter-spacing="0.5" text-anchor="middle">SCORE</text>
+<text x="920" y="91" fill="#475569" font-size="9" text-anchor="middle">readiness</text>
+
+<!-- Vertical month grid lines -->
+<line x1="330" y1="92" x2="330" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="432" y1="92" x2="432" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="546" y1="92" x2="546" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="656" y1="92" x2="656" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="770" y1="92" x2="770" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+
+<!-- Row backgrounds -->
+<rect x="0" y="92"  width="960" height="72" fill="white"/>
+<rect x="0" y="164" width="960" height="72" fill="#fafafa"/>
+<rect x="0" y="236" width="960" height="72" fill="white"/>
+<rect x="0" y="308" width="960" height="72" fill="#fafafa"/>
+<rect x="0" y="380" width="960" height="72" fill="white"/>
+
+<!-- Health left borders -->
+<rect x="0" y="92"  width="5" height="72" fill="#22c55e"/>
+<rect x="0" y="164" width="5" height="72" fill="#f59e0b"/>
+<rect x="0" y="236" width="5" height="72" fill="#f59e0b"/>
+<rect x="0" y="308" width="5" height="72" fill="#f59e0b"/>
+<rect x="0" y="380" width="5" height="72" fill="#ef4444"/>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ROW 0 · Auth & Security Overhaul · Good · Score 93   -->
+<!-- start=Feb1(d31,x=330) end=Apr30(d120,x=656) barW=326 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<circle cx="22" cy="128" r="6" fill="#22c55e"/>
+<text x="36" y="124" fill="#0f172a" font-size="13" font-weight="600">Auth &amp; Security Overhaul</text>
+<text x="36" y="141" fill="#64748b" font-size="11">4 epics · Good</text>
+
+<rect x="330" y="110" width="326" height="36" rx="6" fill="#dcfce7"/>
+<rect x="330" y="110" width="310" height="24" rx="5" fill="#22c55e" opacity="0.9" clip-path="url(#c0)"/>
+<rect x="330" y="134" width="293" height="12" rx="4" fill="#15803d" clip-path="url(#c0)"/>
+<text x="474" y="126" fill="white" font-size="11" font-weight="700" text-anchor="middle">dev 95%</text>
+<text x="460" y="143" fill="#14532d" font-size="10" font-weight="600" text-anchor="middle">test 90%</text>
+
+<line x1="656" y1="107" x2="656" y2="149" stroke="#16a34a" stroke-width="2"/>
+<rect x="659" y="115" width="76" height="20" rx="10" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+<text x="697" y="129" fill="#15803d" font-size="10" font-weight="700" text-anchor="middle">9 days left</text>
+
+<circle cx="920" cy="128" r="24" fill="#22c55e"/>
+<text x="920" y="133" fill="white" font-size="16" font-weight="700" text-anchor="middle">93</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ROW 1 · Mobile App Revamp · At Risk · Score 72        -->
+<!-- start=Jan15(d14,x=267) end=May15(d135,x=712) barW=445 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<circle cx="22" cy="200" r="6" fill="#f59e0b"/>
+<text x="36" y="196" fill="#0f172a" font-size="13" font-weight="600">Mobile App Revamp</text>
+<text x="36" y="213" fill="#64748b" font-size="11">7 epics · At Risk</text>
+
+<rect x="267" y="182" width="445" height="36" rx="6" fill="#fef9c3"/>
+<rect x="267" y="182" width="378" height="24" rx="5" fill="#f59e0b" opacity="0.9" clip-path="url(#c1)"/>
+<rect x="267" y="206" width="320" height="12" rx="4" fill="#d97706" clip-path="url(#c1)"/>
+<text x="455" y="198" fill="white" font-size="11" font-weight="700" text-anchor="middle">dev 85%</text>
+<text x="425" y="215" fill="#92400e" font-size="10" font-weight="600" text-anchor="middle">test 72%</text>
+
+<line x1="712" y1="179" x2="712" y2="221" stroke="#d97706" stroke-width="2"/>
+<rect x="715" y="188" width="80" height="20" rx="10" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="755" y="202" fill="#b45309" font-size="10" font-weight="700" text-anchor="middle">24 days left</text>
+
+<circle cx="920" cy="200" r="24" fill="#f59e0b"/>
+<text x="920" y="205" fill="white" font-size="16" font-weight="700" text-anchor="middle">72</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ROW 2 · Analytics Dashboard · At Risk + OVERDUE · 61  -->
+<!-- start=Jan10(d9,x=249) end=Apr15(d105,x=601) barW=352  -->
+<!-- today=Apr21(d111,x=623) → 6 days overdue              -->
+<!-- ══════════════════════════════════════════════════════ -->
+<circle cx="22" cy="272" r="6" fill="#f59e0b"/>
+<text x="36" y="268" fill="#0f172a" font-size="13" font-weight="600">Analytics Dashboard</text>
+<text x="36" y="285" fill="#64748b" font-size="11">5 epics · At Risk · <tspan fill="#ef4444" font-weight="700">6 days overdue</tspan></text>
+
+<rect x="249" y="254" width="352" height="36" rx="6" fill="#fef9c3"/>
+<rect x="249" y="254" width="274" height="24" rx="5" fill="#f59e0b" opacity="0.9" clip-path="url(#c2)"/>
+<rect x="249" y="278" width="229" height="12" rx="4" fill="#d97706" clip-path="url(#c2)"/>
+<text x="384" y="270" fill="white" font-size="11" font-weight="700" text-anchor="middle">dev 78%</text>
+<text x="361" y="287" fill="#92400e" font-size="10" font-weight="600" text-anchor="middle">test 65%</text>
+
+<!-- Overdue zone: bar end (601) → today (623) -->
+<rect x="601" y="254" width="22" height="36" fill="#ef4444" opacity="0.2"/>
+<line x1="601" y1="251" x2="601" y2="293" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,2"/>
+
+<!-- Overdue badge after today line -->
+<rect x="626" y="259" width="96" height="20" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+<text x="674" y="273" fill="#dc2626" font-size="10" font-weight="700" text-anchor="middle">⚠ 6 days overdue</text>
+
+<circle cx="920" cy="272" r="24" fill="#f59e0b"/>
+<text x="920" y="277" fill="white" font-size="16" font-weight="700" text-anchor="middle">61</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ROW 3 · API Gateway Migration · At Risk · Score 48    -->
+<!-- start=Feb15(d45,x=381) end=May30(d150,x=766) barW=385 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<circle cx="22" cy="344" r="6" fill="#f59e0b"/>
+<text x="36" y="340" fill="#0f172a" font-size="13" font-weight="600">API Gateway Migration</text>
+<text x="36" y="357" fill="#64748b" font-size="11">6 epics · At Risk</text>
+
+<rect x="381" y="326" width="385" height="36" rx="6" fill="#fef9c3"/>
+<rect x="381" y="326" width="231" height="24" rx="5" fill="#f59e0b" opacity="0.9" clip-path="url(#c3)"/>
+<rect x="381" y="350" width="154" height="12" rx="4" fill="#d97706" clip-path="url(#c3)"/>
+<text x="495" y="342" fill="white" font-size="11" font-weight="700" text-anchor="middle">dev 60%</text>
+<text x="456" y="359" fill="#92400e" font-size="10" font-weight="600" text-anchor="middle">test 40%</text>
+
+<line x1="766" y1="323" x2="766" y2="365" stroke="#d97706" stroke-width="2"/>
+<rect x="769" y="332" width="80" height="20" rx="10" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="809" y="346" fill="#b45309" font-size="10" font-weight="700" text-anchor="middle">39 days left</text>
+
+<circle cx="920" cy="344" r="24" fill="#ef4444"/>
+<text x="920" y="349" fill="white" font-size="16" font-weight="700" text-anchor="middle">48</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ROW 4 · Data Pipeline v2 · Blocked · Score 28        -->
+<!-- start=Mar1(d59,x=432) end=Jun30(d181,x=880) barW=448  -->
+<!-- ══════════════════════════════════════════════════════ -->
+<circle cx="22" cy="416" r="6" fill="#ef4444"/>
+<text x="36" y="412" fill="#0f172a" font-size="13" font-weight="600">Data Pipeline v2</text>
+<text x="36" y="429" fill="#64748b" font-size="11">8 epics · Blocked</text>
+
+<rect x="432" y="398" width="448" height="36" rx="6" fill="#fee2e2"/>
+<rect x="432" y="398" width="202" height="24" rx="5" fill="#ef4444" opacity="0.85" clip-path="url(#c4)"/>
+<rect x="432" y="422" width="90"  height="12" rx="4" fill="#b91c1c" clip-path="url(#c4)"/>
+<text x="532" y="414" fill="white" font-size="11" font-weight="700" text-anchor="middle">dev 45%</text>
+<text x="475" y="431" fill="#7f1d1d" font-size="10" font-weight="600" text-anchor="middle">test 20%</text>
+
+<!-- Badge inside bar (end is at right edge x=880) -->
+<rect x="790" y="404" width="80" height="20" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+<text x="830" y="418" fill="#dc2626" font-size="10" font-weight="700" text-anchor="middle">70 days left</text>
+
+<circle cx="920" cy="416" r="24" fill="#ef4444"/>
+<text x="920" y="421" fill="white" font-size="16" font-weight="700" text-anchor="middle">28</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TODAY LINE  Apr 21 = day 111 = x=623                 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<line x1="623" y1="64" x2="623" y2="452" stroke="#6366f1" stroke-width="2" stroke-dasharray="5,3"/>
+<rect x="604" y="66" width="38" height="20" rx="4" fill="#6366f1"/>
+<text x="623" y="80" fill="white" font-size="10" font-weight="700" text-anchor="middle">TODAY</text>
+<rect x="604" y="434" width="38" height="16" rx="4" fill="#6366f1" opacity="0.15"/>
+<text x="623" y="446" fill="#6366f1" font-size="9" font-weight="600" text-anchor="middle">Apr 21</text>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- LEGEND                                                -->
+<!-- ══════════════════════════════════════════════════════ -->
+<rect x="0" y="452" width="960" height="48" fill="#1e293b" rx="16"/>
+<rect y="452" width="960" height="16" fill="#1e293b"/>
+
+<!-- Dev bar swatch (using green as example) -->
+<rect x="24" y="466" width="24" height="14" rx="3" fill="#22c55e" opacity="0.85"/>
+<text x="54" y="477" fill="#94a3b8" font-size="11">Dev completion (upper)</text>
+
+<!-- Test swatch -->
+<rect x="196" y="470" width="24" height="9" rx="3" fill="#15803d"/>
+<text x="226" y="479" fill="#94a3b8" font-size="11">Test pass rate (lower strip)</text>
+
+<!-- Health dots -->
+<circle cx="390" cy="474" r="5" fill="#22c55e"/>
+<text x="402" y="478" fill="#94a3b8" font-size="11">Good</text>
+<circle cx="450" cy="474" r="5" fill="#f59e0b"/>
+<text x="462" y="478" fill="#94a3b8" font-size="11">At Risk</text>
+<circle cx="520" cy="474" r="5" fill="#ef4444"/>
+<text x="532" y="478" fill="#94a3b8" font-size="11">Blocked</text>
+
+<!-- Red overdue zone swatch -->
+<rect x="600" y="467" width="16" height="14" rx="2" fill="#ef4444" opacity="0.2"/>
+<line x1="608" y1="465" x2="608" y2="483" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="622" y="478" fill="#94a3b8" font-size="11">Overdue zone</text>
+
+<!-- Score note -->
+<text x="730" y="474" fill="#475569" font-size="11">Score = dev% + test% weighted by health</text>
+
+</svg>

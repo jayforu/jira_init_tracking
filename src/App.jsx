@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import SettingsPage from './pages/SettingsPage'
 import InitiativeListPage from './pages/InitiativeListPage'
 import InitiativeDetailPage from './pages/InitiativeDetailPage'
+import ExecutiveDashboardPage from './pages/ExecutiveDashboardPage'
+import PIBoardPage from './pages/PIBoardPage'
 import Nav from './components/Nav'
 import AuthGuard from './components/AuthGuard'
 
@@ -14,6 +16,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<InitiativeListPage />} />
           <Route path="/initiative/:key" element={<InitiativeDetailPage />} />
+          <Route path="/executive" element={<ExecutiveDashboardPage />} />
+          <Route path="/pi" element={<PIBoardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

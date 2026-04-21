@@ -12,7 +12,13 @@ const db = low(adapter)
 db.defaults({
   projects: [],
   pinned_initiatives: [],
-  auth: {}
+  auth: {},
+  initiatives: [],
+  epics: [],
+  sync_state: {},
+  pis: [],
+  pi_initiatives: [],
+  pi_epics: []
 }).write()
 
 module.exports = db

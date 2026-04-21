@@ -1,26 +1,28 @@
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 
-export default function useInitiativeDetail(initiativeKey) {
-  const [epics, setEpics] = useState([])
+export default function useExecutiveDashboard(projectKey, includeDone = false) {
+  const [initiatives, setInitiatives] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const load = useCallback(async () => {
-    if (!initiativeKey) return
+    if (!projectKey) return
     setLoading(true)
     setError(null)
     try {
-      const { data } = await axios.get(`/api/jira/epics?parent=${initiativeKey}`)
-      setEpics(data)
+      const { data } = await axios.get(
+        `/api/executive?project=${projectKey}&includeDone=${includeDone}`
+      )
+      setInitiatives(data)
     } catch (e) {
       setError(e.response?.data?.error || e.message)
     } finally {
       setLoading(false)
     }
-  }, [initiativeKey])
+  }, [projectKey, includeDone])
 
   useEffect(() => { load() }, [load])
 
-  return { epics, loading, error, reload: load }
+  return { initiatives, loading, error, reload: load }
 }

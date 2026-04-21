@@ -1,102 +1,51 @@
 const express = require('express')
 const router = express.Router()
+const db = require('../db')
 
-const TEST_STATUS_MAP = {
-  passed: 'pass', done: 'pass',
-  failed: 'fail',
-  'in progress': 'wip', executing: 'wip',
-  'to do': 'notrun', open: 'notrun'
-}
-
-function mapTestStatus(statusName) {
-  return TEST_STATUS_MAP[statusName.toLowerCase()] || 'notrun'
-}
-
-router.get('/initiatives', async (req, res) => {
+// GET /api/jira/initiatives?project=X&includeDone=true
+router.get('/initiatives', (req, res) => {
   const { project, includeDone } = req.query
   if (!project) return res.status(400).json({ error: 'project param required' })
 
-  const donePart = includeDone === 'true' ? '' : ' AND statusCategory != Done'
-  const jql = `project = ${project} AND issuetype = Initiative${donePart} ORDER BY created DESC`
-
-  try {
-    const issues = await req.jira.searchJQL(jql, ['summary', 'status', 'assignee'])
-    res.json(issues.map(i => ({
-      key: i.key,
-      summary: i.fields.summary,
-      status: i.fields.status?.name,
-      statusCategory: i.fields.status?.statusCategory?.name,
-      assignee: i.fields.assignee?.displayName || null
-    })))
-  } catch (err) {
-    res.status(500).json({ error: err.response?.data || err.message })
+  let initiatives = db.get('initiatives').filter({ project_key: project }).value()
+  if (includeDone !== 'true') {
+    initiatives = initiatives.filter(i => i.statusCategory !== 'Done')
   }
+  res.json(initiatives)
 })
 
-router.get('/epics', async (req, res) => {
+// GET /api/jira/epics?parent=X — returns epics pre-enriched with subtasks, tests, health
+router.get('/epics', (req, res) => {
   const { parent } = req.query
   if (!parent) return res.status(400).json({ error: 'parent param required' })
 
-  const jql = `parent = ${parent} AND issuetype = Epic ORDER BY created ASC`
-
-  try {
-    const issues = await req.jira.searchJQL(jql, ['summary', 'status', 'assignee'])
-    res.json(issues.map(i => ({
-      key: i.key,
-      summary: i.fields.summary,
-      status: i.fields.status?.name,
-      statusCategory: i.fields.status?.statusCategory?.name,
-      assignee: i.fields.assignee?.displayName || null
-    })))
-  } catch (err) {
-    res.status(500).json({ error: err.response?.data || err.message })
-  }
+  const epics = db.get('epics').filter({ initiative_key: parent }).value()
+  res.json(epics)
 })
 
-router.get('/subtasks', async (req, res) => {
-  const { parent } = req.query
-  if (!parent) return res.status(400).json({ error: 'parent param required' })
-
-  const jql = `parent = ${parent} AND issuetype in (Story, Sub-task, Task)`
-
+// GET /api/jira/debug/:issueKey — inspect raw fields and issuelinks of any issue
+router.get('/debug/:issueKey', async (req, res) => {
   try {
-    const issues = await req.jira.searchJQL(jql, ['summary', 'status'])
-    const total = issues.length
-    const done = issues.filter(i => i.fields.status?.statusCategory?.name === 'Done').length
-    res.json({ total, done })
+    const issue = await req.jira.getIssue(req.params.issueKey, [])
+    const results = {}
+    const tryJQL = async (label, jql) => {
+      try {
+        const issues = await req.jira.searchJQL(jql, ['summary', 'status', 'issuetype'])
+        results[label] = { count: issues.length, items: issues.map(i => ({ key: i.key, type: i.fields.issuetype?.name, status: i.fields.status?.name })) }
+      } catch (err) {
+        results[label] = { error: err.response?.data?.errorMessages?.[0] || err.message }
+      }
+    }
+
+    await Promise.all([
+      tryJQL('xray_testExecutions',   `issue in testExecutions("${req.params.issueKey}")`),
+      tryJQL('xray_testPlans',        `issue in testPlans("${req.params.issueKey}")`),
+      tryJQL('issuetype_executions',  `issuetype = "Test Execution" AND issue in linkedIssues("${req.params.issueKey}")`),
+    ])
+
+    res.json({ key: req.params.issueKey, jqlResults: results })
   } catch (err) {
-    res.status(500).json({ error: err.response?.data || err.message })
-  }
-})
-
-router.get('/tests', async (req, res) => {
-  const { epicKey } = req.query
-  if (!epicKey) return res.status(400).json({ error: 'epicKey param required' })
-
-  try {
-    const links = await req.jira.getIssueLinks(epicKey)
-    const testKeys = links
-      .filter(l => {
-        const linked = l.inwardIssue || l.outwardIssue
-        return linked?.fields?.issuetype?.name === 'Test'
-      })
-      .map(l => (l.inwardIssue || l.outwardIssue).key)
-
-    if (!testKeys.length) return res.json({ total: 0, pass: 0, fail: 0, wip: 0, notrun: 0, tests: [] })
-
-    const jql = `key in (${testKeys.join(',')})`
-    const issues = await req.jira.searchJQL(jql, ['summary', 'status'])
-
-    const counts = { pass: 0, fail: 0, wip: 0, notrun: 0 }
-    const tests = issues.map(i => {
-      const mapped = mapTestStatus(i.fields.status?.name || '')
-      counts[mapped]++
-      return { key: i.key, summary: i.fields.summary, status: i.fields.status?.name, mapped }
-    })
-
-    res.json({ total: issues.length, ...counts, tests })
-  } catch (err) {
-    res.status(500).json({ error: err.response?.data || err.message })
+    res.status(err.response?.status || 500).json({ error: err.message })
   }
 })
 

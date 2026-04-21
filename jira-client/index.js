@@ -23,7 +23,7 @@ class JiraClient {
       maxResults: 200,
       ...(fields.length ? { fields: fields.join(',') } : {})
     }
-    const res = await axios.get(`${this.baseUrl}/search`, {
+    const res = await axios.get(`${this.baseUrl}/search/jql`, {
       headers: this._headers(),
       params
     })

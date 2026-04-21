@@ -4,6 +4,7 @@ import useInitiativeDetail from '../hooks/useInitiativeDetail'
 import EpicTable from '../components/EpicTable'
 import HealthChip from '../components/HealthChip'
 import SummaryBar from '../components/SummaryBar'
+import TeamWorkloadPanel from '../components/TeamWorkloadPanel'
 
 const JIRA_HOST = import.meta.env.VITE_JIRA_HOST || 'lmsportal.atlassian.net'
 
@@ -66,6 +67,8 @@ export default function InitiativeDetailPage() {
       {error && <div className="error-msg">{error}</div>}
 
       <EpicTable epics={epics} jiraHost={JIRA_HOST} loading={loading} />
+
+      <TeamWorkloadPanel epics={epics} />
 
       <SummaryBar label={key} stats={summaryStats} />
     </div>

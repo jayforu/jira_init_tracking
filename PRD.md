@@ -2,7 +2,7 @@
 ## Initiative Tracker — Jira Progress Dashboard
 
 **Author:** Jayraj Vahadane  
-**Date:** 2026-04-20  
+**Date:** 2026-04-21  
 **Status:** Draft  
 
 ---
@@ -28,6 +28,7 @@ Build a personal, locally-run web dashboard that provides:
 | User | Context |
 |------|---------|
 | Jayraj Vahadane | Primary (only) user. Personal local tool. Runs on localhost. |
+| VP / Executive | Reads executive view during PI reviews or check-ins. No Jira access required. |
 
 No authentication UI required. Jira credentials stored in a local `.env` file.
 
@@ -89,37 +90,40 @@ jira-initiative-view/
 │
 ├── server/
 │   ├── index.js                   # Express server (port 3001)
-│   ├── db.js                      # SQLite setup and query helpers
+│   ├── db.js                      # LowDB JSON store (data/tracker.json)
 │   ├── routes/
 │   │   ├── projects.js            # CRUD routes for tracked projects
 │   │   ├── pins.js                # CRUD routes for pinned initiatives
-│   │   └── jira.js                # Routes that proxy Jira data (initiatives, epics, tests)
+│   │   ├── jira.js                # Routes that proxy Jira data (initiatives, epics, tests)
+│   │   ├── sync.js                # Background sync trigger and status
+│   │   └── executive.js           # Aggregated initiative+epic metrics for VP view
 │   └── services/
-│       └── healthCalc.js          # Health logic (Good / At Risk / Blocked / Done)
+│       └── sync.js                # Sync logic — fetches from Jira and writes to DB
 │
 ├── src/
 │   ├── App.jsx
 │   ├── pages/
 │   │   ├── SettingsPage.jsx
 │   │   ├── InitiativeListPage.jsx
-│   │   └── InitiativeDetailPage.jsx
+│   │   ├── InitiativeDetailPage.jsx
+│   │   └── ExecutiveDashboardPage.jsx  # VP-facing executive summary
 │   ├── components/
-│   │   ├── ProjectSelector.jsx
-│   │   ├── InitiativeCard.jsx
-│   │   ├── EpicTable.jsx
-│   │   ├── EpicRow.jsx
-│   │   ├── ProgressBar.jsx
 │   │   ├── HealthChip.jsx
-│   │   └── SummaryBar.jsx
+│   │   ├── ProgressBar.jsx (inline)
+│   │   ├── SummaryBar.jsx
+│   │   ├── Nav.jsx
+│   │   └── AuthGuard.jsx
 │   ├── hooks/
-│   │   ├── useProjects.js          # Fetch/mutate projects via API
-│   │   ├── usePins.js              # Fetch/mutate pinned initiatives via API
-│   │   ├── useInitiatives.js       # Fetch initiatives for a project
-│   │   └── useInitiativeDetail.js  # Fetch epics + test data for one initiative
+│   │   ├── useProjects.js              # Fetch/mutate projects via API
+│   │   ├── usePins.js                  # Fetch/mutate pinned initiatives via API
+│   │   ├── useInitiatives.js           # Fetch initiatives for a project
+│   │   ├── useInitiativeDetail.js      # Fetch epics + test data for one initiative
+│   │   ├── useSyncStatus.js            # Sync trigger and status polling
+│   │   └── useExecutiveDashboard.js    # Fetch aggregated executive metrics
 │   └── main.jsx
 │
 ├── data/
-│   └── tracker.db                 # SQLite database file (gitignored)
+│   └── tracker.json               # LowDB JSON store (gitignored)
 │
 ├── .env                           # Credentials (gitignored)
 ├── .env.example
@@ -210,7 +214,9 @@ App
 ├── /settings                  → SettingsPage (configure projects)
 ├── /                          → InitiativeListPage (default: first configured project)
 │    └── [project selector]    → switch between configured projects
-└── /initiative/:key           → InitiativeDetailPage (drilldown for one initiative)
+├── /initiative/:key           → InitiativeDetailPage (drilldown for one initiative)
+└── /executive                 → ExecutiveDashboardPage (VP-level program health summary)
+     └── [project selector]    → switch between configured projects
 ```
 
 ---
@@ -305,6 +311,58 @@ PHP Upgrade 2025  ·  SCHED-4548  ·  At Risk       [ ↗ Open in Jira ]  [ ↺ 
 
 ---
 
+### 9.4 Executive Dashboard Page (`/executive`)
+
+**Purpose:** Give a VP or stakeholder a single-screen view of overall program health — no epic-level noise, no raw counts, just signal.
+
+**Layout:**
+
+```
+[ Nav: Initiative Tracker | Initiatives | Executive View | ⚙ Settings ]
+[ Project Tabs: Scheduling | PHP | ... ]
+──────────────────────────────────────────────────────────────────────
+  Scheduling — Executive View
+  Program health summary · Synced 5 min ago       [ Show Done ] [ ⟳ Sync ]
+
+  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+  │ 12           │ │  8           │ │  3           │ │  1           │
+  │ Total        │ │  On Track    │ │  At Risk     │ │  Blocked     │
+  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+
+  Initiative Health                       Needs Attention
+  ┌─────────────────────────────────┐     ┌──────────────────────────────┐
+  │ ● Auth Overhaul        [Good]   │     │ BLOCKED                      │
+  │   INIT-42 · Sarah · 4 epics     │     │ Payment Gateway              │
+  │   Dev  ████████░░ 82%           │     │ INIT-55 · Mike T             │
+  │   Test ███████░░░ 74%           │     │ · 2 epics blocked            │
+  │                                 │     │                              │
+  │ ● Payment Gateway    [Blocked]  │     │ AT RISK                      │
+  │   INIT-55 · Mike · 3 epics      │     │ Mobile Redesign              │
+  │   Dev  ████░░░░░░ 41%           │     │ INIT-17 · Alex K             │
+  │   Test ██░░░░░░░░ 22%           │     │ · 1 at risk                  │
+  │   2 blocked  1 at risk          │     │ · 22% test pass rate         │
+  └─────────────────────────────────┘     └──────────────────────────────┘
+```
+
+**Behaviour:**
+
+- **KPI Strip**: 4 counts — Total, On Track (Good/Done), At Risk, Blocked. Derived from aggregated epic health per initiative.
+- **Initiative Cards**: Sorted by health severity (Blocked → At Risk → Good → N/A). Each card shows:
+  - Initiative name, Jira key, assignee, epic count
+  - Health badge (colour-coded)
+  - Dev progress bar + % (average subtask completion across all epics)
+  - Test pass rate bar + % (aggregate pass/total across all epics); shows "No tests" if zero
+  - Blocked/at-risk epic count flags when present
+  - Click navigates to existing Initiative Detail page
+- **Needs Attention Panel**: Auto-populated exception list. Blocked initiatives first, then At Risk. Each item shows the reason (blocked epics, low test pass rate, low dev %). Empty state shows "All initiatives on track".
+- **Show Done toggle**: Off by default. When on, includes Done-status initiatives in all counts and cards.
+- **Sync button**: Same as initiative list — triggers background sync for current project.
+- **Project tabs**: Switch between configured Jira projects.
+
+**Data source:** `GET /api/executive?project=X` (see section 12). Aggregates from local DB — no live Jira calls. Instant load.
+
+---
+
 ## 10. Data Fetching Strategy
 
 All Jira data fetched live via the Express proxy using `JiraClient`. No Jira data cached in SQLite (only user config and pins are stored).
@@ -361,6 +419,15 @@ Computed server-side in `server/services/healthCalc.js`.
 
 ## 12. API Routes (Express)
 
+### Executive Dashboard
+| Step | Call | Purpose |
+|------|------|---------|
+| 1 | `GET /api/executive?project=X` | Returns all initiatives enriched with aggregated epic metrics (dev%, test pass rate, epic counts, health) computed from local DB |
+
+No live Jira calls — all data served from the synced DB snapshot.
+
+---
+
 ### Config & Pins (reads/writes SQLite)
 | Method | Route | Purpose |
 |--------|-------|---------|
@@ -379,6 +446,11 @@ Computed server-side in `server/services/healthCalc.js`.
 | GET | `/api/jira/subtasks?parent=` | Fetch subtasks under an epic |
 | GET | `/api/jira/tests?epicKey=` | Fetch Test issues linked to an epic |
 
+### Executive Aggregation (reads from local DB)
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/api/executive?project=&includeDone=` | Initiatives with aggregated dev%, test pass rate, epic counts, and derived health. Sorted by severity (Blocked → At Risk → Good → N/A). |
+
 ---
 
 ## 13. Out of Scope (v1)
@@ -390,6 +462,8 @@ Computed server-side in `server/services/healthCalc.js`.
 - Mobile responsiveness
 - Dark mode
 - X-ray Cloud API integration (deferred; using Jira fallback)
+- Executive view print/PDF export
+- Shareable executive view URL (auth not implemented)
 
 ---
 
