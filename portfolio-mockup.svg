@@ -1,0 +1,392 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="920" font-family="'Segoe UI', Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1200" height="920" fill="#F4F5F7"/>
+
+  <!-- Top Nav Bar -->
+  <rect width="1200" height="52" fill="#0052CC"/>
+  <text x="20" y="33" fill="white" font-size="16" font-weight="700">Jira Initiative Tracker</text>
+  <text x="220" y="33" fill="#A8C7FF" font-size="13">Executive</text>
+  <text x="300" y="33" fill="#A8C7FF" font-size="13">Initiatives</text>
+  <text x="380" y="33" fill="#A8C7FF" font-size="13">PI Board</text>
+  <text x="462" y="33" fill="white" font-size="13" font-weight="600">Portfolio</text>
+  <rect x="455" y="46" width="62" height="3" fill="white" rx="1"/>
+  <text x="540" y="33" fill="#A8C7FF" font-size="13">Settings</text>
+
+  <!-- Page Header -->
+  <text x="24" y="88" fill="#172B4D" font-size="20" font-weight="700">Portfolio View</text>
+  <text x="24" y="108" fill="#6B778C" font-size="13">PI x Project health, progress and resource allocation</text>
+
+  <!-- Filter Bar -->
+  <rect x="24" y="120" width="1152" height="48" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- PI Filter -->
+  <text x="40" y="141" fill="#6B778C" font-size="11" font-weight="600">PROGRAM INCREMENT</text>
+  <rect x="40" y="145" width="200" height="16" fill="#F4F5F7" rx="3"/>
+  <text x="48" y="157" fill="#172B4D" font-size="12" font-weight="600">PI 2026-Q2  (Apr - Jun)</text>
+  <text x="228" y="157" fill="#6B778C" font-size="10">v</text>
+
+  <!-- Project Filter -->
+  <text x="280" y="141" fill="#6B778C" font-size="11" font-weight="600">PROJECT</text>
+  <rect x="280" y="145" width="160" height="16" fill="#F4F5F7" rx="3"/>
+  <text x="288" y="157" fill="#172B4D" font-size="12" font-weight="600">All Projects</text>
+  <text x="428" y="157" fill="#6B778C" font-size="10">v</text>
+
+  <!-- Include Done toggle -->
+  <text x="480" y="141" fill="#6B778C" font-size="11" font-weight="600">SHOW DONE</text>
+  <rect x="480" y="145" width="34" height="16" fill="#DFE1E6" rx="8"/>
+  <circle cx="488" cy="153" r="6" fill="white"/>
+
+  <!-- Active badge -->
+  <rect x="570" y="147" width="48" height="14" fill="#E3FCEF" rx="7"/>
+  <text x="578" y="158" fill="#006644" font-size="10" font-weight="600">ACTIVE</text>
+
+  <!-- PI Date range -->
+  <text x="636" y="157" fill="#6B778C" font-size="11">Apr 1 - Jun 30, 2026  91 days total</text>
+
+  <!-- Sync button -->
+  <rect x="1060" y="128" width="100" height="30" fill="#0052CC" rx="4"/>
+  <text x="1085" y="148" fill="white" font-size="12" font-weight="600">Sync</text>
+
+  <!-- KPI 1: PI Time Elapsed -->
+  <rect x="24" y="184" width="220" height="88" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="40" y="206" fill="#6B778C" font-size="11" font-weight="600">PI TIME ELAPSED</text>
+  <text x="40" y="234" fill="#172B4D" font-size="28" font-weight="700">34%</text>
+  <rect x="40" y="246" width="180" height="6" fill="#DFE1E6" rx="3"/>
+  <rect x="40" y="246" width="61" height="6" fill="#0052CC" rx="3"/>
+  <text x="40" y="264" fill="#6B778C" font-size="11">31 of 91 days passed</text>
+
+  <!-- KPI 2: Avg Dev Completion -->
+  <rect x="260" y="184" width="220" height="88" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="276" y="206" fill="#6B778C" font-size="11" font-weight="600">AVG DEV COMPLETION</text>
+  <text x="276" y="234" fill="#172B4D" font-size="28" font-weight="700">58%</text>
+  <rect x="276" y="246" width="180" height="6" fill="#DFE1E6" rx="3"/>
+  <rect x="276" y="246" width="104" height="6" fill="#36B37E" rx="3"/>
+  <text x="276" y="264" fill="#36B37E" font-size="11" font-weight="600">+24% ahead of PI pace</text>
+
+  <!-- KPI 3: Health Summary -->
+  <rect x="496" y="184" width="220" height="88" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="512" y="206" fill="#6B778C" font-size="11" font-weight="600">INITIATIVE HEALTH</text>
+  <text x="512" y="234" fill="#172B4D" font-size="28" font-weight="700">9</text>
+  <text x="550" y="234" fill="#6B778C" font-size="13"> initiatives</text>
+  <rect x="512" y="246" width="32" height="12" fill="#FFEBE6" rx="3"/>
+  <text x="516" y="256" fill="#DE350B" font-size="10" font-weight="700">2 BLK</text>
+  <rect x="552" y="246" width="34" height="12" fill="#FFFAE6" rx="3"/>
+  <text x="556" y="256" fill="#FF8B00" font-size="10" font-weight="700">3 RISK</text>
+  <rect x="594" y="246" width="36" height="12" fill="#E3FCEF" rx="3"/>
+  <text x="598" y="256" fill="#006644" font-size="10" font-weight="700">4 GOOD</text>
+  <text x="512" y="264" fill="#6B778C" font-size="11">Across 3 projects</text>
+
+  <!-- KPI 4: Test Pass Rate -->
+  <rect x="732" y="184" width="220" height="88" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="748" y="206" fill="#6B778C" font-size="11" font-weight="600">TEST PASS RATE</text>
+  <text x="748" y="234" fill="#172B4D" font-size="28" font-weight="700">78%</text>
+  <rect x="748" y="246" width="180" height="6" fill="#DFE1E6" rx="3"/>
+  <rect x="748" y="246" width="140" height="6" fill="#36B37E" rx="3"/>
+  <text x="748" y="264" fill="#6B778C" font-size="11">234 pass / 66 fail of 300 total</text>
+
+  <!-- KPI 5: Spill Risk -->
+  <rect x="968" y="184" width="208" height="88" fill="white" rx="6" stroke="#FF8B00" stroke-width="1.5"/>
+  <text x="984" y="206" fill="#6B778C" font-size="11" font-weight="600">SPILL RISK</text>
+  <text x="984" y="234" fill="#FF8B00" font-size="28" font-weight="700">2</text>
+  <text x="1018" y="234" fill="#6B778C" font-size="13"> initiatives</text>
+  <text x="984" y="252" fill="#FF8B00" font-size="11">likely to spill into next PI</text>
+  <rect x="984" y="260" width="90" height="12" fill="#FFFAE6" rx="3"/>
+  <text x="988" y="270" fill="#FF8B00" font-size="10" font-weight="600">View spill candidates</text>
+
+  <!-- LEFT: Resource Allocation Panel -->
+  <rect x="24" y="288" width="460" height="380" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="40" y="312" fill="#172B4D" font-size="14" font-weight="700">Resource Allocation by Initiative</text>
+  <text x="40" y="328" fill="#6B778C" font-size="11">People assigned across epics - sized by epic count</text>
+
+  <text x="40" y="352" fill="#6B778C" font-size="10" font-weight="600">INITIATIVE</text>
+  <text x="230" y="352" fill="#6B778C" font-size="10" font-weight="600">ASSIGNEES</text>
+  <text x="340" y="352" fill="#6B778C" font-size="10" font-weight="600">EPICS</text>
+  <text x="400" y="352" fill="#6B778C" font-size="10" font-weight="600">LOAD</text>
+  <line x1="40" y1="357" x2="464" y2="357" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Row 1 - Blocked -->
+  <rect x="32" y="360" width="452" height="36" fill="#FFEBE6" rx="3"/>
+  <rect x="40" y="368" width="6" height="18" fill="#DE350B" rx="2"/>
+  <text x="52" y="378" fill="#172B4D" font-size="12" font-weight="600">AUTH-001 Auth Revamp</text>
+  <text x="52" y="390" fill="#6B778C" font-size="10">Platform PLAT</text>
+  <circle cx="238" cy="378" r="9" fill="#0052CC"/>
+  <text x="234" y="382" fill="white" font-size="8" font-weight="700">JV</text>
+  <circle cx="255" cy="378" r="9" fill="#6554C0"/>
+  <text x="251" y="382" fill="white" font-size="8" font-weight="700">RS</text>
+  <circle cx="272" cy="378" r="9" fill="#00B8D9"/>
+  <text x="268" y="382" fill="white" font-size="8" font-weight="700">AP</text>
+  <text x="289" y="382" fill="#6B778C" font-size="10">+1</text>
+  <text x="344" y="382" fill="#172B4D" font-size="12" font-weight="600">5 epics</text>
+  <rect x="400" y="371" width="52" height="14" fill="#DE350B" rx="3"/>
+  <text x="412" y="381" fill="white" font-size="10" font-weight="700">HIGH</text>
+
+  <!-- Row 2 - At Risk -->
+  <rect x="32" y="400" width="452" height="36" fill="#FFFAE6" rx="3"/>
+  <rect x="40" y="408" width="6" height="18" fill="#FF8B00" rx="2"/>
+  <text x="52" y="418" fill="#172B4D" font-size="12" font-weight="600">PAY-201 Payments 2.0</text>
+  <text x="52" y="430" fill="#6B778C" font-size="10">Payments PAY</text>
+  <circle cx="238" cy="418" r="9" fill="#36B37E"/>
+  <text x="234" y="422" fill="white" font-size="8" font-weight="700">MK</text>
+  <circle cx="255" cy="418" r="9" fill="#FF5630"/>
+  <text x="251" y="422" fill="white" font-size="8" font-weight="700">TL</text>
+  <text x="344" y="422" fill="#172B4D" font-size="12" font-weight="600">4 epics</text>
+  <rect x="400" y="411" width="52" height="14" fill="#FF8B00" rx="3"/>
+  <text x="408" y="421" fill="white" font-size="10" font-weight="700">MEDIUM</text>
+
+  <!-- Row 3 - At Risk -->
+  <rect x="32" y="440" width="452" height="36" fill="#FFFAE6" rx="3"/>
+  <rect x="40" y="448" width="6" height="18" fill="#FF8B00" rx="2"/>
+  <text x="52" y="458" fill="#172B4D" font-size="12" font-weight="600">MOB-033 Mobile Rewrite</text>
+  <text x="52" y="470" fill="#6B778C" font-size="10">Mobile MOB</text>
+  <circle cx="238" cy="458" r="9" fill="#6554C0"/>
+  <text x="234" y="462" fill="white" font-size="8" font-weight="700">SK</text>
+  <circle cx="255" cy="458" r="9" fill="#0052CC"/>
+  <text x="251" y="462" fill="white" font-size="8" font-weight="700">PB</text>
+  <circle cx="272" cy="458" r="9" fill="#36B37E"/>
+  <text x="268" y="462" fill="white" font-size="8" font-weight="700">NR</text>
+  <text x="344" y="462" fill="#172B4D" font-size="12" font-weight="600">6 epics</text>
+  <rect x="400" y="451" width="52" height="14" fill="#FF8B00" rx="3"/>
+  <text x="408" y="461" fill="white" font-size="10" font-weight="700">MEDIUM</text>
+
+  <!-- Row 4 - Good -->
+  <rect x="32" y="480" width="452" height="36" fill="white" rx="3"/>
+  <rect x="40" y="488" width="6" height="18" fill="#36B37E" rx="2"/>
+  <text x="52" y="498" fill="#172B4D" font-size="12" font-weight="600">DASH-007 Dashboard UI</text>
+  <text x="52" y="510" fill="#6B778C" font-size="10">Platform PLAT</text>
+  <circle cx="238" cy="498" r="9" fill="#FF5630"/>
+  <text x="234" y="502" fill="white" font-size="8" font-weight="700">AR</text>
+  <text x="344" y="498" fill="#172B4D" font-size="12" font-weight="600">3 epics</text>
+  <rect x="400" y="491" width="52" height="14" fill="#36B37E" rx="3"/>
+  <text x="412" y="501" fill="white" font-size="10" font-weight="700">LOW</text>
+
+  <!-- Row 5 - Good -->
+  <rect x="32" y="520" width="452" height="36" fill="white" rx="3"/>
+  <rect x="40" y="528" width="6" height="18" fill="#36B37E" rx="2"/>
+  <text x="52" y="538" fill="#172B4D" font-size="12" font-weight="600">API-044 API Gateway v3</text>
+  <text x="52" y="550" fill="#6B778C" font-size="10">Platform PLAT</text>
+  <circle cx="238" cy="538" r="9" fill="#00B8D9"/>
+  <text x="234" y="542" fill="white" font-size="8" font-weight="700">VK</text>
+  <circle cx="255" cy="538" r="9" fill="#0052CC"/>
+  <text x="251" y="542" fill="white" font-size="8" font-weight="700">DM</text>
+  <text x="344" y="538" fill="#172B4D" font-size="12" font-weight="600">4 epics</text>
+  <rect x="400" y="531" width="52" height="14" fill="#36B37E" rx="3"/>
+  <text x="412" y="541" fill="white" font-size="10" font-weight="700">LOW</text>
+
+  <!-- Row 6 - Good -->
+  <rect x="32" y="560" width="452" height="36" fill="white" rx="3"/>
+  <rect x="40" y="568" width="6" height="18" fill="#36B37E" rx="2"/>
+  <text x="52" y="578" fill="#172B4D" font-size="12" font-weight="600">NOTIF-011 Notifications Hub</text>
+  <text x="52" y="590" fill="#6B778C" font-size="10">Payments PAY</text>
+  <circle cx="238" cy="578" r="9" fill="#6554C0"/>
+  <text x="234" y="582" fill="white" font-size="8" font-weight="700">LM</text>
+  <text x="344" y="578" fill="#172B4D" font-size="12" font-weight="600">2 epics</text>
+  <rect x="400" y="571" width="52" height="14" fill="#36B37E" rx="3"/>
+  <text x="412" y="581" fill="white" font-size="10" font-weight="700">LOW</text>
+
+  <!-- Row 7 - Blocked -->
+  <rect x="32" y="600" width="452" height="36" fill="#FFEBE6" rx="3"/>
+  <rect x="40" y="608" width="6" height="18" fill="#DE350B" rx="2"/>
+  <text x="52" y="618" fill="#172B4D" font-size="12" font-weight="600">SEC-088 SSO Integration</text>
+  <text x="52" y="630" fill="#6B778C" font-size="10">Platform PLAT</text>
+  <circle cx="238" cy="618" r="9" fill="#0052CC"/>
+  <text x="234" y="622" fill="white" font-size="8" font-weight="700">JV</text>
+  <circle cx="255" cy="618" r="9" fill="#FF5630"/>
+  <text x="251" y="622" fill="white" font-size="8" font-weight="700">RS</text>
+  <text x="344" y="618" fill="#172B4D" font-size="12" font-weight="600">3 epics</text>
+  <rect x="400" y="611" width="52" height="14" fill="#DE350B" rx="3"/>
+  <text x="412" y="621" fill="white" font-size="10" font-weight="700">HIGH</text>
+
+  <text x="40" y="658" fill="#0052CC" font-size="12">+ 2 more initiatives</text>
+
+  <!-- RIGHT: Progress Panel -->
+  <rect x="500" y="288" width="676" height="380" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="516" y="312" fill="#172B4D" font-size="14" font-weight="700">Initiative Progress</text>
+  <text x="516" y="328" fill="#6B778C" font-size="11">Dev completion vs. PI elapsed time (34%)</text>
+
+  <text x="516" y="352" fill="#6B778C" font-size="10" font-weight="600">INITIATIVE</text>
+  <text x="720" y="352" fill="#6B778C" font-size="10" font-weight="600">HEALTH</text>
+  <text x="790" y="352" fill="#6B778C" font-size="10" font-weight="600">DEV PROGRESS</text>
+  <text x="940" y="352" fill="#6B778C" font-size="10" font-weight="600">TESTS</text>
+  <text x="1040" y="352" fill="#6B778C" font-size="10" font-weight="600">EPICS</text>
+  <text x="1100" y="352" fill="#6B778C" font-size="10" font-weight="600">PI PACE</text>
+  <line x1="516" y1="357" x2="1160" y2="357" stroke="#DFE1E6" stroke-width="1"/>
+
+  <!-- Row 1 - Blocked -->
+  <rect x="492" y="360" width="684" height="36" fill="#FFF8F6" rx="3"/>
+  <rect x="500" y="368" width="4" height="18" fill="#DE350B" rx="1"/>
+  <text x="516" y="377" fill="#172B4D" font-size="12" font-weight="600">AUTH-001</text>
+  <text x="516" y="390" fill="#6B778C" font-size="10">Auth Revamp</text>
+  <rect x="716" y="367" width="58" height="16" fill="#FFEBE6" rx="8"/>
+  <text x="722" y="379" fill="#DE350B" font-size="10" font-weight="700">BLOCKED</text>
+  <rect x="790" y="371" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="371" width="63" height="10" fill="#DE350B" rx="3"/>
+  <line x1="838" y1="366" x2="838" y2="386" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="868" y="379" fill="#172B4D" font-size="11" font-weight="600">45%</text>
+  <text x="940" y="379" fill="#172B4D" font-size="12">12/30</text>
+  <text x="940" y="390" fill="#DE350B" font-size="10">40%</text>
+  <text x="1050" y="379" fill="#172B4D" font-size="12">2/5</text>
+  <rect x="1096" y="369" width="60" height="14" fill="#FFEBE6" rx="3"/>
+  <text x="1100" y="379" fill="#DE350B" font-size="10" font-weight="600">-11% behind</text>
+
+  <!-- Row 2 - At Risk -->
+  <rect x="492" y="400" width="684" height="36" fill="#FFFDF0" rx="3"/>
+  <rect x="500" y="408" width="4" height="18" fill="#FF8B00" rx="1"/>
+  <text x="516" y="417" fill="#172B4D" font-size="12" font-weight="600">PAY-201</text>
+  <text x="516" y="430" fill="#6B778C" font-size="10">Payments 2.0</text>
+  <rect x="716" y="407" width="52" height="16" fill="#FFFAE6" rx="8"/>
+  <text x="722" y="419" fill="#FF8B00" font-size="10" font-weight="700">AT RISK</text>
+  <rect x="790" y="411" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="411" width="101" height="10" fill="#FF8B00" rx="3"/>
+  <line x1="838" y1="406" x2="838" y2="426" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="900" y="419" fill="#172B4D" font-size="11" font-weight="600">72%</text>
+  <text x="940" y="419" fill="#172B4D" font-size="12">45/50</text>
+  <text x="940" y="430" fill="#36B37E" font-size="10">90%</text>
+  <text x="1050" y="419" fill="#172B4D" font-size="12">4/5</text>
+  <rect x="1096" y="409" width="60" height="14" fill="#E3FCEF" rx="3"/>
+  <text x="1098" y="419" fill="#006644" font-size="10" font-weight="600">+38% ahead</text>
+
+  <!-- Row 3 - At Risk -->
+  <rect x="492" y="440" width="684" height="36" fill="#FFFDF0" rx="3"/>
+  <rect x="500" y="448" width="4" height="18" fill="#FF8B00" rx="1"/>
+  <text x="516" y="457" fill="#172B4D" font-size="12" font-weight="600">MOB-033</text>
+  <text x="516" y="470" fill="#6B778C" font-size="10">Mobile Rewrite</text>
+  <rect x="716" y="447" width="52" height="16" fill="#FFFAE6" rx="8"/>
+  <text x="722" y="459" fill="#FF8B00" font-size="10" font-weight="700">AT RISK</text>
+  <rect x="790" y="451" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="451" width="49" height="10" fill="#FF8B00" rx="3"/>
+  <line x1="838" y1="446" x2="838" y2="466" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="848" y="459" fill="#172B4D" font-size="11" font-weight="600">35%</text>
+  <text x="940" y="459" fill="#172B4D" font-size="12">20/80</text>
+  <text x="940" y="470" fill="#FF8B00" font-size="10">25%</text>
+  <text x="1050" y="459" fill="#172B4D" font-size="12">1/6</text>
+  <rect x="1096" y="449" width="60" height="14" fill="#FFFAE6" rx="3"/>
+  <text x="1100" y="459" fill="#FF8B00" font-size="10" font-weight="600">+1% ahead</text>
+
+  <!-- Row 4 - Good -->
+  <rect x="492" y="480" width="684" height="36" fill="white" rx="3"/>
+  <rect x="500" y="488" width="4" height="18" fill="#36B37E" rx="1"/>
+  <text x="516" y="497" fill="#172B4D" font-size="12" font-weight="600">DASH-007</text>
+  <text x="516" y="510" fill="#6B778C" font-size="10">Dashboard UI</text>
+  <rect x="716" y="487" width="42" height="16" fill="#E3FCEF" rx="8"/>
+  <text x="722" y="499" fill="#006644" font-size="10" font-weight="700">GOOD</text>
+  <rect x="790" y="491" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="491" width="127" height="10" fill="#36B37E" rx="3"/>
+  <line x1="838" y1="486" x2="838" y2="506" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="928" y="499" fill="#172B4D" font-size="11" font-weight="600">91%</text>
+  <text x="940" y="499" fill="#172B4D" font-size="12">30/30</text>
+  <text x="940" y="510" fill="#36B37E" font-size="10">100%</text>
+  <text x="1050" y="499" fill="#172B4D" font-size="12">3/3</text>
+  <rect x="1096" y="489" width="60" height="14" fill="#E3FCEF" rx="3"/>
+  <text x="1098" y="499" fill="#006644" font-size="10" font-weight="600">+57% ahead</text>
+
+  <!-- Row 5 - Good -->
+  <rect x="492" y="520" width="684" height="36" fill="white" rx="3"/>
+  <rect x="500" y="528" width="4" height="18" fill="#36B37E" rx="1"/>
+  <text x="516" y="537" fill="#172B4D" font-size="12" font-weight="600">API-044</text>
+  <text x="516" y="550" fill="#6B778C" font-size="10">API Gateway v3</text>
+  <rect x="716" y="527" width="42" height="16" fill="#E3FCEF" rx="8"/>
+  <text x="722" y="539" fill="#006644" font-size="10" font-weight="700">GOOD</text>
+  <rect x="790" y="531" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="531" width="98" height="10" fill="#36B37E" rx="3"/>
+  <line x1="838" y1="526" x2="838" y2="546" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="900" y="539" fill="#172B4D" font-size="11" font-weight="600">70%</text>
+  <text x="940" y="539" fill="#172B4D" font-size="12">60/80</text>
+  <text x="940" y="550" fill="#36B37E" font-size="10">75%</text>
+  <text x="1050" y="539" fill="#172B4D" font-size="12">3/4</text>
+  <rect x="1096" y="529" width="60" height="14" fill="#E3FCEF" rx="3"/>
+  <text x="1098" y="539" fill="#006644" font-size="10" font-weight="600">+36% ahead</text>
+
+  <!-- Row 6 - Good -->
+  <rect x="492" y="560" width="684" height="36" fill="white" rx="3"/>
+  <rect x="500" y="568" width="4" height="18" fill="#36B37E" rx="1"/>
+  <text x="516" y="577" fill="#172B4D" font-size="12" font-weight="600">NOTIF-011</text>
+  <text x="516" y="590" fill="#6B778C" font-size="10">Notifications Hub</text>
+  <rect x="716" y="567" width="42" height="16" fill="#E3FCEF" rx="8"/>
+  <text x="722" y="579" fill="#006644" font-size="10" font-weight="700">GOOD</text>
+  <rect x="790" y="571" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="571" width="77" height="10" fill="#36B37E" rx="3"/>
+  <line x1="838" y1="566" x2="838" y2="586" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="880" y="579" fill="#172B4D" font-size="11" font-weight="600">55%</text>
+  <text x="940" y="579" fill="#172B4D" font-size="12">40/60</text>
+  <text x="940" y="590" fill="#36B37E" font-size="10">67%</text>
+  <text x="1050" y="579" fill="#172B4D" font-size="12">2/2</text>
+  <rect x="1096" y="569" width="60" height="14" fill="#E3FCEF" rx="3"/>
+  <text x="1098" y="579" fill="#006644" font-size="10" font-weight="600">+21% ahead</text>
+
+  <!-- Row 7 - Blocked -->
+  <rect x="492" y="600" width="684" height="36" fill="#FFF8F6" rx="3"/>
+  <rect x="500" y="608" width="4" height="18" fill="#DE350B" rx="1"/>
+  <text x="516" y="617" fill="#172B4D" font-size="12" font-weight="600">SEC-088</text>
+  <text x="516" y="630" fill="#6B778C" font-size="10">SSO Integration</text>
+  <rect x="716" y="607" width="58" height="16" fill="#FFEBE6" rx="8"/>
+  <text x="722" y="619" fill="#DE350B" font-size="10" font-weight="700">BLOCKED</text>
+  <rect x="790" y="611" width="140" height="10" fill="#DFE1E6" rx="3"/>
+  <rect x="790" y="611" width="28" height="10" fill="#DE350B" rx="3"/>
+  <line x1="838" y1="606" x2="838" y2="626" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <text x="830" y="619" fill="#172B4D" font-size="11" font-weight="600">20%</text>
+  <text x="940" y="619" fill="#172B4D" font-size="12">5/40</text>
+  <text x="940" y="630" fill="#DE350B" font-size="10">12%</text>
+  <text x="1050" y="619" fill="#172B4D" font-size="12">0/3</text>
+  <rect x="1096" y="609" width="60" height="14" fill="#FFEBE6" rx="3"/>
+  <text x="1100" y="619" fill="#DE350B" font-size="10" font-weight="600">-14% behind</text>
+
+  <!-- Legend -->
+  <line x1="516" y1="652" x2="530" y2="652" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="534" y="656" fill="#6B778C" font-size="11">PI elapsed (34%)</text>
+  <rect x="640" y="645" width="10" height="10" fill="#36B37E" rx="2"/>
+  <text x="654" y="656" fill="#6B778C" font-size="11">Ahead of pace</text>
+  <rect x="760" y="645" width="10" height="10" fill="#FF8B00" rx="2"/>
+  <text x="774" y="656" fill="#6B778C" font-size="11">Near pace</text>
+  <rect x="860" y="645" width="10" height="10" fill="#DE350B" rx="2"/>
+  <text x="874" y="656" fill="#6B778C" font-size="11">Behind pace</text>
+
+  <!-- NEEDS ATTENTION FOOTER -->
+  <rect x="24" y="684" width="1152" height="210" fill="white" rx="6" stroke="#DFE1E6" stroke-width="1"/>
+  <text x="40" y="708" fill="#172B4D" font-size="14" font-weight="700">Needs Attention</text>
+  <text x="40" y="724" fill="#6B778C" font-size="11">Initiatives requiring immediate action - sorted by severity</text>
+
+  <!-- Card 1 -->
+  <rect x="40" y="736" width="340" height="120" fill="#FFEBE6" rx="6" stroke="#FF8F73" stroke-width="1"/>
+  <rect x="40" y="736" width="340" height="4" fill="#DE350B" rx="3"/>
+  <text x="56" y="758" fill="#DE350B" font-size="11" font-weight="700">BLOCKED</text>
+  <text x="110" y="758" fill="#172B4D" font-size="11" font-weight="700">AUTH-001 Auth Revamp</text>
+  <text x="56" y="776" fill="#172B4D" font-size="12" font-weight="600">Dependency on external IdP vendor</text>
+  <text x="56" y="793" fill="#6B778C" font-size="11">2 epics blocked  45% dev  14 days since update</text>
+  <text x="56" y="810" fill="#6B778C" font-size="11">Assignee: JV  PLAT project</text>
+  <rect x="56" y="820" width="90" height="24" fill="#DE350B" rx="4"/>
+  <text x="68" y="836" fill="white" font-size="11" font-weight="600">View in Jira</text>
+  <rect x="156" y="820" width="96" height="24" fill="white" rx="4" stroke="#DE350B" stroke-width="1"/>
+  <text x="166" y="836" fill="#DE350B" font-size="11" font-weight="600">Reassign PI</text>
+
+  <!-- Card 2 -->
+  <rect x="400" y="736" width="340" height="120" fill="#FFEBE6" rx="6" stroke="#FF8F73" stroke-width="1"/>
+  <rect x="400" y="736" width="340" height="4" fill="#DE350B" rx="3"/>
+  <text x="416" y="758" fill="#DE350B" font-size="11" font-weight="700">BLOCKED</text>
+  <text x="470" y="758" fill="#172B4D" font-size="11" font-weight="700">SEC-088 SSO Integration</text>
+  <text x="416" y="776" fill="#172B4D" font-size="12" font-weight="600">No epics started - design approval pending</text>
+  <text x="416" y="793" fill="#6B778C" font-size="11">0/3 epics done  20% dev  Spill risk flagged</text>
+  <text x="416" y="810" fill="#6B778C" font-size="11">Assignee: JV RS  PLAT project</text>
+  <rect x="416" y="820" width="90" height="24" fill="#DE350B" rx="4"/>
+  <text x="428" y="836" fill="white" font-size="11" font-weight="600">View in Jira</text>
+  <rect x="516" y="820" width="96" height="24" fill="white" rx="4" stroke="#DE350B" stroke-width="1"/>
+  <text x="526" y="836" fill="#DE350B" font-size="11" font-weight="600">Reassign PI</text>
+
+  <!-- Card 3 -->
+  <rect x="760" y="736" width="340" height="120" fill="#FFFAE6" rx="6" stroke="#FFE380" stroke-width="1"/>
+  <rect x="760" y="736" width="340" height="4" fill="#FF8B00" rx="3"/>
+  <text x="776" y="758" fill="#FF8B00" font-size="11" font-weight="700">AT RISK</text>
+  <text x="832" y="758" fill="#172B4D" font-size="11" font-weight="700">MOB-033 Mobile Rewrite</text>
+  <text x="776" y="776" fill="#172B4D" font-size="12" font-weight="600">Only 35% done vs 34% PI elapsed</text>
+  <text x="776" y="793" fill="#6B778C" font-size="11">1/6 epics complete  25% test pass rate</text>
+  <text x="776" y="810" fill="#6B778C" font-size="11">Assignee: SK PB NR  MOB project</text>
+  <rect x="776" y="820" width="90" height="24" fill="#FF8B00" rx="4"/>
+  <text x="788" y="836" fill="white" font-size="11" font-weight="600">View in Jira</text>
+  <rect x="876" y="820" width="96" height="24" fill="white" rx="4" stroke="#FF8B00" stroke-width="1"/>
+  <text x="886" y="836" fill="#FF8B00" font-size="11" font-weight="600">Reassign PI</text>
+
+  <!-- Footer -->
+  <text x="24" y="910" fill="#97A0AF" font-size="10">PI 2026-Q2  9 initiatives  3 projects  Last synced 2 min ago</text>
+  <text x="980" y="910" fill="#0052CC" font-size="10">Export CSV</text>
+  <text x="1060" y="910" fill="#0052CC" font-size="10">Share View</text>
+  <text x="1130" y="910" fill="#0052CC" font-size="10">Print</text>
+</svg>

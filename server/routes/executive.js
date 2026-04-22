@@ -2,6 +2,66 @@ const express = require('express')
 const router = express.Router()
 const db = require('../db')
 
+// GET /api/executive/pi/:piId — enriched initiatives for a PI (cross-project, no pin filter)
+router.get('/pi/:piId', (req, res) => {
+  const pi = db.get('pis').find({ id: req.params.piId }).value()
+  if (!pi) return res.status(404).json({ error: 'PI not found' })
+
+  const { includeDone } = req.query
+  const allProjects = db.get('projects').value()
+  const projectNameMap = Object.fromEntries(allProjects.map(p => [p.key, p.name]))
+
+  const assignments = db.get('pi_initiatives').filter({ pi_id: req.params.piId }).value()
+
+  const enriched = assignments.map(a => {
+    const init = db.get('initiatives').find({ key: a.initiative_key }).value() || {}
+    if (includeDone !== 'true' && init.statusCategory === 'Done') return null
+
+    const epics = db.get('epics').filter({ initiative_key: a.initiative_key }).value()
+    const epicCount = epics.length
+    const blockedEpics = epics.filter(e => e.health === 'Blocked').length
+    const atRiskEpics  = epics.filter(e => e.health === 'At Risk').length
+    const goodEpics    = epics.filter(e => e.health === 'Good' || e.health === 'Done').length
+
+    const devEpics = epics.filter(e => (e.subtasks?.total || 0) > 0)
+    const devPercent = devEpics.length > 0
+      ? Math.round(devEpics.reduce((s, e) => s + (e.subtasks.done / e.subtasks.total), 0) / devEpics.length * 100)
+      : 0
+
+    const testTotal    = epics.reduce((s, e) => s + (e.tests?.total || 0), 0)
+    const testPass     = epics.reduce((s, e) => s + (e.tests?.pass  || 0), 0)
+    const testFail     = epics.reduce((s, e) => s + (e.tests?.fail  || 0), 0)
+    const testPassRate = testTotal > 0 ? Math.round(testPass / testTotal * 100) : null
+
+    let health = init.health || 'N/A'
+    if (epicCount > 0) {
+      if (blockedEpics > 0)         health = 'Blocked'
+      else if (atRiskEpics > 0)     health = 'At Risk'
+      else if (goodEpics === epicCount) health = 'Good'
+      else                          health = 'At Risk'
+    }
+
+    return {
+      key: a.initiative_key,
+      project_key: a.project_key,
+      project_name: projectNameMap[a.project_key] || a.project_key,
+      spilled_over: a.spilled_over || false,
+      summary: init.summary || a.initiative_key,
+      status: init.status || 'Unknown',
+      statusCategory: init.statusCategory,
+      assignee: init.assignee || null,
+      synced_at: init.synced_at,
+      health, epicCount, blockedEpics, atRiskEpics, goodEpics,
+      devPercent, testPassRate, testTotal, testPass, testFail,
+    }
+  }).filter(Boolean)
+
+  const order = { Blocked: 0, 'At Risk': 1, Good: 2, Done: 3, 'N/A': 4 }
+  enriched.sort((a, b) => (order[a.health] ?? 5) - (order[b.health] ?? 5))
+
+  res.json({ pi, initiatives: enriched })
+})
+
 // GET /api/executive?project=X&includeDone=true
 // project=ALL returns pinned initiatives across every configured project
 router.get('/', (req, res) => {

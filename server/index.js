@@ -22,6 +22,7 @@ app.use('/api/pins', require('./routes/pins'))
 app.use('/api/jira', require('./routes/jira'))
 app.use('/api/executive', require('./routes/executive'))
 app.use('/api/pis', require('./routes/pis'))
+app.use('/api/portfolio', require('./routes/portfolio'))
 
 app.get('/api/health', (_, res) => res.json({ ok: true }))
 

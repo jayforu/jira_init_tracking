@@ -20,6 +20,9 @@ export default function Nav() {
         <Link to="/executive" className={`nav__link ${pathname === '/executive' ? 'nav__link--active' : ''}`}>
           Executive View
         </Link>
+        <Link to="/portfolio" className={`nav__link ${pathname === '/portfolio' ? 'nav__link--active' : ''}`}>
+          Portfolio
+        </Link>
       </div>
       <Link to="/settings">
         <button className="nav__settings">⚙ Settings</button>

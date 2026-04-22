@@ -5,6 +5,7 @@ import InitiativeListPage from './pages/InitiativeListPage'
 import InitiativeDetailPage from './pages/InitiativeDetailPage'
 import ExecutiveDashboardPage from './pages/ExecutiveDashboardPage'
 import PIBoardPage from './pages/PIBoardPage'
+import PortfolioPage from './pages/PortfolioPage'
 import Nav from './components/Nav'
 import AuthGuard from './components/AuthGuard'
 
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/initiative/:key" element={<InitiativeDetailPage />} />
           <Route path="/executive" element={<ExecutiveDashboardPage />} />
           <Route path="/pi" element={<PIBoardPage />} />
+          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
