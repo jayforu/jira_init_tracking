@@ -1,6 +1,9 @@
 const { JiraClient } = require('@local/jira-client')
 const db = require('../db')
 const { epicHealth } = require('./healthCalc')
+const xray = require('./xrayClient')
+
+const XRAY_ENABLED = !!(process.env.XRAY_CLIENT_ID && process.env.XRAY_CLIENT_SECRET)
 
 function extractTestKeys(links) {
   // Xray tests link to stories with link type "Test" (inward: "is tested by")
@@ -30,14 +33,26 @@ async function syncProject(projectKey) {
 
   const jira = new JiraClient({ accessToken: auth.access_token, cloudId: auth.cloud_id })
   const testSource = project.test_source || 'epic'
+  let xrayAvailable = XRAY_ENABLED  // may be toggled off per-run on auth failure
 
   db.get('sync_state').set(projectKey, { status: 'syncing', last_synced_at: null, error: null }).write()
-  console.log(`[sync] Starting sync for ${projectKey} (test_source: ${testSource})`)
+  console.log(`[sync] Starting sync for ${projectKey} (test_source: ${testSource}, xray: ${xrayAvailable})`)
 
   try {
-    // 1. Fetch all initiatives (including Done so they're available for filtering)
+    // 1. Only fetch pinned initiatives for this project
+    const pinnedKeys = db.get('pinned_initiatives')
+      .filter({ project_key: projectKey })
+      .map('initiative_key')
+      .value()
+
+    if (!pinnedKeys.length) {
+      db.get('sync_state').set(projectKey, { status: 'idle', last_synced_at: new Date().toISOString(), error: null }).write()
+      console.log(`[sync] No pinned initiatives for ${projectKey}, skipping`)
+      return
+    }
+
     const rawInitiatives = await jira.searchJQL(
-      `project = ${projectKey} AND issuetype = Initiative ORDER BY created DESC`,
+      `key in (${pinnedKeys.join(',')}) AND issuetype = Initiative ORDER BY created DESC`,
       ['summary', 'status', 'assignee']
     )
 
@@ -58,7 +73,8 @@ async function syncProject(projectKey) {
         ['summary', 'status', 'assignee']
       )
 
-      const enrichedEpics = await Promise.all(rawEpics.map(async (epic) => {
+      const enrichedEpics = []
+      for (const epic of rawEpics) {
         let subtasks, testKeys = []
 
         let stories = []
@@ -107,7 +123,29 @@ async function syncProject(projectKey) {
         const members = Object.entries(memberMap).map(([name, s]) => ({ name, ...s }))
 
         let tests = { total: 0, pass: 0, fail: 0, wip: 0, notrun: 0 }
-        if (testKeys.length) {
+        let xrayUsed = false
+
+        if (XRAY_ENABLED && xrayAvailable && testKeys.length) {
+          try {
+            const xrayStats = await xray.getTestStatusesByKeys(testKeys)
+            if (xrayStats) {
+              tests = xrayStats
+              xrayUsed = true
+              console.log(`[xray] ${epic.key}: ${tests.total} tests — pass:${tests.pass} fail:${tests.fail} wip:${tests.wip} notrun:${tests.notrun}`)
+            }
+          } catch (err) {
+            const msg = err.response?.data ? JSON.stringify(err.response.data) : err.message
+            console.warn(`[xray] ${epic.key}: Xray query failed — ${msg}`)
+            if (err.response?.status === 401 || err.response?.status === 403) {
+              xrayAvailable = false
+              xray.invalidateToken()
+              console.warn('[xray] Disabling Xray for remainder of sync due to auth failure')
+            }
+          }
+        }
+
+        if (!xrayUsed && testKeys.length) {
+          // Last resort: Jira workflow statuses for the test issue keys
           const testIssues = await jira.searchJQL(`key in (${testKeys.join(',')})`, ['status'])
           const counts = { pass: 0, fail: 0, wip: 0, notrun: 0 }
           testIssues.forEach(i => { counts[mapTestStatus(i.fields.status?.name)]++ })
@@ -123,7 +161,7 @@ async function syncProject(projectKey) {
           testTotal: tests.total
         })
 
-        return {
+        enrichedEpics.push({
           key: epic.key,
           initiative_key: initiative.key,
           project_key: projectKey,
@@ -135,19 +173,21 @@ async function syncProject(projectKey) {
           members,
           tests,
           health
-        }
-      }))
+        })
+      }
 
       allEpics.push(...enrichedEpics)
     }
 
-    // 3. Atomic write to DB
+    // 3. Atomic write to DB — only replace pinned initiatives and their epics
     const now = new Date().toISOString()
-    db.get('initiatives').remove({ project_key: projectKey }).write()
+    for (const key of pinnedKeys) {
+      db.get('initiatives').remove({ key, project_key: projectKey }).write()
+      db.get('epics').remove({ initiative_key: key, project_key: projectKey }).write()
+    }
     if (initiatives.length) {
       db.get('initiatives').push(...initiatives.map(i => ({ ...i, synced_at: now }))).write()
     }
-    db.get('epics').remove({ project_key: projectKey }).write()
     if (allEpics.length) {
       db.get('epics').push(...allEpics.map(e => ({ ...e, synced_at: now }))).write()
     }

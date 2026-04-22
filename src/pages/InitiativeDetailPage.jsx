@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import useInitiativeDetail from '../hooks/useInitiativeDetail'
 import usePIAssignments from '../hooks/usePIAssignments'
 import usePIs from '../hooks/usePIs'
@@ -32,6 +33,26 @@ export default function InitiativeDetailPage() {
   const { epics, loading, error, reload } = useInitiativeDetail(key)
   const { piByInitiative, piIdByInitiative } = usePIAssignments()
   const { pis } = usePIs()
+
+  // Auto-reload epics when a background sync finishes
+  const syncingRef = useRef(false)
+  useEffect(() => {
+    let timer
+    function poll() {
+      axios.get('/api/sync/status').then(({ data }) => {
+        const anySyncing = Object.values(data).some(s => s?.status === 'syncing')
+        if (anySyncing) {
+          syncingRef.current = true
+          timer = setTimeout(poll, 3000)
+        } else if (syncingRef.current) {
+          syncingRef.current = false
+          reload()
+        }
+      }).catch(() => {})
+    }
+    poll()
+    return () => clearTimeout(timer)
+  }, [reload])
 
   const health = initiativeHealth(epics)
   const totalSubtasksDone = epics.reduce((s, e) => s + (e.subtasks?.done || 0), 0)

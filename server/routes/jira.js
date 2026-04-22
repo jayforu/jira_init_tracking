@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../db')
+const xray = require('../services/xrayClient')
+
+const XRAY_ENABLED = !!(process.env.XRAY_CLIENT_ID && process.env.XRAY_CLIENT_SECRET)
 
 // GET /api/jira/initiatives?project=X&includeDone=true
 router.get('/initiatives', (req, res) => {
@@ -118,6 +121,54 @@ router.get('/test-statuses', async (req, res) => {
     res.json({ count: result.length, statusTally: tally, issues: result })
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message })
+  }
+})
+
+// GET /api/jira/xray-debug/:issueKey
+// Shows Xray test statuses for an epic using both strategies so you can compare results.
+router.get('/xray-debug/:issueKey', async (req, res) => {
+  if (!XRAY_ENABLED) return res.status(400).json({ error: 'Xray credentials not configured' })
+  const { issueKey } = req.params
+  try {
+    // Collect test keys from Jira issue links (same logic as sync)
+    const epicLinks = await req.jira.getIssueLinks(issueKey)
+    const testKeys = epicLinks
+      .filter(l => l.type?.name === 'Test')
+      .map(l => (l.inwardIssue || l.outwardIssue)?.key)
+      .filter(Boolean)
+
+    // Also check story-level links
+    let storyTestKeys = []
+    try {
+      const stories = await req.jira.searchJQL(
+        `parent = ${issueKey} AND issuetype not in (Epic, Initiative)`,
+        ['issuelinks']
+      )
+      for (const s of stories) {
+        const keys = (s.fields.issuelinks || [])
+          .filter(l => l.type?.name === 'Test')
+          .map(l => (l.inwardIssue || l.outwardIssue)?.key)
+          .filter(Boolean)
+        storyTestKeys.push(...keys)
+      }
+    } catch { /* optional */ }
+
+    const allTestKeys = [...new Set([...testKeys, ...storyTestKeys])]
+
+    // Run both Xray strategies
+    const [byKeys, byExec] = await Promise.allSettled([
+      allTestKeys.length ? xray.getTestStatusesByKeys(allTestKeys) : Promise.resolve(null),
+      xray.getTestStatusesForIssue(issueKey)
+    ])
+
+    res.json({
+      issueKey,
+      testKeysFromLinks: allTestKeys,
+      strategy_byKeys:   byKeys.status === 'fulfilled'  ? byKeys.value  : { error: byKeys.reason?.message },
+      strategy_byExec:   byExec.status === 'fulfilled'  ? byExec.value  : { error: byExec.reason?.message }
+    })
+  } catch (err) {
+    res.status(err.response?.status || 500).json({ error: err.response?.data || err.message })
   }
 })
 
