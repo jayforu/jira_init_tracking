@@ -1,7 +1,7 @@
 # Business Requirement Document & Business Case
 # ClinRecall — AI-Powered Clinical Memory Assistant for Doctors
 
-**Version:** 1.1
+**Version:** 1.3
 **Date:** April 22, 2026
 **Author:** Product Management
 **Status:** Draft for Review
@@ -27,12 +27,14 @@
 10. [Compliance & Regulatory Requirements](#10-compliance--regulatory-requirements)
 11. [Data Requirements](#11-data-requirements)
 12. [Technology Stack Recommendations](#12-technology-stack-recommendations)
-13. [Pricing Strategy](#13-pricing-strategy)
-14. [Go-to-Market Strategy](#14-go-to-market-strategy)
-15. [Success Metrics](#15-success-metrics)
-16. [Delivery Milestones](#16-delivery-milestones)
-17. [Assumptions & Dependencies](#17-assumptions--dependencies)
-18. [Open Questions](#18-open-questions)
+13. [Platform Architecture & Extensibility](#13-platform-architecture--extensibility)
+14. [Pricing Strategy](#14-pricing-strategy)
+15. [Go-to-Market Strategy](#15-go-to-market-strategy)
+16. [Success Metrics](#16-success-metrics)
+17. [Delivery Milestones](#17-delivery-milestones)
+18. [Future Product Opportunities](#18-future-product-opportunities)
+19. [Assumptions & Dependencies](#19-assumptions--dependencies)
+20. [Open Questions](#20-open-questions)
 
 ---
 
@@ -604,7 +606,239 @@ You do NOT need to anonymize audio before sending to the LLM if you have a signe
 
 ---
 
-## 13. PRICING STRATEGY
+## 13. PLATFORM ARCHITECTURE & EXTENSIBILITY
+
+### 13.1 Platform Philosophy
+
+ClinRecall V1 is a product. But the architecture underneath it must be a platform.
+
+Every use case we will ever build — clinical notes, surgical consent documentation, sales coaching, interview transcription — shares the same underlying pipeline:
+
+```
+Record Audio → Separate Speakers → Understand Context → Extract Intelligence → Store Securely → Present Output
+```
+
+What changes between use cases is not the pipeline. What changes is who is in the room, what to extract, and how to present it. If those variable parts are designed as pluggable modules from Day 1, adding a new use case means configuring a module — not rebuilding the system.
+
+This section defines the six-layer platform architecture, the rules for keeping layers decoupled, and the V1 decisions that must be made correctly now to prevent expensive rework later.
+
+---
+
+### 13.2 The Six Platform Layers
+
+```
+┌─────────────────────────────────────────────────────┐
+│              LAYER 6 — INTEGRATION                  │
+│         EHR / Legal Records / CRM / CMS             │
+├─────────────────────────────────────────────────────┤
+│              LAYER 5 — OUTPUT MODULE                │
+│     Use-case specific rendering & document format   │
+├─────────────────────────────────────────────────────┤
+│           LAYER 4 — STORAGE LAYER                   │
+│      Uniform HIPAA-compliant structured storage     │
+├─────────────────────────────────────────────────────┤
+│          LAYER 3 — INTELLIGENCE MODULE              │
+│     Pluggable AI extraction templates per use case  │
+├─────────────────────────────────────────────────────┤
+│          LAYER 2 — PROCESSING ENGINE                │
+│    Diarization + Transcription (shared, never changes)│
+├─────────────────────────────────────────────────────┤
+│            LAYER 1 — CAPTURE LAYER                  │
+│    Mobile browser / Room device / Web / Phone call  │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Layer 1 — Capture Layer
+*How audio enters the system*
+
+This layer is responsible for receiving audio from any source and delivering it to the Processing Engine in a standard format. The rest of the platform never needs to know or care how audio was captured.
+
+| Capture Adapter | Use Case | V1 / Future |
+|---|---|---|
+| Mobile browser microphone | Doctor in clinic, patient on phone | V1 |
+| Room-mounted tablet / device | Hospital consultation room, consent recording | V2 |
+| Web browser desktop | Journalist, researcher, remote interview | V3 |
+| Phone call integration (PSTN) | Sales coaching, customer support | Future |
+
+**Design rule:** Every capture adapter outputs the same audio format and metadata envelope to Layer 2. No adapter-specific logic leaks into Layer 2 or beyond.
+
+---
+
+#### Layer 2 — Processing Engine
+*The shared core — identical across all use cases*
+
+This is the platform's competitive moat. It receives raw audio and returns a speaker-separated, time-stamped transcript. Every product on the platform benefits every time this engine improves.
+
+Responsibilities:
+- Speaker diarization — who said what, when
+- Speech-to-text transcription with timestamps
+- Language detection per speaker (for multilingual sessions)
+- Audio quality validation and error handling
+
+**Design rule:** This layer has zero knowledge of use cases. It does not know if it is processing a clinical visit or a legal consent session. It only produces a labelled transcript. All use case intelligence lives in Layer 3.
+
+---
+
+#### Layer 3 — Intelligence Module
+*What to extract — fully pluggable per use case*
+
+This layer receives the labelled transcript from Layer 2 and applies an AI extraction template to produce structured output. Each use case defines its own template. Adding a new use case means adding a new template — no platform code changes.
+
+A template defines:
+- Which speaker roles to focus on (e.g. focus on Doctor speech only, or all speakers equally)
+- What information to extract (e.g. diagnosis, follow-ups, or risks explained, patient questions)
+- What output schema to populate (e.g. SOAP note fields, or consent summary fields)
+- What patterns to detect across sessions (e.g. recurring symptoms, or unresolved follow-ups)
+
+| Use Case | Focus | Extract | Output Schema |
+|---|---|---|---|
+| ClinRecall — Clinical Notes | Doctor speech | Observations, diagnosis, plan, follow-ups | SOAP note |
+| ClinRecall — Pre-visit Brief | All sessions for patient | Recurring symptoms, open follow-ups, last medications | 5-line summary |
+| ConsentDoc — Surgical Consent | Doctor speech + patient questions | Risks explained, alternatives, patient verbal acknowledgement | Legal consent summary |
+| Future — Sales Coaching | Sales rep speech | Objection handling, commitments made, next steps | Call scorecard |
+| Future — Interview Transcription | All speakers | Quotes, topics, attributions | Annotated transcript |
+
+**Design rule:** Templates are configuration, not code. They are stored as versioned records in the database or a config file — not hardcoded into the application. A new template can be deployed without a code release.
+
+---
+
+#### Layer 4 — Storage Layer
+*Uniform, secure, structured storage shared across all use cases*
+
+All use cases write to the same storage infrastructure using a common session data model. The `use_case_type` field on every session record tells the system which intelligence template was applied and which output schema to expect.
+
+**Core data model (shared across all use cases):**
+
+| Entity | Fields | Notes |
+|---|---|---|
+| Session | id, use_case_type, account_id, subject_id, started_at, ended_at, duration, status | subject_id is patient in clinical use case, matter_id in legal use case |
+| Participant | id, session_id, role_label, speaker_index | Role labels are use-case specific (Doctor/Patient vs. Surgeon/Relative) |
+| Transcript | id, session_id, speaker_index, text, start_time, end_time | Raw output from Layer 2 |
+| Extracted Output | id, session_id, use_case_type, schema_version, data (JSON) | Flexible JSON — schema validated per use_case_type |
+| Rendered Document | id, session_id, template_version, content | Final human-readable output from Layer 5 |
+| Audit Log | id, account_id, action, resource_type, resource_id, timestamp, ip | 6-year retention per HIPAA |
+
+**Design rule:** The core schema never changes for new use cases. New use cases only add entries to the `use_case_type` enum and define their JSON schema for the `Extracted Output.data` field. No new tables, no schema migrations.
+
+---
+
+#### Layer 5 — Output Module
+*How results are presented — pluggable per use case*
+
+This layer receives structured JSON from Layer 3 and renders it into the right format for that use case's user. Each use case defines its own output template.
+
+| Use Case | Output Format | Interaction Model |
+|---|---|---|
+| ClinRecall — Clinical Notes | Editable SOAP note | Doctor reviews, edits, confirms before saving |
+| ClinRecall — Pre-visit Brief | 5-line summary card | Read-only; shown on patient profile open |
+| ConsentDoc — Consent Record | Legal summary + full transcript | Doctor signs off; PDF generated for legal file |
+| Future — Sales Coaching | Call scorecard with clips | Manager reviews rep performance |
+| Future — Interview | Annotated transcript with quotes | Journalist edits and exports |
+
+**Design rule:** Output templates are rendering logic only — they receive data, they do not compute it. All intelligence lives in Layer 3. A new output template can be built and deployed by a frontend engineer with no backend changes.
+
+---
+
+#### Layer 6 — Integration Layer
+*How data flows out — optional, pluggable connectors*
+
+Every integration is a separate, independently deployable connector. The platform exposes a standard internal event stream; connectors subscribe to relevant events and push data to external systems.
+
+| Connector | Use Case | Trigger Event | Destination |
+|---|---|---|---|
+| EHR Push (Epic, Cerner) | ClinRecall | Note confirmed by doctor | Patient record in EHR |
+| Legal Records Export | ConsentDoc | Consent record signed | Hospital legal records system |
+| PDF Export | All use cases | Document finalised | Download / email |
+| Salesforce Push | Sales Coaching (future) | Call scored | Salesforce activity record |
+
+**Design rule:** V1 ships with no active integrations. The integration layer exists as empty infrastructure — event stream in place, no connectors deployed. Connectors are added use-case by use-case on customer demand. Never build a connector speculatively.
+
+---
+
+### 13.3 How Use Cases Plug In
+
+Adding a new use case to the platform requires exactly four things — no core platform changes:
+
+| Step | What Gets Built | Who Builds It | Estimated Effort |
+|---|---|---|---|
+| 1 | New capture adapter (if capture method is new) | Backend engineer | 1-3 weeks |
+| 2 | New intelligence template (extraction prompts + output schema) | AI engineer + PM | 1-2 weeks |
+| 3 | New output template (UI rendering for the use case) | Frontend engineer | 1-2 weeks |
+| 4 | New integration connector (if external system needed) | Backend engineer | 2-4 weeks |
+
+**Total to add a new use case on a mature platform: 4-8 weeks.**
+Without this architecture, adding a new use case would require 4-6 months of platform rework.
+
+---
+
+### 13.4 Use Case Expansion Roadmap
+
+```
+Phase 1 — V1 (Months 1-7)
+└── ClinRecall: Clinical Notes + Pre-visit Brief
+    └── Capture: Mobile browser
+    └── Speakers: 2 (Doctor, Patient)
+    └── Buyer: Independent practice doctor
+
+Phase 2 — V2 (Months 12-18)
+└── ConsentDoc: Surgical Consent Documentation
+    └── Capture: Room-mounted tablet (NEW adapter)
+    └── Speakers: 3-6 (Doctor, Patient, Relatives)
+    └── Buyer: Hospital risk management (enterprise)
+└── ClinRecall: Multilingual support added to Layer 2
+
+Phase 3 — V3 (Months 18-30)
+└── ClinRecall: EHR integration connector (Epic first)
+└── CoachCall: Sales call coaching
+    └── Capture: Phone call integration (NEW adapter)
+    └── Speakers: 2 (Sales rep, Prospect)
+    └── Buyer: Sales operations / revenue teams
+└── ScribeDesk: Journalist / researcher transcription
+    └── Capture: Desktop web browser (NEW adapter)
+    └── Buyer: Media organisations, research institutions
+
+Phase 4 — Platform (Month 30+)
+└── Open API for enterprise customers to build custom use cases
+└── Marketplace of intelligence templates
+└── White-label licensing to healthcare technology companies
+```
+
+---
+
+### 13.5 V1 Architectural Decisions That Must Be Made Correctly Now
+
+These are the decisions where getting it wrong in V1 creates expensive rework when Phase 2 begins. They cost almost nothing to get right now.
+
+| Decision | Correct V1 Approach | Wrong Approach (avoid) |
+|---|---|---|
+| Use case identity | Every session has a `use_case_type` field from creation | No use case field; ClinRecall logic baked into core |
+| Intelligence templates | Extraction prompts stored as versioned config in database | Prompts hardcoded in application code |
+| Output schema | Flexible JSON with schema validation per use case type | Fixed database columns matching only SOAP note fields |
+| Speaker roles | Generic role labels (Speaker A, Speaker B) mapped to use case roles in config | Hardcoding "Doctor" and "Patient" as the only roles in the data model |
+| Capture interface | Abstract audio input interface that accepts any audio source | Building capture logic only for mobile browser microphone |
+| Billing | `use_case_type` as a dimension in subscription model from Day 1 | Flat subscription with no use case dimension — needs rearchitecting for enterprise |
+| Integration events | Internal event stream in place from Day 1 (even with no consumers) | No event stream; integrations built as point-to-point hacks when needed |
+
+---
+
+### 13.6 What This Architecture Enables Commercially
+
+| Without Platform Architecture | With Platform Architecture |
+|---|---|
+| Adding ConsentDoc requires 80% of a rebuild | Adding ConsentDoc requires 4-8 weeks of configuration |
+| Each new use case competes with core product for engineering time | Each new use case builds on shared platform investment |
+| Valued at exit as a single-product tool | Valued at exit as a healthcare conversation intelligence platform |
+| Enterprise hospital asks for customisation → panic | Enterprise hospital asks for customisation → 2-week template build |
+| Each use case needs separate HIPAA compliance work | One compliance framework covers all use cases |
+| Engineering team context-switches between incompatible codebases | One codebase, one deployment pipeline, multiple products |
+
+A single-product company at 3,000 doctors might achieve a 5-6x ARR valuation multiple. A platform with three validated use cases, an open expansion roadmap, and enterprise contracts typically achieves 10-15x ARR. The architectural decisions made in V1 directly determine which outcome is possible.
+
+---
+
+## 14. PRICING STRATEGY
 
 ### 13.1 Pricing Philosophy
 
@@ -641,13 +875,13 @@ At $99/month, ClinRecall is the most affordable serious solution in the market w
 
 ---
 
-## 14. GO-TO-MARKET STRATEGY
+## 15. GO-TO-MARKET STRATEGY
 
-### 14.1 The Core Challenge
+### 15.1 The Core Challenge
 
 ClinRecall is built in India and sold to US physicians. The biggest risk is not the product — it is finding the first customers from 12,000 kilometres away in a market that runs on professional trust and word-of-mouth. Every element of the go-to-market strategy is designed to solve this specific constraint.
 
-### 14.2 The Principle: Validate Before You Build
+### 15.2 The Principle: Validate Before You Build
 
 **Do not write production code until market signal is confirmed.**
 
@@ -658,7 +892,7 @@ Before engineering begins, build a landing page describing ClinRecall — what i
 - 100 visitors → 0-5 signups = messaging problem, revisit positioning before building
 - 100 visitors → 5-15 signups = borderline; conduct 10 doctor interviews before deciding
 
-### 14.3 Phase 1 — Discovery & Validation (Days 1-30)
+### 15.3 Phase 1 — Discovery & Validation (Days 1-30)
 
 **Goal:** Talk to 10 US independent practice physicians. Not to pitch. To learn.
 
@@ -678,7 +912,7 @@ Before engineering begins, build a landing page describing ClinRecall — what i
 **Outreach message template for Doximity/LinkedIn:**
 > "Hi Dr. [Name] — I'm building a tool to help independent practice doctors reduce the time they spend on notes and preparing for return visits. I'm not pitching anything — I'd love 20 minutes to understand how you currently work. Happy to share what I'm learning with you in return. Would you be open to a quick call?"
 
-### 14.4 Phase 2 — Three Blocking Decisions (Days 30-60)
+### 15.4 Phase 2 — Three Blocking Decisions (Days 30-60)
 
 These decisions must be made before engineering starts. Getting them wrong mid-build is expensive.
 
@@ -694,7 +928,7 @@ These decisions must be made before engineering starts. Getting them wrong mid-b
 - Compliance sanity checks from a clinical perspective
 - Ongoing feedback on whether the product actually fits physician workflow
 
-### 14.5 Phase 3 — Concierge MVP & Pilot (Days 60-90)
+### 15.5 Phase 3 — Concierge MVP & Pilot (Days 60-90)
 
 **Do not build the full product for the pilot.**
 
@@ -711,7 +945,7 @@ Give this to **5 pilot doctors at no charge** in exchange for:
 
 **The signal you're looking for:** A doctor says *"I don't want to go back to how I worked before."* That sentence — not revenue, not conversion rate — is the sign that you have product-market fit.
 
-### 14.6 Phase 4 — Paid Launch & Acquisition (Months 5-9)
+### 15.6 Phase 4 — Paid Launch & Acquisition (Months 5-9)
 
 **Channel 1 — Word of Mouth (Primary)**
 Physicians trust other physicians more than any marketing. One doctor who loves the product and tells 3 colleagues is worth $50,000 in advertising. Invest in making the first 50 doctors so happy they become unpaid advocates.
@@ -728,7 +962,7 @@ Hire a US-based healthcare sales advisor on pure commission (15-20% of first-yea
 **Channel 5 — Targeted Digital Advertising (Month 9+)**
 Only after organic channels are validated and customer acquisition cost (CAC) is understood. Google Search ads targeting "medical scribe app", "doctor note taking app", "HIPAA voice recorder for doctors." Budget: $5,000/month initially.
 
-### 14.7 The 90-Day Priority Order
+### 15.7 The 90-Day Priority Order
 
 | Priority | Action | Timeline | Owner |
 |---|---|---|---|
@@ -742,7 +976,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | 8 | Collect weekly feedback, iterate | Month 4 | PM + Engineering |
 | 9 | Open paid subscriptions at $99/month | Month 5-6 | Founder |
 
-### 14.8 India-to-USA Operational Model
+### 15.8 India-to-USA Operational Model
 
 | Challenge | Solution |
 |---|---|
@@ -755,9 +989,9 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 ---
 
-## 15. SUCCESS METRICS
+## 16. SUCCESS METRICS
 
-### 15.1 Acquisition Metrics
+### 16.1 Acquisition Metrics
 
 | Metric | Month 3 Target | Month 6 Target | Month 12 Target |
 |---|---|---|---|
@@ -766,7 +1000,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | Paying doctors | 10 | 125 | 500 |
 | Monthly Recurring Revenue | $990 | $12,375 | $49,500 |
 
-### 15.2 Engagement Metrics (Product-Market Fit Signals)
+### 16.2 Engagement Metrics (Product-Market Fit Signals)
 
 | Metric | Target |
 |---|---|
@@ -776,7 +1010,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | D30 retention (still active 30 days after signup) | >70% |
 | D90 retention | >55% |
 
-### 15.3 Quality Metrics
+### 16.3 Quality Metrics
 
 | Metric | Target |
 |---|---|
@@ -785,13 +1019,13 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | App uptime | >99.5% |
 | Support tickets per 100 active doctors per month | <5 |
 
-### 15.4 North Star Metric
+### 16.4 North Star Metric
 
 **Weekly Active Recording Doctors (WARD)** — the number of doctors who recorded at least one session in the past 7 days. This metric best captures whether the product has become a genuine part of clinical workflow.
 
 ---
 
-## 16. DELIVERY MILESTONES
+## 17. DELIVERY MILESTONES
 
 | Milestone | Target Date | Deliverables |
 |---|---|---|
@@ -807,7 +1041,124 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 ---
 
-## 17. ASSUMPTIONS & DEPENDENCIES
+## 18. FUTURE PRODUCT OPPORTUNITIES
+
+This section documents product opportunities that are validated and strategically relevant but deliberately deferred beyond V1. They are captured here so they are not lost, and to ensure V1 architectural decisions do not inadvertently block them.
+
+---
+
+### 17.1 Surgical Consent Documentation — Hospital Enterprise Product
+
+**Source:** Direct input from practicing hospital physician, April 2026.
+
+#### The Use Case
+
+In large hospital settings, a surgeon or specialist conducts a pre-surgery consultation with the patient and their family members in a dedicated consultation room. During this conversation the doctor:
+
+- Explains the nature of the procedure in detail
+- Describes the risks, complications, and alternatives
+- Answers questions from the patient and relatives
+- Receives verbal agreement before a consent form is signed
+
+This conversation is one of the most legally sensitive interactions in medicine. Currently, the actual spoken content of this consultation is almost never documented beyond a standard consent form signature. If a dispute arises post-surgery, the hospital has no record of what was actually explained — creating significant medicolegal exposure.
+
+#### The Problem Being Solved
+
+| Stakeholder | Current Pain | Impact |
+|---|---|---|
+| Hospital legal / risk management | No verbatim or summarised record of what was explained pre-surgery | Malpractice vulnerability; "doctor said, patient said" disputes |
+| Surgeon / specialist | No proof that risks were fully communicated | Personal professional liability |
+| Patient and family | Cannot recall what was explained after leaving the room | Confusion, distrust, post-surgery anxiety |
+| Hospital administration | Consent disputes lead to settlements averaging $300,000-$1M+ | Direct financial and reputational cost |
+
+#### Why This Is a Strong Opportunity
+
+- **Legal protection has a clear dollar value.** Hospitals spend millions annually on malpractice insurance and legal settlements. A documented consent record is a direct risk mitigation investment with a measurable ROI — far easier to sell than a productivity tool.
+- **The budget exists.** Hospital risk management and legal departments have dedicated procurement budgets for compliance and liability reduction tools. This is not a discretionary purchase.
+- **No good solution exists today.** No established product specifically addresses surgical consent conversation documentation. The space is entirely unserved.
+- **One contract equals major revenue.** A single hospital system with 10 consultation rooms signing a $100,000/year enterprise contract equals the revenue of 84 individual doctor subscriptions.
+
+#### How This Differs From ClinRecall V1
+
+| Dimension | ClinRecall V1 | Consent Documentation Product |
+|---|---|---|
+| Setting | Independent practice clinic | Hospital consultation room |
+| Speaker count | 2 (Doctor + Patient) | 3-6 (Doctor + Patient + multiple relatives) |
+| Primary purpose | Clinical memory across repeat visits | Legal record of a single pre-surgery conversation |
+| Output | Doctor's structured notes | Consent summary + timestamped record of what was explained |
+| Buyer | Individual doctor ($99/month self-serve) | Hospital risk management / legal (enterprise contract $50K-$200K/year) |
+| Sales cycle | Days (doctor decides immediately) | 6-18 months (procurement committee, IT security review, legal vetting) |
+| Compliance bar | HIPAA | HIPAA + potential court-admissible evidence standards |
+| Language requirement | English | Multilingual (patients and relatives may not speak English) |
+| Integration needed | None for V1 | Hospital EHR, legal records management system |
+
+#### Target Specialties (Highest Priority)
+
+Consent disputes are most common and most costly in high-risk surgical specialties. These are the highest-value entry points:
+
+1. **Oncology** — cancer surgery conversations are complex, emotionally charged, and frequently disputed
+2. **Cardiac surgery** — high-risk procedures where informed consent is critically important
+3. **Neurosurgery** — outcomes are unpredictable; family disputes post-surgery are common
+4. **Orthopaedic surgery** — high volume, elective procedures where patients sometimes claim risks were not communicated
+
+#### Proposed Product Output
+
+The consent documentation product produces two outputs per consultation:
+
+**Output 1 — Consent Summary (structured)**
+- Procedure explained: [name and description]
+- Risks communicated: [list]
+- Alternatives discussed: [list]
+- Patient questions asked: [list]
+- Patient/family verbal acknowledgement: [yes/no + quote]
+- Duration of consultation: [minutes]
+- Participants identified: [roles, not names of relatives]
+
+**Output 2 — Timestamped Conversation Record**
+- Full speaker-separated transcript available for legal review
+- Stored securely, accessible only to authorised hospital personnel
+- Retained for the duration required by state law (typically 7-10 years)
+- Exportable as a PDF for inclusion in the patient's legal file
+
+#### Multilingual Requirement
+
+A significant proportion of US hospital patients are non-English speakers or have family members who are. This product must support:
+
+- Real-time identification of language spoken per speaker
+- Post-consultation translation of the summary into the patient's language
+- The original-language recording retained as the legal record
+
+This is a V2 feature of the consent product but must be accounted for in the architecture from the start.
+
+#### Pricing Model (Enterprise)
+
+| Package | Price | What's Included |
+|---|---|---|
+| Department Pilot | $15,000/year | 1 department, up to 3 consultation rooms, 500 sessions/year |
+| Hospital Standard | $60,000/year | Up to 5 departments, unlimited consultation rooms, unlimited sessions |
+| Hospital Enterprise | $120,000-$200,000/year | Full hospital system, multilingual support, EHR integration, dedicated support |
+
+#### Prerequisite Conditions Before Pursuing
+
+This opportunity should only be pursued after the following conditions are met:
+
+1. ClinRecall V1 has at least **500 paying independent practice doctors** — establishing product credibility and clinical market trust
+2. At least **3 published case studies** from V1 demonstrating accuracy and HIPAA compliance
+3. A **US-based enterprise sales hire** or a healthcare enterprise sales partner is in place — hospital procurement cannot be managed remotely from India without a trusted US face
+4. **Multilingual diarization** has been validated in a pilot setting
+5. A **legal records management advisor** has reviewed the court-admissibility requirements for audio and transcript records in at least 3 US states
+
+#### Strategic Recommendation
+
+**Do not build this in parallel with V1. Build it as a separate product line in Year 2.**
+
+The two products share infrastructure (HIPAA-compliant audio processing, speaker diarization, AI note extraction) and brand trust. V1 is the fastest path to establishing that trust. Once established, the consent documentation product can be introduced to hospital risk management teams with credibility already behind it.
+
+The doctor friend who surfaced this use case is a valuable potential advisor for the consent product. Engage them as an informal advisor now — understand the specific workflow, the key decision-makers in their hospital, and the existing tools (if any) their hospital uses for consent documentation.
+
+---
+
+## 19. ASSUMPTIONS & DEPENDENCIES
 
 ### Assumptions
 
@@ -830,7 +1181,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 ---
 
-## 18. OPEN QUESTIONS
+## 19. OPEN QUESTIONS
 
 | # | Question | Owner | Priority | Status |
 |---|---|---|---|---|
@@ -859,4 +1210,4 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 ---
 
-*ClinRecall BRD v1.1 — Confidential — April 22, 2026*
+*ClinRecall BRD v1.3 — Confidential — April 22, 2026*
