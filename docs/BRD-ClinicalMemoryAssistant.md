@@ -1,7 +1,7 @@
 # Business Requirement Document & Business Case
 # ClinRecall — AI-Powered Clinical Memory Assistant for Doctors
 
-**Version:** 2.7
+**Version:** 2.8
 **Date:** April 25, 2026
 **Author:** Product Management
 **Status:** Draft for Review — Post Senior Architect + PM Review
@@ -19,6 +19,7 @@
 - **v2.5 (Apr 25, 2026) — User Experience Design section added (new Section 9). Defines 3 core UX principles, 3 critical user journeys, visual design system, key screen designs (recording, pre-visit brief, note review), accessibility requirements (WCAG 2.1 AA), empty/error/loading states, design tooling (Claude Design instead of Figma), usability testing methodology, and UX success metrics. All subsequent sections renumbered (10 through 22).**
 - **v2.6 (Apr 25, 2026) — Phased Implementation Strategy added as Section 23. Defines 9 sequential phases from Phase 0 (Pre-Development Prerequisites) through Phase 9 (Year 1 Optimization). Each phase specifies pre-requisites, workstream-by-workstream deliverables (Infrastructure/Backend/Frontend/AI/Mobile/Design/QA/Compliance/Product), exit criteria, key risks, and team focus. Includes phase gate discipline: no phase starts until previous phase exits cleanly.**
 - **v2.7 (Apr 25, 2026) — Section 23 restructured around MVP-first discipline. The riskiest assumption ("AI note quality is acceptable to doctors") must be tested before investing in differentiator features. Restructure: MVP Track (Months 1-4, ships in ~10 weeks instead of 24); MVP Validation Gate (Go/No-Go); V1.1 Differentiation Track (Months 5-8, only if MVP validated); V1.2 Optimization Track (Months 9-12). Pre-visit brief, semantic search, subscription billing, native mobile, MFA, two-party consent enforcement, SOC 2, and patient rights workflows DEFERRED from MVP to V1.1. Doctors get to real PHI usage 3-4 months faster.**
+- **v2.8 (Apr 25, 2026) — Section 24 added: Multi-Language Support & India Market Architecture. India remains a Year 2 market (US-first stays the right call), but V1 architecture must keep India viable. Key decisions documented: i18n from Day 1, locale-aware data model, Sarvam AI as preferred Indian speech vendor (handles code-mixed Hinglish), hybrid output (English clinical note + local-language patient summary), India unit economics (~₹1,499/mo, 80% gross margin), regulatory framework (DISHA, Telemedicine Guidelines, IT Act), and Year 2 India launch playbook.**
 
 ---
 
@@ -60,6 +61,7 @@
 21. [Assumptions & Dependencies](#21-assumptions--dependencies)
 22. [Open Questions](#22-open-questions)
 23. [Phased Implementation Strategy](#23-phased-implementation-strategy)
+24. [Multi-Language Support & India Market Architecture](#24-multi-language-support--india-market-architecture)
 
 ---
 
@@ -3521,5 +3523,303 @@ This is not "lean for the sake of lean." It's optimal capital allocation under u
 
 ---
 
-*ClinRecall BRD v2.7 — Confidential — April 25, 2026*
-*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering. v2.5 — New Section 9 User Experience Design. v2.6 — Section 23 Phased Implementation Strategy. v2.7 — Section 23 restructured around MVP-first discipline: MVP Track (Months 1-4) + MVP Validation Gate + V1.1 Differentiation (Months 5-8) + V1.2 Optimization (Months 9-12). Pre-visit brief, semantic search, billing, native mobile, MFA, SOC 2 deferred from MVP to V1.1. First doctor with real PHI in 16 weeks instead of 24.*
+## 24. MULTI-LANGUAGE SUPPORT & INDIA MARKET ARCHITECTURE
+
+This section documents the architectural decisions required in V1 to keep India viable as a Year 2 target market — without committing to launching India in V1. India is strategically attractive (3M+ doctors, founders' home market, lower CAC) but presents three distinct challenges absent in the US: code-mixed speech, multilingual UI requirements, and dramatically different unit economics.
+
+The principle: **low-cost decisions in V1 keep India open. Retrofitting i18n and locale awareness later costs 5-10x more than building it in.**
+
+---
+
+### 24.1 Strategic Context — Why US First, India Second
+
+| Dimension | US (V1 Target) | India (Year 2 Target) |
+|---|---|---|
+| Pricing willingness | $99/mo per doctor | ₹999-2,999/mo (~$12-36) |
+| Annual revenue per doctor | ~$1,200 | ~$200-400 |
+| Customer acquisition cost | $650 | $50-100 |
+| LTV/CAC ratio | 8:1 | 3:1-4:1 |
+| Languages required | English | 8-12 needed for meaningful coverage |
+| Speech complexity | Monolingual | Code-mixed (Hinglish, Tanglish, etc.) standard |
+| Regulatory | HIPAA (mature) | DISHA Bill (evolving), Telemedicine Guidelines, IT Act |
+| Total addressable market | ~220K independent docs | ~3M doctors |
+
+**Strategic call:** Stay US-first for V1 validation; architect for India in V2. Higher revenue per US customer pays for the more complex India build.
+
+---
+
+### 24.2 Indian Languages — Coverage Plan
+
+The languages mentioned and their coverage plan:
+
+| Language | Speakers | Doctor Mix | V2 Phase |
+|---|---|---|---|
+| English | ~10% native | ~95% comfortable in clinical English | All V2 phases |
+| Hindi | ~600M | ~70% conversant in clinic | India Phase 1 (alongside English) |
+| Marathi | ~80M | Common in Maharashtra clinics | India Phase 2 |
+| Telugu | ~80M | Andhra Pradesh, Telangana | India Phase 2 |
+| Tamil | ~75M | Tamil Nadu | India Phase 2 |
+| Gujarati | ~55M | Gujarat | India Phase 3 |
+| Bengali | ~265M | West Bengal, Bangladesh | India Phase 3 |
+| Kannada | ~45M | Karnataka | India Phase 3 |
+| Punjabi | ~125M | Punjab, NCR | India Phase 4 |
+| Malayalam | ~38M | Kerala | India Phase 4 |
+
+**Phase definition:**
+- **India Phase 1** (V2 launch): English + Hindi only
+- **India Phase 2** (3-6 months later): + Marathi, Tamil, Telugu (covers 75% of southern + western India)
+- **India Phase 3** (6-9 months later): + Gujarati, Bengali, Kannada
+- **India Phase 4** (12+ months later): + Punjabi, Malayalam, others on demand
+
+---
+
+### 24.3 The Code-Mixed Speech Problem
+
+This is the single hardest technical challenge in Indian healthcare AI.
+
+**The reality of an Indian consultation:**
+
+> *"Patient ko 3 din se fever hai, BP slightly elevated, diabetes ki history bhi hai, abhi dekhte hain CBC report, then we'll start Metformin."*
+
+Roughly:
+- 60% English medical terms
+- 30% Hindi conversational
+- 10% specific patient/family-language phrases
+
+**Why standard ASR fails:**
+- Trained on monolingual datasets
+- Cannot handle mid-sentence language switches
+- Misrecognises medical terms in non-English contexts
+- Speaker diarization breaks down with dialect mixing
+
+**Honest accuracy expectations:**
+- Monolingual English consultations: 95%+ accuracy
+- Pure Hindi consultations: 90%+ accuracy
+- Code-mixed (Hinglish) consultations: **75-85% accuracy** (best-in-class as of 2026)
+
+This gap must be communicated to doctors transparently. Our note review UX (already mandatory in V1) becomes even more important in India — doctors will edit code-mixed notes more than US doctors edit English notes.
+
+---
+
+### 24.4 Speech-to-Text Vendor Strategy for India
+
+The Layer 2 vendor abstraction in Section 14.2 already supports vendor swapping. For India, the choice is:
+
+| Vendor | Strength | Weakness | India Recommendation |
+|---|---|---|---|
+| **Sarvam AI** | Indian startup; specifically built for Indian languages + code-mixed Hinglish; healthcare partnerships (Apollo, Max) | Newer; less proven at hyperscale | **Primary vendor for India** |
+| **Azure Speech Services** | Strong monolingual Hindi/Tamil/Telugu/Marathi/Gujarati; Microsoft BAA equivalent | Weaker on code-mixed speech | Backup for monolingual sessions |
+| **Bhashini** (Govt initiative) | Open-source, Indian govt-backed; aligned with national digital health mission | Variable quality; less production-ready | Pilot/research only |
+| **Reverie / Google Cloud STT** | Multi-Indian language coverage | Code-mixing weaker | Not recommended primary |
+| **AssemblyAI** | Excellent English; some Hindi | Limited regional Indian languages | English-only doctors |
+
+**Implementation:** Layer 2 routes by `session.locale`:
+- US sessions → AssemblyAI
+- India English-only sessions → AssemblyAI or Azure Speech
+- India code-mixed sessions → Sarvam AI
+- India monolingual regional language → Azure Speech
+
+The Intelligence Module (Layer 3) doesn't need to know which vendor was used — it receives a normalized speaker-labelled transcript.
+
+---
+
+### 24.5 LLM Strategy for Indian Language Note Extraction
+
+| Approach | Strength | Trade-off |
+|---|---|---|
+| **GPT-4o via Azure OpenAI** | Strong English + Hindi; available via existing Microsoft BAA | Weaker Tamil/Telugu/Marathi/Gujarati for medical extraction |
+| **Sarvam AI LLMs** | Best for Indian medical extraction; code-mixed fluent | Newer; need to evaluate maturity |
+| **Translation pipeline (transcript → English → GPT-4o → English note)** | Works today with existing GPT-4o | Loses linguistic nuance; double LLM cost |
+| **Fine-tuned Llama 3.3 on Azure ML** | Custom-trained on Indian medical data | Highest quality but expensive build (~6 months effort) |
+
+**India Phase 1 recommendation:** GPT-4o for Hindi + English. Translation pipeline for Marathi/Tamil/Telugu/Gujarati as interim solution.
+
+**India Phase 2+:** Evaluate Sarvam AI LLMs against fine-tuned Llama; choose based on quality + cost benchmarks at the time.
+
+---
+
+### 24.6 Output Strategy — The Hybrid Note Approach
+
+**Critical decision:** What language is the generated clinical note in?
+
+| Option | Pros | Cons |
+|---|---|---|
+| Match doctor's spoken language (Hindi → Hindi note) | Familiar; patient summary native | Indian medical records expected in English; complicates referrals/insurance |
+| Always English (medical standard) | Universal terminology; easier referrals; insurance compatible | Loses local flavor for patient communication |
+| **Hybrid — English clinical + local-language patient summary** | **Best of both** | Two outputs per session; more LLM cost |
+
+**India recommendation: Hybrid model.**
+
+```
+Single recording produces:
+├── Clinical Note (English)        → Doctor's clinical record, EMR-compatible
+└── Patient Summary (local lang)  → Patient/family takeaway, cultural fit
+```
+
+**Why this matters:** Patients understand their own care better in their native language. Family members supporting elderly patients can engage meaningfully. This is genuinely valuable beyond the doctor — it improves patient outcomes.
+
+The hybrid approach **also provides differentiation** vs. local Indian competitors who default to English-only.
+
+---
+
+### 24.7 UI Internationalization Strategy
+
+This is well-trodden territory; the key is doing it from Day 1.
+
+| Element | V1 (English Only) | V2+ (Multi-Language) |
+|---|---|---|
+| String externalization | All UI strings in `en.json` via `react-i18next` | New language files added (`hi.json`, `mr.json`, etc.) |
+| Number/date formatting | Use `Intl` browser API with locale | Locale-aware automatically |
+| Indic script rendering | N/A | Bundle Noto Sans Devanagari, Tamil, Telugu, Gujarati, Bengali fonts |
+| RTL support | Not required for these languages | All target languages are LTR |
+| Direction-aware CSS | Not required | Use logical CSS properties (`margin-inline-start` not `margin-left`) for future RTL readiness |
+| Date formats | US MM/DD/YYYY | India DD/MM/YYYY by default |
+| Currency formatting | USD | INR for India, with locale formatting |
+
+**Cost in V1:** ~3-5 person-days. **Cost to retrofit later:** 2-3 person-months.
+
+**Translation tooling:** Lokalise or Crowdin for translation workflow. Both integrate with `react-i18next`. ~$50-200/month at our scale.
+
+---
+
+### 24.8 V1 Architectural Commitments (Required Now to Keep India Open)
+
+These low-cost decisions must be made in V1 even though India ships V2:
+
+| V1 Decision | Cost in V1 | Cost to Retrofit Later |
+|---|---|---|
+| `react-i18next` from Day 1 (English only initially) | 1-2 days | 2-4 weeks |
+| `locale` field on Doctor record (`en-US`, `hi-IN`, etc.) | 1 hour | Multiple migrations |
+| `locale` field on Session record (driven by doctor or session-specific) | 1 hour | Schema migration |
+| Layer 2 vendor abstraction (already in BRD) | Already planned | N/A |
+| Layer 3 template per (use_case_type, locale) | 2 days additional design | Major refactor |
+| UTF-8 throughout (Postgres `text` columns, JSON, logs) | Default | Data corruption risk if missed |
+| Locale-aware date/number formatting via `Intl` | 1 day | Find-and-replace pain |
+| Translation file structure planned (even if only English populated) | 1 day | Restructure UI |
+| Currency abstraction in pricing/billing | 1 day | Stripe rework |
+| Logical CSS properties for direction-awareness | Built-in if using Tamagui | Manual CSS rewrite |
+| Time zone handling per doctor | 1 day | Bug-prone retrofit |
+
+**Total V1 cost to keep India open: ~5-7 person-days. Total cost to retrofit later: 2-3 person-months.**
+
+This is among the highest-ROI architectural decisions in the entire BRD.
+
+---
+
+### 24.9 India Cost Model and Unit Economics
+
+For a single Indian doctor with 180 sessions/year on India Phase 1 (English + Hindi):
+
+| Component | Cost/Doctor/Year | Notes |
+|---|---|---|
+| Sarvam AI speech-to-text + diarization | ~₹2,000 ($24) | Code-mixed handling premium |
+| GPT-4o via Azure OpenAI (extraction) | ~₹600 ($7) | Lower volume than US |
+| Embeddings | ~₹100 ($1) | Same as US |
+| Azure infra allocated | ~₹500 ($6) | Azure India region |
+| Patient summary LLM (additional) | ~₹400 ($5) | Hybrid output cost |
+| Auth, payments, misc | ~₹400 ($5) | Razorpay + others |
+| **Total variable cost** | **~₹4,000 (~$48)** | |
+| **Annual revenue at ₹1,499/mo** | **₹17,988 (~$216)** | |
+| **Gross margin** | **~78%** | Lower than US 92% but healthy |
+
+**Pricing strategy for India:**
+
+| Plan | Price | Target |
+|---|---|---|
+| Free Trial | 30 days | All new signups |
+| Solo Practitioner | **₹1,499/month** (~$18) | Independent doctors |
+| Annual (V2 Phase 2) | ₹14,990/year (~$180) | 17% annual discount |
+| Clinic (V2 Phase 3) | ₹3,999/month (~$48) | 2-5 doctors |
+
+Price is calibrated to: above commodity (₹500-800/mo apps signal low quality), below premium (₹3,000+/mo blocks solo doctors), aligned with what doctors already pay for Practo / dictation tools.
+
+---
+
+### 24.10 Indian Regulatory Framework
+
+Regulatory landscape is different (and evolving). Key frameworks:
+
+| Framework | Status | Implication for ClinRecall India |
+|---|---|---|
+| **DISHA Bill (Digital Information Security in Healthcare Act)** | Drafted but not enacted as of late 2026 | Will likely become India's HIPAA equivalent; build in compliance posture proactively |
+| **Information Technology Act, 2000 (Section 43A) + SPDI Rules 2011** | In force | Sensitive Personal Data Information rules apply to health data; reasonable security practices required |
+| **Telemedicine Practice Guidelines, 2020** | In force | Defines patient consent for telemedicine recordings; consent capture required |
+| **Clinical Establishments Act** | State-by-state | Some states require recordings to be retained per their rules (typically 5-10 years) |
+| **Drugs and Cosmetics Act** | In force | If product moves toward clinical decision support, may trigger SaMD-like requirements |
+| **Medical Council of India / National Medical Commission** | In force | Doctor's professional liability rests with doctor, not software (similar to US) |
+| **National Digital Health Mission (NDHM) / ABHA** | Live program | Future integration opportunity: patient ABHA IDs, health records sharing |
+| **Personal Data Protection Bill / DPDP Act 2023** | Enacted | India's GDPR equivalent; data fiduciary responsibilities apply |
+
+**Pre-build action for India launch:**
+1. Engage Indian healthcare lawyer 3 months before India launch
+2. Map data residency requirements (data may need to stay in India under DPDP Act)
+3. Prepare DISHA-equivalent compliance documentation
+4. Patient consent flow adapted to Telemedicine Guidelines language
+5. ABHA integration roadmap (future opportunity)
+
+**Data residency:** Azure has Pune and Chennai regions. India launch should use these for PHI residency compliance.
+
+---
+
+### 24.11 India Launch Playbook (Year 2)
+
+When India launches as a target market in Year 2:
+
+| Workstream | Action |
+|---|---|
+| **Brand** | Launch as "ClinRecall India" with localised branding; same platform, different go-to-market |
+| **Pricing** | ₹1,499/mo Solo; ₹3,999/mo Clinic; trial 30 days |
+| **Vendors** | Sarvam AI primary speech; Azure Speech secondary; Razorpay for payments alongside Stripe; Azure Pune/Chennai region |
+| **Legal entity** | Indian Pvt Ltd subsidiary; DPDP-compliant data fiduciary registration; Indian healthcare lawyer engaged |
+| **Sales** | India-based founders' network as initial pilot pool; Doctorpreneur and IMA chapters; medical college alumni networks |
+| **Support** | India-based support team; Hindi/English support; business hours in IST |
+| **Marketing** | Indian medical influencer partnerships (Doctor YouTubers, KevinMD-equivalents); IMA conferences; hospital association partnerships |
+| **Compliance** | DPDP data fiduciary registration; Telemedicine Guidelines consent flow; DISHA-readiness documentation |
+| **Pilots** | 10-15 Indian doctors across Mumbai, Delhi, Bangalore for closed pilot; ₹0 for first 3 months |
+
+**India MVP Validation Gate** (analogous to US gate): Same 5 metrics, recalibrated thresholds:
+- Doctor edit rate <40% (slightly more lenient given code-mixed accuracy)
+- Sessions/week ≥10 per doctor
+- Hindi/regional language note quality satisfaction ≥3.8/5
+- Doctor-reported "I don't want to go back" — 4+ of 10 pilot doctors
+- Production stability ≥99.5%
+
+---
+
+### 24.12 Data Sovereignty and Cross-Border Considerations
+
+If/when India launches:
+
+| Concern | Implementation |
+|---|---|
+| Indian PHI must reside in India | Azure Pune (Central India) primary, Chennai (South India) DR |
+| US team accessing India PHI | Restricted; data fiduciary contract with Indian entity required |
+| Cross-border data transfers | Default: NO. Indian ClinRecall data does not flow to US infrastructure or vice versa |
+| LLM inference for India | Azure OpenAI Service must be invoked from Azure India region (when available) or with Microsoft's data residency commitments |
+| Backup and DR | Within India regions only |
+
+This requires architectural separation: India is essentially a separate deployment of the platform (multi-tenant within India, isolated from US). The shared platform code is the same; the data and infrastructure are separate.
+
+---
+
+### 24.13 Multi-Language Support — Decision Summary
+
+| Decision | V1 (US Launch) | V2 (India Launch) |
+|---|---|---|
+| Languages supported | English only | English + Hindi initially; Marathi/Tamil/Telugu/Gujarati progressively |
+| Speech vendor | AssemblyAI | Sarvam AI primary; Azure Speech secondary |
+| LLM extraction | GPT-4o (Azure OpenAI) | GPT-4o for Hindi/English; Sarvam AI / Llama for regional |
+| Output | English clinical note | Hybrid: English clinical note + local-language patient summary |
+| UI | English (i18n-ready) | Localised UI per doctor preference |
+| Pricing | $99/mo | ₹1,499/mo (~$18) |
+| Cloud region | Azure East US 2 + West US 2 | Azure Central India + South India |
+| Regulatory | HIPAA + state laws | DPDP Act + Telemedicine Guidelines + DISHA-readiness |
+| Payments | Stripe (USD) | Razorpay (INR) + Stripe |
+| Customer support | Async-first (US business hours) | India business hours (IST), Hindi/English |
+
+**The platform is one. The products are two.** India and US are distinct market plays on the same underlying engineering investment — exactly what the platform architecture (Section 14) was designed to enable.
+
+---
+
+*ClinRecall BRD v2.8 — Confidential — April 25, 2026*
+*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering. v2.5 — Section 9 UX Design. v2.6 — Section 23 Phased Implementation Strategy. v2.7 — Section 23 restructured MVP-first: 16 weeks to real PHI instead of 24. v2.8 — Section 24 Multi-Language Support & India Market Architecture: India as Year 2 market; V1 architectural commitments to keep India open (i18n from Day 1, locale-aware data model, Sarvam AI for code-mixed Hinglish); hybrid output (English clinical note + local-language patient summary); India unit economics (₹1,499/mo, 78% gross margin); Indian regulatory framework (DPDP Act, DISHA Bill, Telemedicine Guidelines); Year 2 launch playbook.*
