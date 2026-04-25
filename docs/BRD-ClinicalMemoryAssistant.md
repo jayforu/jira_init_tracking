@@ -1,7 +1,7 @@
 # Business Requirement Document & Business Case
 # ClinRecall — AI-Powered Clinical Memory Assistant for Doctors
 
-**Version:** 2.8
+**Version:** 3.3
 **Date:** April 25, 2026
 **Author:** Product Management
 **Status:** Draft for Review — Post Senior Architect + PM Review
@@ -20,6 +20,11 @@
 - **v2.6 (Apr 25, 2026) — Phased Implementation Strategy added as Section 23. Defines 9 sequential phases from Phase 0 (Pre-Development Prerequisites) through Phase 9 (Year 1 Optimization). Each phase specifies pre-requisites, workstream-by-workstream deliverables (Infrastructure/Backend/Frontend/AI/Mobile/Design/QA/Compliance/Product), exit criteria, key risks, and team focus. Includes phase gate discipline: no phase starts until previous phase exits cleanly.**
 - **v2.7 (Apr 25, 2026) — Section 23 restructured around MVP-first discipline. The riskiest assumption ("AI note quality is acceptable to doctors") must be tested before investing in differentiator features. Restructure: MVP Track (Months 1-4, ships in ~10 weeks instead of 24); MVP Validation Gate (Go/No-Go); V1.1 Differentiation Track (Months 5-8, only if MVP validated); V1.2 Optimization Track (Months 9-12). Pre-visit brief, semantic search, subscription billing, native mobile, MFA, two-party consent enforcement, SOC 2, and patient rights workflows DEFERRED from MVP to V1.1. Doctors get to real PHI usage 3-4 months faster.**
 - **v2.8 (Apr 25, 2026) — Section 24 added: Multi-Language Support & India Market Architecture. India remains a Year 2 market (US-first stays the right call), but V1 architecture must keep India viable. Key decisions documented: i18n from Day 1, locale-aware data model, Sarvam AI as preferred Indian speech vendor (handles code-mixed Hinglish), hybrid output (English clinical note + local-language patient summary), India unit economics (~₹1,499/mo, 80% gross margin), regulatory framework (DISHA, Telemedicine Guidelines, IT Act), and Year 2 India launch playbook.**
+- **v2.9 (Apr 25, 2026) — MAJOR RESTRUCTURE: Strategy shifted to "India Beta → US Validation → US Launch." India used as engineering test bed (not commercial launch) leveraging founders' physician network for 6-8 weeks of fast-feedback iteration. Resolves the riskiest assumption (AI note quality) at ~$120-150K vs $400-580K before committing to expensive US compliance work (FDA SaMD, HIPAA, US insurance, US legal entity). US prerequisites deferred to Phase 5 (after India validation gate). Total timeline: ~22-24 weeks to US commercial readiness with battle-tested product. Section 23 restructured into 8 phases plus 2 gates (Product Validation Gate after India Beta; US Commercial Decision Gate after US Closed Pilot).**
+- **v3.0 (Apr 25, 2026) — Section 25 added: Voice Recognition Technology. Covers full ASR pipeline (audio capture → feature extraction/Mel Spectrograms → transformer transcription → speaker diarization), why Indian languages are harder (phonetic complexity, code-mixing, acoustic conditions), Sarvam AI vs. standard Whisper architecture, accuracy benchmarks by scenario (clinic English 93-96%, monolingual Hindi 90-94%, code-mixed Hinglish 78-88%), vendor selection decision matrix, accuracy thresholds triggering vendor upgrade, and direct implications for ClinRecall India Beta and V2 launch.**
+- **v3.1 (Apr 25, 2026) — VibeVoice (Microsoft) and Gemini Nano 4 (Google) evaluated and integrated into BRD. VibeVoice: open-source Microsoft ASR released Jan 2026; 60-min single-pass transcription with BUILT-IN diarization; native code-switching across 50+ languages; custom hotwords for medical vocabulary; self-hostable on Azure (eliminates AssemblyAI BAA dependency; PHI never leaves Azure subscription); now primary Phase 2 evaluation candidate alongside AssemblyAI. Gemini Nano 4: on-device AI with excellent privacy posture but excluded from V1 due to device limitations (high-end only, no developer iOS SDK), Indian language gaps, and thermal constraints on 20-min sessions; added to Year 2+ technology radar. Section 13.1 (AI/ML Layer), Section 25 (Voice Recognition), and Phase 2 deliverables all updated.**
+- **v3.2 (Apr 25, 2026) — Phase 2 ASR benchmark expanded from 2 vendors to 4: adds Sarvam AI (specialist for code-mixed Hinglish — moved from Tier 2 V2-deferred to Tier 1 V1 evaluation) and Azure Speech Services (already covered by Microsoft BAA — no new vendor relationship needed). Rationale: India Beta with Indian doctors will see code-mixed speech naturally; restricting to monolingual is unrealistic. Added Section 25.16 documenting evaluated-and-deprioritized vendors (Deepgram, Google Chirp 3, AI4Bharat, Reverie, Krutrim AI) with explicit reasoning. Three-tier architecture restructured: Tier 1 expanded to 4 production candidates; Tier 2 redefined as fine-tuned/specialised (not regional); Tier 3 unchanged (on-device).**
+- **v3.3 (Apr 25, 2026) — Section 25.17 added: ASR Vendor Evaluation Playbook. Practical execution guide for the Phase 2 4-vendor benchmark — evaluation harness architecture (vendor adapter pattern), golden dataset JSON schema, per-vendor integration checklists with time estimates, weighted scoring spreadsheet template, decision report template, common pitfalls per vendor, 2-week time-box. Designed so an AI/ML engineer can execute the benchmark from Day 1 without designing the framework themselves.**
 
 ---
 
@@ -62,6 +67,7 @@
 22. [Open Questions](#22-open-questions)
 23. [Phased Implementation Strategy](#23-phased-implementation-strategy)
 24. [Multi-Language Support & India Market Architecture](#24-multi-language-support--india-market-architecture)
+25. [Voice Recognition Technology](#25-voice-recognition-technology)
 
 ---
 
@@ -1199,36 +1205,155 @@ ClinRecall processes protected clinical information and generates content that c
 
 Keeping the technology boring and proven is a deliberate choice. The competitive advantage of ClinRecall is the product experience and the clinical memory layer — not a novel tech stack. Every component below is selected for reliability, HIPAA eligibility, and speed of development from an India-based team.
 
-### 13.1 AI & Machine Learning Layer (v2.3 — Azure-based)
+### 13.1 AI & Machine Learning Layer (v3.2 — Four-Way Evaluation)
 
-| Function | Recommended Vendor | Rationale |
+#### Phase 2 ASR Benchmark — Four Production Candidates
+
+The Phase 2 benchmark evaluates **four vendors** (not two) before committing to Layer 2 implementation for India Beta. All four are valid production candidates; the benchmark determines which best fits ClinRecall's specific use case.
+
+| Vendor | Why Evaluated | Strength | BAA Status |
+|---|---|---|---|
+| **AssemblyAI** | Proven baseline; mature healthcare tier | Strongest English diarization; cloud-managed | Direct BAA available |
+| **VibeVoice-ASR (Microsoft)** | Open-source unified architecture (transcription + diarization in one pass) | Custom hotwords; native code-switching; self-hosted on Azure | Microsoft BAA covers (no 3rd party) |
+| **Sarvam AI** | Specialist for Indian code-mixed Hinglish — actually relevant for India Beta | Best code-mixed accuracy; healthcare-trained on Indian data | Evaluation required |
+| **Azure Speech Services** | Already covered by Microsoft BAA; native Azure | Zero new vendor work; healthcare terminology mode; auto language detection | Microsoft BAA covers |
+
+#### Other AI/ML Layer Decisions (Confirmed)
+
+| Function | Choice | Status |
 |---|---|---|
-| Speech-to-text + Speaker Diarization | **AssemblyAI** | Best-in-class medical diarization accuracy, dedicated healthcare tier, HIPAA BAA available, cloud-agnostic so works on Azure |
-| Note extraction & Pre-visit brief generation | **GPT-4o via Azure OpenAI Service** | HIPAA-eligible via Microsoft BAA, strong medical conversation extraction, ~40% cheaper than alternatives, native Azure integration |
-| Semantic embeddings for search | **text-embedding-3-large via Azure OpenAI** | HIPAA-eligible, cost-effective, integrates with pgvector |
-| Fallback / cost optimisation at scale | Azure Speech Services or AssemblyAI volume tier | Re-evaluate after Month 12 once usage patterns are clear |
+| Note extraction & Pre-visit brief generation | **GPT-4o via Azure OpenAI Service** | Confirmed |
+| Semantic embeddings for search | **text-embedding-3-large via Azure OpenAI** | Confirmed |
 
-**Pre-Build Action Required:** Azure OpenAI Service access is **gated for healthcare/regulated industries**. Application must be submitted to Microsoft in Week 1 — typical approval is 1-2 weeks. Approval includes signed Microsoft BAA covering Azure OpenAI usage with PHI.
+#### Why Sarvam AI Moved from Tier 2 to Tier 1 (v3.2 Correction)
+
+The v3.1 plan placed Sarvam AI in "Tier 2 — India V2 commercial only" with the logic that English + monolingual Hindi is sufficient for India Beta. **This logic was flawed.**
+
+Indian doctors code-mix naturally in clinic. The whole point of leveraging the founders' Indian physician network is to test the product in **realistic Indian clinical conditions** — which inherently includes code-mixed Hinglish. Restricting India Beta to monolingual sessions:
+- Forces beta doctors to behave unnaturally
+- Misses validation of the harder problem (code-mixing)
+- Defers a critical accuracy question to V2 when discovering it would be expensive
+
+**Corrected positioning:** Sarvam AI is a Tier 1 production candidate evaluated alongside the others in Phase 2.
+
+#### Why Azure Speech Services Was Added (v3.2 Correction)
+
+Embarrassingly, Azure Speech Services was missed in the original BRD because of anchoring on AssemblyAI. It's the most obvious "free" candidate:
+- Already covered by the existing Microsoft BAA — no new vendor relationship
+- Native Azure integration — no cross-cloud complexity
+- Supports Hindi, Tamil, Telugu, Marathi, Gujarati, Kannada, Bengali
+- Has dedicated Healthcare terminology mode
+- Auto language detection for code-switching (weaker than Sarvam AI but present)
+- Real-time streaming + batch options
+
+**Cost-of-evaluation:** Adding Azure Speech to the Phase 2 benchmark is essentially free since the BAA, integration framework, and team familiarity are already in place.
+
+#### VibeVoice-ASR — Why Architecture Matters
+
+Microsoft Research open-sourced VibeVoice-ASR in January 2026. It is not merely another ASR vendor — it is an **architectural shift** that may eliminate the entire 3rd-party ASR dependency.
+
+| Capability | VibeVoice-ASR | Traditional Vendors |
+|---|---|---|
+| Long-form audio | 60 min in a single pass | Chunked processing |
+| Speaker diarization | **Unified — same model (Who + When + What)** | Separate post-processing step |
+| Code-switching | **Native — handles mid-utterance switches** | Mostly weak |
+| Custom hotwords | **Yes — inject medical terms at inference time** | Limited |
+| Indian languages | 50+ languages including Hindi | Varies |
+| Deployment | **Self-hosted on Azure GPU (open-source)** or Azure AI Foundry | Cloud API only |
+| HIPAA posture | **PHI never leaves Azure subscription** | Requires separate vendor BAA |
+| Cost model | **Fixed GPU compute (~$0.15-0.20/session)** | Per-minute billing |
+| English WER | 7.77% avg = 92%+ accuracy | Comparable |
+
+**VibeVoice custom hotwords for Indian medical context:**
+```python
+# Inject at inference time — no model retraining needed
+hotwords = [
+    # Common Indian clinic drugs
+    "Metformin", "Dolo", "Combiflam", "Ecosprin", "Pan-D",
+    "Lisinopril", "Atorvastatin", "Amlodipine",
+    # Clinical terms
+    "HbA1c", "CBC", "LFT", "KFT", "ECG", "USG",
+    # Hindi medical terms that often appear in code-mixed speech
+    "bukhar", "dard", "khoon", "pet dard"
+]
+result = vibevoice_asr.transcribe(audio, hotwords=hotwords)
+# Returns: { speaker: "A", timestamp: "00:14", text: "..." }
+```
+
+#### Gemini Nano 4 — Technology Radar (NOT V1)
+
+Google previewed Gemini Nano 4 for Android in April 2026 — 4x faster inference, 60% lower battery. On-device processing means PHI never leaves the device at all.
+
+**Why it's excluded from V1:**
+- Device-limited: requires iPhone 15 Pro+, Pixel 8+, Samsung S24+ — excludes mid-range Android (40-60% of Indian clinic doctors)
+- No developer SDK on iOS — Gemini on iPhone is Siri-level integration only, not accessible via app APIs
+- Thermal throttling risk on 20-minute consecutive sessions
+- Indian language + code-mixed accuracy unknown on compressed on-device model
+- Nano 4 is developer preview as of April 2026 — not production-stable
+
+**Added to Year 2+ technology radar.** Re-evaluate when Nano-capable device penetration reaches >60% of target doctors.
+
+#### Phase 2 Benchmark Plan — 4-Way Comparison
+
+The AI/ML engineer runs a parallel benchmark across all 4 vendors before committing to Layer 2 implementation:
+
+| Test | Dataset | What It Reveals |
+|---|---|---|
+| English clinical accuracy | 50 synthetic English consultations | WER, diarization accuracy on baseline scenario |
+| Hindi monolingual accuracy | 30 synthetic Hindi consultations | WER on monolingual Indian language |
+| Code-mixed Hinglish | 20 synthetic Hinglish consultations | **WER on the realistic India Beta scenario** |
+| Medical term accuracy | 50 consultations with drug names, clinical terms | Named entity accuracy; tests hotword/glossary capability |
+| Diarization quality (2 speakers) | All 100 conversations | Speaker attribution accuracy |
+| End-to-end latency (20 min audio) | 10 conversations | p50, p95 processing time |
+| Cost per session | 10 conversations | Per-session cost (per-minute billing or compute) |
+| Integration complexity | Setup time | Engineering days to integrate |
+
+**Possible Outcomes from 4-Way Benchmark:**
+
+| Scenario | Decision |
+|---|---|
+| Sarvam AI wins on code-mixed by >10pp; comparable elsewhere | **Sarvam AI primary** — get real code-mixed validation in beta |
+| VibeVoice wins overall; Sarvam AI marginally better on code-mixed | VibeVoice primary; Sarvam AI for explicit code-mixed sessions only |
+| Azure Speech matches AssemblyAI at zero incremental BAA cost | Azure Speech primary (simplification win) |
+| AssemblyAI still wins overall on accuracy | AssemblyAI confirmed; expensive but proven |
+| Mixed results across languages | Hybrid routing — different vendor per language profile |
+
+**Decision criteria framework:**
+
+| Metric | Weight | Reasoning |
+|---|---|---|
+| Code-mixed Hinglish WER | **35%** | Highest weight — this is the realistic Indian use case |
+| Diarization accuracy | 20% | Critical for separating Doctor vs Patient |
+| English WER | 15% | Important for US launch later |
+| Hindi monolingual WER | 10% | Covers half of beta doctors |
+| Cost per session | 10% | At scale, this matters |
+| Integration complexity | 5% | One-time cost |
+| BAA simplicity | 5% | Vendor relationship overhead |
+
+**Pre-Build Action Required:** Azure OpenAI Service access is **gated for healthcare/regulated industries**. Application must be submitted to Microsoft in Week 1 — typical approval is 1-2 weeks. Sarvam AI BAA evaluation should also be initiated in Week 1 since it is a new vendor relationship.
 
 **Token Quota Increase Requests:**
 At 500 doctors, default quotas are insufficient. File quota increase requests in Week 4:
 - TPM (Tokens Per Minute): from default ~30K → 200K+
 - RPM (Requests Per Minute): from default ~180 → 600+
 
-Microsoft typically approves within 3-5 business days.
+#### Vendor Contract Requirements (Updated v3.2)
 
-**Vendor Contract Requirements (Non-Negotiable):**
+**If VibeVoice or Azure Speech wins (preferred path — single-vendor simplicity):**
+1. **Microsoft BAA** covers Azure + Azure OpenAI + chosen ASR (VibeVoice self-hosted or Azure Speech)
+2. **No additional 3rd-party BAA needed** — single vendor relationship
+3. **Written confirmation** from Microsoft of no-training-use for Azure OpenAI inputs
 
-Before any real PHI is processed:
-1. **Signed BAA** with AssemblyAI (direct) and Microsoft (covering Azure OpenAI Service)
-2. **Written confirmation** that no inputs are used for model training, fine-tuning, retention beyond inference, or model improvement (Azure OpenAI default policy is no training use, but confirm in writing)
-3. **Data residency confirmation** that all inference occurs in US Azure regions (East US 2 primary, West US 2 backup)
-4. **Incident notification SLA** — vendor must notify of any security incident within 24 hours
-5. **Right to audit** — contractual right to review vendor's security practices annually
+**If Sarvam AI wins:**
+1. **Sarvam AI BAA** signed for Indian PHI processing
+2. **Microsoft BAA** for Azure infrastructure + Azure OpenAI
+3. Data residency: Sarvam AI must process in Indian region for India beta
 
-**Abstraction Requirement (to prevent vendor lock-in):**
+**If AssemblyAI retained:**
+1. **AssemblyAI BAA** + **Microsoft BAA** (Azure OpenAI)
+2. Both vendors' no-training-use policies confirmed
 
-Layer 2 (Processing Engine) and Layer 3 (Intelligence Module) must abstract vendor-specific APIs behind an internal interface. A model swap (e.g., GPT-4o → GPT-5 or to Llama 3 on Azure ML) must be achievable within 4 weeks — never longer.
+**Abstraction Requirement (unchanged):** Layer 2 abstracts vendor-specific APIs. Switching vendors must be achievable within 4 weeks. The Phase 2 4-way benchmark validates this abstraction works against multiple real backends before India Beta begins.
 
 ### 13.2 Application Stack — Revised v2.3 (Azure)
 
@@ -2255,7 +2380,7 @@ Critical dependencies and mitigations:
 
 | Vendor | Risk | Mitigation |
 |---|---|---|
-| AssemblyAI | Pricing change, acquisition, outage, accuracy regression | Layer 2 vendor abstraction; evaluate Deepgram and Azure Speech Services as backups; track monthly error rates |
+| AssemblyAI | Pricing change, acquisition, outage, accuracy regression | Layer 2 vendor abstraction; **VibeVoice-ASR (self-hosted) is primary alternative**; evaluate Deepgram and Azure Speech Services as secondary backups; track monthly error rates. Note: if VibeVoice wins Phase 2 benchmark, AssemblyAI is removed from critical path entirely |
 | Microsoft / Azure OpenAI | Model deprecation, pricing spike, training data policy change | Layer 3 LLM abstraction; maintain readiness to swap to Llama 3 (Azure ML) or other models; contractual notice requirements |
 | Microsoft / Azure | Service outage, region failure, pricing change | Multi-AZ deployment, documented DR plan, warm-standby in West US 2 |
 | Auth0 | Breach, acquisition, pricing | Documented migration path to Azure AD B2C |
@@ -2967,104 +3092,137 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 
 ---
 
-## 23. PHASED IMPLEMENTATION STRATEGY (MVP-FIRST)
+## 23. PHASED IMPLEMENTATION STRATEGY (INDIA BETA → US LAUNCH)
 
-This section defines the engineering execution plan structured around **MVP-first discipline**. The riskiest product assumption must be validated with the smallest possible build before investing in differentiator features.
+This section defines the engineering execution plan structured around the **India Beta → US Validation → US Launch** strategy adopted in v2.9.
 
-**The Core Assumption to Test:**
-> *"AI-generated clinical notes are accurate enough that doctors will sign them without major edits."*
+**Strategic Premise:**
+The riskiest product assumption is *"AI-generated clinical notes are accurate enough that doctors will sign them without major edits."* This must be validated cheaply before investing in expensive US compliance work (FDA SaMD assessment, HIPAA infrastructure, US insurance, Delaware LLC).
 
-If this is true, everything else (pre-visit brief, search, EHR integration) is solvable. If false, no amount of polish saves the product. The MVP must test this single hypothesis with minimum build.
+**The Approach:**
+Use India as an engineering test bed. Recruit 10-15 doctors from the founders' physician network as beta testers (non-commercial). Iterate fast on AI quality, UX, and reliability. Only after the product is validated does the team commit to US compliance work and commercial launch.
 
 **Three Tracks:**
-- **MVP Track (Months 1-4)** — Test core assumption with 5 pilot doctors using real PHI
-- **V1.1 Track (Months 5-8)** — Build differentiator and scale to public launch (only if MVP validated)
-- **V1.2 Track (Months 9-12)** — Optimize, certify, expand
+- **Engineering & India Beta Track (Weeks 1-16)** — Build product, test with Indian doctors, validate core assumption
+- **US Validation Track (Weeks 17-24)** — US compliance work + US closed pilot, only if India beta validates the thesis
+- **US Launch Track (Months 7-12)** — V1.1 differentiation build, public launch, V1.2 optimization
+
+**Why India Beta Over Direct US MVP:**
+
+| Factor | Direct US MVP (v2.7 plan) | India Beta → US (v2.9 plan) |
+|---|---|---|
+| Cost to validate core thesis | $400-580K | **$120-150K** |
+| Time to first real-doctor feedback | 16 weeks | **10-12 weeks** |
+| Pilot doctor recruitment | Hard (cold outreach from India) | **Easy (founders' network)** |
+| Iteration cadence with users | Weekly | **Daily (in-person possible)** |
+| Risk if thesis fails | High burn before learning | **Low burn, fast pivot** |
+| Timeline to US commercial launch | Month 8 | Month 9-10 |
+
+**Trade-off accepted:** ~4-6 weeks longer total path to US commercial launch in exchange for ~$300-400K saved if the thesis proves wrong, and a much more polished product when entering US.
 
 **Phase Gate Discipline:**
 - A phase only completes when every workstream's exit criteria are met
 - The next phase does not start until the previous phase exits cleanly
 - Exit criteria are demoable, measurable, or verifiable — not opinions
-- The **MVP Validation Gate** is the most important gate in the plan: a Go/No-Go decision based on real doctor data
+- **Two critical gates:** Product Validation Gate (after India Beta), US Commercial Decision Gate (after US Closed Pilot)
 
 ---
 
 ### 23.1 Implementation Timeline Overview
 
 ```
-═══════════════════════ MVP TRACK ═══════════════════════
-PHASE 0  ─ Pre-Development Prerequisites    Weeks -4 to 0   No code; legal/regulatory gates
-PHASE 1  ─ MVP Foundation                   Month 1         Stripped infra, auth, base API
+═════════════════ ENGINEERING & INDIA BETA TRACK ════════════════
+PHASE 0  ─ Reduced Prereqs                  Weeks -2 to 0   Skip FDA/US legal/insurance for now
+PHASE 1  ─ MVP Foundation                   Month 1         Infra, auth, base API (India + US ready)
 PHASE 2  ─ MVP Core Loop                    Month 2         Recording + AI note end-to-end
-PHASE 3  ─ MVP Hardening + Pilot Prep       Month 3         HIPAA, pen test, onboarding
-PHASE 4  ─ MVP Closed Pilot                 Month 4         5 doctors with REAL PHI
+PHASE 3  ─ India Beta Prep                  Weeks 9-10      Beta consent, Indian doctor onboarding
+PHASE 4  ─ India Beta                       Weeks 11-18     10-15 doctors, real feedback, iterate
 
-████████ MVP VALIDATION GATE ████████ (Go / No-Go / Iterate decision)
+████████ PRODUCT VALIDATION GATE ████████ (Go / Iterate / Pivot decision)
 
-══════════════════ V1.1 DIFFERENTIATION ═════════════════
-PHASE 5  ─ V1.1 Build                       Months 5-6      Pre-visit brief, search, billing
-PHASE 6  ─ V1.1 Extended Pilot              Month 7         15-20 doctors, native iOS in TestFlight
-PHASE 7  ─ V1.1 Public Launch               Month 8         Paid subscriptions, iOS App Store
+═════════════════ US VALIDATION TRACK ═══════════════════════════
+PHASE 5  ─ US Prerequisites                 Weeks 19-22     FDA, US legal, insurance, BAAs
+PHASE 6  ─ US Closed Pilot                  Weeks 23-26     5 US doctors with real PHI
 
-═════════════════ V1.2 OPTIMIZATION ════════════════════
-PHASE 8  ─ V1.2 Year 1 Optimization         Months 9-12     Native Android, SOC 2 Type I, scale
+████████ US COMMERCIAL DECISION GATE ████████
+
+═════════════════ US LAUNCH TRACK ═══════════════════════════════
+PHASE 7  ─ V1.1 Differentiation Build       Months 7-8      Pre-visit brief, search, billing, iOS
+PHASE 8  ─ US Public Launch + V1.2 Year 1   Months 9-12     Paid subs, App Store, SOC 2, Android
 ```
 
-**Key insight:** MVP ships in ~10 weeks (vs. 24 weeks in original v2.6 plan). Real doctor feedback arrives 3-4 months sooner. Engineering investment in differentiator features happens *after* foundation is validated.
+**Key insight:** Product validated in India in ~12 weeks at ~$120-150K. US compliance work (FDA, HIPAA, insurance) begins only after the core thesis is proven. Total time to US commercial launch: ~9-10 months. Total time to validated product: ~4 months.
+
+**Critical strategic point:** This plan does NOT commercially launch in India during V1. India beta is exclusively a research/co-creation phase with friendly doctor users at no charge. India commercial launch (if pursued) is V2 or later, per Section 24.
 
 ---
 
-### 23.2 What Stays in MVP (Non-Negotiable)
+### 23.2 What Stays in India Beta (Non-Negotiable)
 
-These items cannot be deferred — they are either legally required or are the core thing the MVP exists to test.
+These items cannot be deferred — they are either legally required (Indian regulations) or are the core thing the beta exists to test.
 
-| Component | Why MVP-Critical |
+| Component | Why Beta-Critical |
 |---|---|
-| HIPAA-compliant Azure infrastructure + signed BAAs (Microsoft + AssemblyAI) | Legal requirement; cannot handle PHI without |
-| FDA SaMD classification clearance | Regulatory blocker; cannot ship until resolved |
+| Azure infrastructure (Pune/India region for India beta data) | DPDP Act data residency for Indian PHI |
 | Recording → AssemblyAI → GPT-4o → note pipeline | This IS the product; the loop being tested |
 | Note review, edit, save — with mandatory disclaimer until signed | Doctor must own clinical content; trust requirement |
-| Audit log to immutable Blob Storage (WORM) | HIPAA requirement |
-| Encryption at rest (AES-256) + in transit (TLS 1.2+) | HIPAA requirement |
-| Auth0 with email verification (basic auth, no MFA yet) | Reasonable identity baseline |
+| Audit log to immutable Blob Storage (WORM) | Best practice; required for future US launch anyway |
+| Encryption at rest (AES-256) + in transit (TLS 1.2+) | Universal best practice |
+| Auth0 with email verification | Reasonable identity baseline |
 | Patient profile + session storage | Need to store the data |
-| Penetration test + HIPAA self-audit | Required before real PHI handling |
-| $2M Professional Liability + $2M Cyber insurance | Liability blocker |
-| 3 pilot doctor LOIs signed | Validation we'll have users |
-| One-party-consent state restriction (NY, TX, others) | Avoids two-party-consent state enforcement complexity |
+| Indian Telemedicine Guidelines consent flow | Required for Indian beta with real PHI |
+| Beta participation agreement (research-grade) | Ethical and legal protection |
+| 10-15 Indian beta doctors confirmed | Test bed users |
+| English + Hindi monolingual support (no code-mixed yet) | Covers most urban Indian beta scenarios |
 | Family Medicine / Internal Medicine specialty only | Single specialty template tested first |
 | PWA only (no native mobile yet) | Faster ship; tested in real clinic conditions |
+| Architecture US-ready (HIPAA-grade) | US launch in Phase 5 needs minimal rework |
 
 ---
 
-### 23.3 What's Deferred from V1 to V1.1
+### 23.3 What's Deferred from India Beta — Two Buckets
 
-These items are valuable but cannot be tested meaningfully until MVP foundation is validated. Building them in MVP means investing 3-4 months before learning whether the underlying premise holds.
+#### Bucket A — Deferred to Phase 5 (US Prerequisites)
 
-| Deferred Feature | Original Phase | New Phase | Why Deferred |
-|---|---|---|---|
-| Pre-visit brief (the differentiator) | Phase 4 | V1.1 (Phase 5) | Cannot test cross-session synthesis until base notes exist and are trusted |
-| Semantic search (pgvector) | Phase 4 | V1.1 (Phase 5) | Doctors find notes by patient name + date in MVP; semantic search adds complexity |
-| Subscription billing (Stripe) | Phase 5 | V1.1 (Phase 5) | Pilot is free; collect payment intent only |
-| MFA (mandatory) | Phase 1 | V1.1 (Phase 5) | Email verification + strong password sufficient for 5 doctors |
-| Two-party consent state enforcement | Phase 5 | V1.1 (Phase 5) | Restrict pilot to one-party-consent states (NY, TX) |
-| Patient rights workflows (export/delete/correct) | Phase 5 | V1.1 (Phase 5) | Manual handling for ≤100 patients |
-| Native iOS app | Phase 8 | V1.1 (Phase 6-7) | PWA tested first in real clinic settings; native deferred until needed |
-| Native Android app | Phase 9 | V1.2 (Phase 8) | Same logic; iOS first |
-| SOC 2 Type I | Phase 9 | V1.2 (Phase 8) | HIPAA only for MVP; SOC 2 is for hospital sales (not MVP segment) |
-| Auto-scaling, multi-region DR | Phase 5 | V1.1 (Phase 5) | Single region, manual scaling for 5-doctor pilot |
-| Note signing with biometric | Phase 3 | V1.1 (Phase 6) | Password re-auth for MVP |
-| Note amendment with versioning | Phase 3 | V1.1 (Phase 5) | Edit + save sufficient for MVP |
-| Mobile-specific security (cert pinning, jailbreak detection) | Phase 5 | V1.1 (Phase 6-7) | Tied to native mobile launch |
-| Bug bounty program | Phase 9 | V1.2+ | Pen test only for MVP |
-| Internationalization architecture | V1.2+ | Year 2 | US-only for MVP |
-| Multi-specialty templates | V1.2 | V1.2+ | Family/Internal Medicine only initially |
+These items are US-launch-specific. Skipped during India beta because they don't apply to the test scenario.
+
+| Deferred Item | Phase 5 Trigger | Why Deferred |
+|---|---|---|
+| FDA SaMD classification assessment | Required before US launch | $15K + 2 weeks; not needed for India beta |
+| US legal entity (Delaware LLC) | Required for US contracts | $3K + 2 weeks |
+| $2M Professional Liability + $2M Cyber insurance | Required for US commercial launch | $12K + 3 weeks underwriting |
+| US medical advisor (3% equity + retainer) | Required for US doctor recruitment | Recruit during India beta period |
+| Two-party consent state engine | US-specific (11 states) | Section 24 architecture supports adding |
+| US-specific Terms of Service + malpractice clauses | Required for US doctors | Different from Indian Telemedicine consent |
+
+#### Bucket B — Deferred to Phase 7 (V1.1 Differentiation)
+
+These items add value but cannot be tested meaningfully until the core loop is validated.
+
+| Deferred Feature | New Phase | Why Deferred |
+|---|---|---|
+| Pre-visit brief (the differentiator) | Phase 7 (V1.1) | Cannot test cross-session synthesis until base notes exist and are trusted |
+| Semantic search (pgvector) | Phase 7 (V1.1) | Doctors find notes by patient name + date in beta; semantic search is V1.1 polish |
+| Subscription billing (Stripe + Razorpay) | Phase 7 (V1.1) | Beta is free; commercial billing only after US validation |
+| MFA mandatory | Phase 5 | Email verification + strong password sufficient for 10-15 doctors |
+| Patient rights workflows (export/delete/correct) | Phase 5 | Manual handling for ≤200 patients during beta |
+| Native iOS app | Phase 7 (V1.1) | PWA tested first in real clinic settings |
+| Native Android app | Phase 8 (V1.2) | iOS first |
+| SOC 2 Type I | Phase 8 (V1.2) | HIPAA only for US launch; SOC 2 is for hospital sales (Year 2) |
+| Auto-scaling, multi-region DR | Phase 7 (V1.1) | Single region, manual scaling for beta scale |
+| Note signing with biometric | Phase 7 (V1.1) | Password re-auth for India beta |
+| Note amendment with versioning | Phase 7 (V1.1) | Edit + save sufficient for India beta |
+| Mobile-specific security (cert pinning, jailbreak detection) | Phase 7 (V1.1) | Tied to native mobile launch |
+| Bug bounty program | Phase 8 (V1.2) | Pen test only for V1 launch |
+| Sarvam AI for code-mixed Hinglish | Future V2 (India launch) | English + Hindi monolingual sufficient for beta |
+| Multilingual UI translation | V2 (India launch) | Beta in English UI |
+| Multi-specialty templates | V1.2+ | Family/Internal Medicine only initially |
 
 ---
 
-### 23.4 PHASE 0 — Pre-Development Prerequisites (Weeks -4 to 0)
+### 23.4 PHASE 0 — Reduced Prerequisites (Weeks -2 to 0)
 
-**Goal:** Resolve every blocker that would halt or invalidate engineering work. No code is written in this phase.
+**Goal:** Resolve only the prerequisites needed to start engineering and India beta. US-specific items (FDA, US legal entity, US insurance) are deferred to Phase 5. Smaller and faster than original v2.6/v2.7 Phase 0.
 
 **Pre-requisites:** None (this is the start).
 
@@ -3072,33 +3230,32 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 
 | Workstream | Deliverable |
 |---|---|
-| Regulatory | FDA SaMD classification assessment complete; written opinion from regulatory consultant |
-| Legal | Delaware LLC formed; ToS drafted with malpractice clauses; Microsoft + AssemblyAI BAAs signed |
-| Insurance | $2M Professional Liability + $2M Cyber Liability quotes secured; policies bound |
-| Customer | 3 US pilot doctor Letters of Intent signed |
-| Vendor Setup | Azure OpenAI Service access application submitted (1-2 wk approval); Auth0 account provisioned; Stripe account created |
-| Hiring | 9-10 person team committed (offers signed): 2 Backend, 1 Frontend, 1 AI/ML, 1 DevOps, 1 QA, 1 PM, 1 Senior Product Designer, 1 Clinical Reviewer (PT), 1 CSM (PT, Month 6 start) |
-| Tools | GitHub organization, Claude Design workspace, Azure subscription, Datadog/Sentry trial accounts |
-| Advisor | US Medical Advisor onboarded (3% equity + retainer) |
+| Vendor Setup | Microsoft (Azure + Azure OpenAI) BAA signed; AssemblyAI BAA signed; Azure OpenAI Service access application submitted (1-2 wk approval); Auth0 account provisioned |
+| India Legal | Indian Pvt Ltd entity setup OR LLP for beta operations (lighter than US LLC); standard beta participation agreement drafted |
+| Indian Beta Doctors | 10-15 Indian doctor commitments to participate as beta testers (founders' physician network) |
+| Hiring | 4-5 person team committed (offers signed): 1 Senior Full-Stack, 1 AI/ML Engineer, 1 PM, 1 Senior Product Designer (PT), 1 Clinical Reviewer (PT) |
+| Tools | GitHub organization, Claude Design workspace, Azure subscription, Sentry account |
+| **Deferred to Phase 5** | FDA SaMD assessment, Delaware LLC, US insurance, US medical advisor, US pilot LOIs |
 
 **Exit Criteria (Gate to Phase 1):**
-- ✅ FDA classification clear or risk acknowledged with mitigation plan
-- ✅ Both BAAs signed (Microsoft, AssemblyAI)
-- ✅ Insurance bound
-- ✅ 3 pilot LOIs signed
-- ✅ Azure OpenAI access approved
-- ✅ Team committed (signed offers)
-- ✅ Funding secured ($750K-$1M seed or founder commitment)
+- ✅ Microsoft + AssemblyAI BAAs signed
+- ✅ Azure OpenAI access approved (or in active review)
+- ✅ Indian Pvt Ltd / LLP formed
+- ✅ 10-15 Indian beta doctors verbally committed
+- ✅ 4-5 person team committed (signed offers)
+- ✅ Funding secured (~$150K founder + angel commitment for the India beta phase)
 
-**Key Risks:** FDA classification could disallow planned features → must be resolved before any build. Azure OpenAI approval could be delayed → cannot delay BAA signing while awaiting access decision.
+**Key Risks:** Azure OpenAI approval delay → start engineering while waiting. Indian doctors may over-commit and under-deliver → recruit 50% more than needed.
 
-**Team Focus:** Founders + Legal + Regulatory consultant. Engineering team finalizing offers but not yet productive.
+**Team Focus:** Founder + 1 lawyer (Indian) + advisor onboarding. Engineering team ramping up.
+
+**Cost in this phase:** ~$15-25K (vs. $80-100K in original v2.6 Phase 0).
 
 ---
 
 ### 23.5 PHASE 1 — MVP Foundation (Month 1)
 
-**Goal:** Working HIPAA-compliant infrastructure, CI/CD, authentication, and project skeleton — a doctor can sign up, verify email, log in, see an empty dashboard. No product features yet.
+**Goal:** Working infrastructure (India + US ready), CI/CD, authentication, and project skeleton — a doctor can sign up, verify email, log in, see an empty dashboard. No product features yet.
 
 **Pre-requisites:** Phase 0 exit criteria met.
 
@@ -3106,15 +3263,15 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 
 | Workstream | Deliverable |
 |---|---|
-| Infrastructure | Azure subscription configured; Terraform monorepo structure; East US 2 environment provisioned (VNet, Container Apps, PostgreSQL Flexible Server, Blob Storage with Immutability, Key Vault, Service Bus, Event Grid, Front Door). **Single region only — no DR yet.** |
-| DevOps | GitHub Actions CI/CD pipeline live; **CRITICAL Section 19.8 items only:** SAST/SCA/secret scanning gates; Terraform plan/apply automation; Azurite local emulator |
-| Backend | FastAPI skeleton; SQLAlchemy + Alembic; Pydantic schemas; row-level security policies; auth middleware; `/healthz`/`/readyz` endpoints; OpenAPI auto-gen |
-| Authentication | Auth0 integrated; signup/login flows; **email verification only (MFA deferred to V1.1)**; JWT validation; refresh token rotation |
-| Database | Initial schema: doctors, patients, sessions, transcripts, extracted_outputs, audit_log; row-level security enforced. **No pgvector yet** — added in V1.1 with semantic search |
-| Frontend | React PWA shell with React Router; Auth0 login flow; protected routes; design system foundations from Claude Design (color tokens, typography); Storybook setup |
-| Design | Claude Design workspace with design system; **recording screen + note review wireframes ratified by US Medical Advisor (NOT pre-visit brief — that's V1.1)** |
+| Infrastructure | Azure subscription configured; Terraform monorepo structure; **Azure Pune (Central India) primary for India beta data**; East US 2 region also provisioned but unused until Phase 5 (saves on operating cost); VNet, Container Apps, PostgreSQL Flexible Server, Blob Storage with Immutability, Key Vault, Service Bus, Event Grid |
+| DevOps | GitHub Actions CI/CD pipeline live; CRITICAL Section 19.8 items: SAST/SCA/secret scanning gates; Terraform plan/apply automation; Azurite local emulator |
+| Backend | FastAPI skeleton; SQLAlchemy + Alembic; Pydantic schemas; row-level security policies; auth middleware; `/healthz`/`/readyz` endpoints; OpenAPI auto-gen; **`locale` field on Doctor and Session records (preserves India/US routing)** |
+| Authentication | Auth0 integrated; signup/login flows; email verification only (MFA deferred to Phase 5); JWT validation; refresh token rotation |
+| Database | Initial schema: doctors, patients, sessions, transcripts, extracted_outputs, audit_log; row-level security enforced; UTF-8 throughout (supports Indic scripts when needed). **No pgvector yet** — added in Phase 7 with semantic search |
+| Frontend | React PWA shell with React Router; Auth0 login flow; protected routes; design system foundations from Claude Design; Storybook setup; **`react-i18next` integrated with English-only locale file (English UI for India beta and US launch)** |
+| Design | Claude Design workspace with design system; recording screen + note review wireframes ratified by Indian medical advisor (initially) and US Medical Advisor (when onboarded in Phase 5) |
 | QA | Test infrastructure: pytest + httpx for backend; Vitest + React Testing Library for frontend; CI runs all tests |
-| Compliance | Audit log writes from auth events; WORM Blob policy configured |
+| Compliance | Audit log writes from auth events; WORM Blob policy configured; data residency routing (India PHI → Pune, US PHI → East US 2) |
 
 **Exit Criteria (Gate to Phase 2):**
 - ✅ A doctor can sign up, verify email, log in, see empty dashboard
@@ -3122,16 +3279,19 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 - ✅ Production deploy via PR merge works end-to-end
 - ✅ SAST/SCA gates blocking insecure code
 - ✅ Audit log capturing all auth events to WORM storage
+- ✅ Data residency routing tested (Indian doctor → Pune; placeholder US doctor → East US 2)
 
-**What's NOT in this phase (vs. v2.6):** MFA, pgvector, two-party consent rules engine, multi-region DR, billing.
+**What's NOT in this phase:** MFA, pgvector, two-party consent rules engine, multi-region DR, billing, full Hindi UI translation.
 
-**Team Focus:** All-hands on infrastructure and shell.
+**Team Focus:** All-hands on infrastructure and shell. Small team (4-5 FTE) with Claude/Codex acceleration.
+
+**Cost in this phase:** ~$30K (team time) + ~$2-3K Azure infra setup.
 
 ---
 
 ### 23.6 PHASE 2 — MVP Core Loop (Month 2)
 
-**Goal:** End-to-end loop working: doctor creates patient → records 20-min consultation → receives AI-generated note within 90 seconds → can review, edit, sign. **This phase IS the MVP.**
+**Goal:** End-to-end loop working: doctor creates patient → records 20-min consultation → receives AI-generated note within 90 seconds → can review, edit, sign. **This phase IS the testable MVP.**
 
 **Pre-requisites:** Phase 1 exit criteria met.
 
@@ -3140,10 +3300,10 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 | Workstream | Deliverable |
 |---|---|
 | Backend | Patient CRUD endpoints (Module 2); Session lifecycle endpoints (Module 3 — start, chunks, complete); SAS URL generation for Blob uploads; basic consent acknowledgement endpoint; async note generation pipeline (Service Bus → Azure Functions → AssemblyAI → Azure OpenAI → DB); note CRUD with edit + save (no versioning yet); flag-as-inaccurate endpoint |
-| Frontend (PWA) | Patient list + patient profile screens; "Add Patient" flow; recording screen with live waveform; one-tap session start; **consent checkbox (simplified — full state-aware enforcement deferred to V1.1)**; note review screen with inline editing and password-re-auth signing; visible disclaimer until signed |
+| Frontend (PWA) | Patient list + patient profile screens; "Add Patient" flow; recording screen with live waveform; one-tap session start; consent checkbox (Indian Telemedicine Guidelines version for beta); note review screen with inline editing and password-re-auth signing; visible disclaimer until signed |
 | Audio Capture | Browser MediaRecorder; chunk-based upload via Service Worker; offline buffering on network drop; resumable upload on reconnect |
-| AI Pipeline | AssemblyAI integration; Azure OpenAI integration (GPT-4o for extraction, GPT-4o-mini for low-stakes); single Intelligence Layer template for Family Medicine; prompt template stored as versioned config |
-| MLOps (basic) | Synthetic medical conversation dataset (100 samples) co-created with Clinical Reviewer; basic schema validation; hallucination detection heuristics; manual quality review process |
+| AI Pipeline | **4-vendor parallel ASR benchmark: AssemblyAI, VibeVoice-ASR, Sarvam AI, Azure Speech Services** (see Section 13.1 for benchmark plan, decision rule, and weighted criteria); Azure OpenAI integration (GPT-4o for extraction, GPT-4o-mini for low-stakes); single Intelligence Layer template for Family Medicine; prompt template stored as versioned config; **all output notes in English regardless of input language**; winner of benchmark becomes Layer 2 vendor for India Beta |
+| MLOps (basic) | Synthetic medical conversation dataset (100 samples in English + Hindi) co-created with Clinical Reviewer; basic schema validation; hallucination detection heuristics; manual quality review process |
 | Compliance | Note signature audit (timestamp + IP + content hash); signed notes immutable; Azure AI Content Safety integration; basic prompt-injection sanitization |
 | Design | Recording screen polished per design system; note review screen polished with trust-through-transparency interactions ("source" link to audio timestamp) |
 | QA | E2E test: synthetic conversation → note generated → doctor edits → signs → immutable; regression tests against golden dataset |
@@ -3152,24 +3312,27 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 - ✅ Doctor records a 20-min synthetic conversation end-to-end without data loss
 - ✅ Audio chunks upload directly to Blob via SAS URLs (never traverse API server)
 - ✅ Recording survives network interruption (Service Worker buffers + resumes)
-- ✅ AssemblyAI returns speaker-diarized transcript with target latency
+- ✅ **4-vendor ASR benchmark complete** (AssemblyAI, VibeVoice, Sarvam AI, Azure Speech Services) — Layer 2 vendor for India Beta selected with documented decision rationale and weighted scorecard (see Section 13.1)
+- ✅ Winning ASR vendor returns speaker-diarized transcript with target latency for English and Hindi
 - ✅ Note generated within p95 90 seconds end-to-end
 - ✅ Generated notes pass schema validation 95%+ of the time
 - ✅ Doctor can review, edit, sign via mobile browser
 - ✅ Signed notes immutable; disclaimer shown until signed
 - ✅ All actions logged to WORM audit trail
 
-**What's NOT in this phase (vs. v2.6):** Pre-visit brief, semantic search, note versioning, biometric signing, two-party consent rules engine, full state detection.
+**What's NOT in this phase:** Pre-visit brief, semantic search, note versioning, biometric signing, two-party consent rules engine, code-mixed Hinglish handling (Sarvam AI), Hindi UI translation.
 
-**Key Risks:** Browser audio capture flakiness on iOS Safari → spike Week 1 of Phase 2. AssemblyAI webhook in private VNet → use public endpoint with signature verification. GPT-4o latency variability → use Azure Functions Premium plan.
+**Key Risks:** Browser audio capture flakiness on iOS Safari → spike Week 1 of Phase 2. VibeVoice GPU provisioning on Azure → provision Container App with T4 GPU in Week 1. Sarvam AI BAA negotiation → start in Phase 0 to avoid Phase 2 delays. If 4-vendor benchmark proves inconclusive → default to Azure Speech Services (covered by Microsoft BAA, lowest integration cost) and reassess in Phase 5. Gemini Nano 4 intentionally excluded — see Section 13.1 for rationale.
 
 **Team Focus:** Tight coordination — Backend + AI/ML + Frontend all working on the single happy-path loop.
 
+**Cost in this phase:** ~$30-35K (team time + minor LLM/AssemblyAI usage during testing).
+
 ---
 
-### 23.7 PHASE 3 — MVP Hardening + Pilot Prep (Month 3)
+### 23.7 PHASE 3 — India Beta Prep (Weeks 9-10)
 
-**Goal:** Product is HIPAA-compliant, security-tested, and ready to onboard 5 pilot doctors handling real patient PHI. Audit-ready for the first time.
+**Goal:** Product is ready to onboard Indian beta doctors handling real (consented) PHI. Lighter-weight than the v2.7 "MVP Hardening" phase because we're not yet in commercial US territory.
 
 **Pre-requisites:** Phase 2 exit criteria met.
 
@@ -3177,33 +3340,35 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 
 | Workstream | Deliverable |
 |---|---|
-| Compliance | HIPAA self-audit complete; all CRITICAL items from Section 19.8 addressed (SAST/DAST/SCA pipeline active, AI security controls — prompt injection, output validation, content filtering, prompt template integrity); BAAs verified active |
-| Security | Third-party penetration test scoped to MVP surface; all Critical/High findings remediated; cross-tenant isolation tests in CI verifying every endpoint; PHI log scrubbing middleware |
-| Operations | Status page (status.clinrecall.com); incident response runbook v1; on-call rotation for 5-doctor pilot; Sentry + Application Insights alerting; Slack-based bug triage |
-| AI Safety | Quarterly red-team exercise plan documented; output validation rejects out-of-schema content; max 2 regeneration attempts honored |
-| Pilot Onboarding | Pilot doctor onboarding playbook (60-min initial training); patient consent script provided; pilot dashboard for ops team to monitor each doctor's usage; weekly feedback call agenda template |
-| Product | Pilot-only feature flags (e.g., manual data export support, direct line to engineering); single-specialty (Family Medicine + Internal Medicine) UX validated |
+| Compliance | DPDP Act compliance review for Indian beta; Indian Telemedicine Guidelines consent flow integrated; data residency confirmed (Azure Pune for Indian PHI) |
+| Security | Application Security Testing (Section 19.8.1) gates active in CI; cross-tenant isolation tests passing; PHI log scrubbing middleware live; AI security controls (Section 19.8.2) operational |
+| Operations | Status page (status.clinrecall.com); incident response runbook v1; on-call rotation for beta doctor support |
+| Beta Onboarding | Beta doctor onboarding playbook (60-min initial training); Indian patient consent script (Telemedicine Guidelines compliant); beta dashboard for ops team to monitor each doctor's usage; weekly feedback call agenda template |
+| Product | Beta-only feature flags (manual data export, direct line to engineering); Family Medicine + Internal Medicine specialty templates validated |
+| Audit | Lightweight third-party security review (not full pen test yet — that's Phase 5 before US launch) |
 
 **Exit Criteria (Gate to Phase 4):**
-- ✅ Penetration test report shows no Critical/High open findings
-- ✅ HIPAA self-audit checklist 100% complete
 - ✅ All Section 19.8 CRITICAL items operational (SAST/DAST/SCA blocking, AI security controls active)
 - ✅ Cross-tenant isolation tests passing in CI for every endpoint
+- ✅ Indian Telemedicine Guidelines consent flow live and tested
 - ✅ Status page live; incident runbooks documented; on-call rotation active
-- ✅ 5 pilot doctors confirmed (signed pilot agreement, scheduled onboarding)
-- ✅ All MVP code paths covered by automated tests; production-grade observability live
+- ✅ 10-15 Indian beta doctors confirmed (signed beta agreement, scheduled onboarding, consent training complete)
+- ✅ All beta code paths covered by automated tests; production-grade observability live
+- ✅ Indian PHI exclusively in Azure Pune region; verified via data residency check
 
-**What's NOT in this phase (vs. v2.6):** Subscription billing (pilot is free), patient rights workflows automation (manual handling for ≤100 patients), SOC 2 audit (deferred to V1.2).
+**What's NOT in this phase (vs. v2.7 MVP Hardening):** Full US-grade pen test (deferred to Phase 5), $99/mo subscription billing (beta is free), US patient rights workflows automation, SOC 2 audit (deferred to V1.2), US insurance (Phase 5).
 
-**Key Risks:** Pen test reveals architectural issues → buffer 2 weeks in this phase for remediation. Pilot doctor onboarding may surface workflow surprises before formal pilot starts.
+**Key Risks:** Indian DPDP Act enforcement is evolving — engage Indian healthcare lawyer for review. Indian doctors may have different consent expectations than US — pilot consent flow with 2-3 doctors first.
 
-**Team Focus:** Security + Compliance leadership; QA expands automation; Customer Success Manager (PT) onboarded.
+**Team Focus:** Security + Indian Compliance lead; PM owns beta onboarding playbook; founder schedules 1:1 onboarding sessions with each beta doctor.
+
+**Cost in this phase:** ~$10-15K.
 
 ---
 
-### 23.8 PHASE 4 — MVP Closed Pilot (Month 4)
+### 23.8 PHASE 4 — India Beta (Weeks 11-18, ~6-8 weeks)
 
-**Goal:** 5 pilot doctors using the product with real patients for 4 consecutive weeks. The first time the system handles real PHI in production. Generate the data needed for the MVP Validation Gate decision.
+**Goal:** 10-15 Indian beta doctors using the product with real consented patients for 6-8 weeks. Iterate fast on AI quality, UX, and workflow. Generate the data needed for the Product Validation Gate decision.
 
 **Pre-requisites:** Phase 3 exit criteria met.
 
@@ -3211,41 +3376,47 @@ These items are valuable but cannot be tested meaningfully until MVP foundation 
 
 | Workstream | Deliverable |
 |---|---|
-| Customer | All 5 pilot doctors fully onboarded (signed, trained, recorded first session within Week 1); weekly 30-min feedback calls with each doctor |
-| Operations | 24/7 monitoring active; bug triage process running; daily ops standup; doctor-reported issues tracked in dedicated queue with <4 hour acknowledgement SLA |
-| Engineering | Bug fixes from real usage prioritized over new features; performance tuning based on production telemetry; AI quality improvements based on flagged notes |
-| MLOps | Real production conversations evaluated weekly; prompt template adjustments deployed via feature flags (cohort by cohort); hallucination rate, doctor edit rate, note quality satisfaction tracked daily |
-| Design | Usability sessions with all 5 pilot doctors (15-min, biweekly); friction points documented; UX adjustments deployed within sprint cycle |
-| Compliance | Real audit logs reviewed weekly for anomalies; first quarterly access review |
-| Product | Daily metrics dashboard tracking the 4 critical questions for the MVP Validation Gate |
+| Beta Operations | All 10-15 doctors fully onboarded (signed, trained, recorded first session within Week 1); weekly 30-min feedback calls; 2 in-person clinic visits per founder per week |
+| Engineering | Bug fixes from real usage prioritized over new features; performance tuning based on production telemetry; rapid prompt iteration |
+| MLOps | Real production conversations (Indian English + Hindi) evaluated weekly; prompt template adjustments deployed via feature flags; hallucination rate, doctor edit rate, note quality satisfaction tracked daily |
+| Design | Usability sessions with each beta doctor (15-30 min, biweekly); friction points documented; UX adjustments deployed within sprint cycle |
+| Compliance | Indian audit logs reviewed weekly; data residency verified continuously |
+| Product | Daily metrics dashboard tracking the 5 critical questions for the Product Validation Gate |
+| Engineering Iteration Cadence | Daily standups; weekly sprint reviews with 2-3 beta doctors as observers; bug fixes shipped same-day or next-day |
 
 **Daily Metrics Tracked (Critical for Validation Gate):**
 
-| Metric | What It Tells Us |
-|---|---|
-| Doctor edit rate per note (% of notes edited >2 sentences) | Does AI quality justify the workflow? |
-| Time from recording end to signed note (median) | Does the workflow fit a clinic day? |
-| Sessions per active doctor per week | Is the product becoming part of the workflow? |
-| Doctor-reported note quality satisfaction (1-5 weekly) | Trust signal |
-| Number of doctors saying "I don't want to go back" by Week 4 | Product-market fit signal |
+| Metric | What It Tells Us | Threshold |
+|---|---|---|
+| Doctor edit rate per note (English notes) | AI quality on US-equivalent baseline | <30% strong, <50% borderline |
+| Doctor edit rate per note (Hindi notes) | AI quality on monolingual Hindi | <40% strong, <55% borderline |
+| Time from recording end to signed note (median) | Workflow fit | <4 min strong |
+| Sessions per active doctor per week (Week 6+) | Workflow integration | >12 strong |
+| Doctor-reported note quality satisfaction (1-5 weekly) | Trust signal | >4.0 strong |
+| Doctors saying "I don't want to go back" by Week 6 | Product-market fit signal | 8-10 of 15 strong |
+| Production stability (uptime, CRITICAL incidents) | Engineering quality | >99.5% uptime, 0 unresolved CRIT |
 
-**Exit Criteria (Gate to MVP VALIDATION DECISION):**
-- ✅ All 5 pilot doctors actively using product (≥10 sessions/week each by Week 3)
+**Exit Criteria (Gate to PRODUCT VALIDATION DECISION):**
+- ✅ All 10-15 beta doctors actively using product (≥10 sessions/week each by Week 4)
 - ✅ Production stability: zero CRITICAL bugs unresolved >24 hours
-- ✅ All 4 weeks of data collected for MVP Validation Gate decision
+- ✅ All 6-8 weeks of data collected for Product Validation Gate decision
 - ✅ Daily metrics dashboard accurate and trusted
 
-**Key Risks:** Real PHI surfaces edge cases not covered by synthetic data — buffer engineering capacity for fast bug response. Pilot doctors may churn early if onboarding is rough — invest in white-glove daily check-ins for Week 1.
+**Founder advantage to leverage:** In-person clinic visits, daily WhatsApp check-ins, hosting beta doctor dinners for collective feedback sessions, observing real consultations to spot UX issues that doctors won't articulate.
 
-**Team Focus:** Customer Success daily; Engineering on stabilization (no new feature work); PM synthesizes feedback nightly.
+**Key Risks:** Beta doctors may over-commit (initially eager, slow drop-off) — recruit 50% extra. Indian data feedback may not transfer 1:1 to US workflow — flag US-specific gaps to address in Phase 5. AI quality on code-mixed Hinglish will be lower than English-only — set expectations.
+
+**Team Focus:** Customer Success daily (founders own this); Engineering on stabilization and prompt iteration; PM synthesizes feedback nightly into product backlog.
+
+**Cost in this phase:** ~$30-40K (team time) + minimal infra cost given 10-15 doctors.
 
 ---
 
-### 23.9 ████ MVP VALIDATION GATE — Go / No-Go / Iterate ████
+### 23.9 ████ PRODUCT VALIDATION GATE — Go / Iterate / Pivot ████
 
 **This is the most important decision in the entire plan.**
 
-After Phase 4's 4-week closed pilot, leadership makes a Go/No-Go/Iterate decision based on real production data — not opinions.
+After Phase 4's 6-8 week India beta, leadership makes a Go/Iterate/Pivot decision based on real beta data — not opinions. This decision determines whether to invest the next ~$200K in US compliance work and US launch.
 
 #### Decision Framework
 
@@ -3260,62 +3431,63 @@ After Phase 4's 4-week closed pilot, leadership makes a Go/No-Go/Iterate decisio
 
 #### Three Possible Outcomes
 
-**🟢 GREEN — Strong on 4+ signals → GO to V1.1**
-Confidence in core thesis confirmed. Begin Phase 5 (V1.1 Differentiation Build) immediately. Invest in pre-visit brief, semantic search, billing, native mobile.
+**🟢 GREEN — Strong on 4+ signals → GO to Phase 5 (US Validation Track)**
+Confidence in core thesis confirmed. Begin Phase 5 (US Prerequisites) immediately. Commit to FDA SaMD assessment, US legal entity, US insurance, US pilot recruitment, and ultimately US commercial launch.
 
 **🟡 YELLOW — Borderline on 3+ signals → ITERATE**
-Core thesis directionally right but execution needs improvement. Extend MVP pilot 4 more weeks with targeted fixes (typically: prompt engineering, UX friction, performance). Re-run gate at Week 8. Do NOT begin V1.1 differentiation work yet.
+Core thesis directionally right but execution needs improvement. Extend India beta 4 more weeks with targeted fixes (typically: prompt engineering, UX friction, performance). Re-run gate after extended beta. Do NOT begin US compliance work yet — saves $40-60K if iteration reveals deeper issues.
 
 **🔴 RED — Weak on 3+ signals → STOP / PIVOT**
-Core thesis is broken. Stop forward investment. Conduct deep customer discovery to understand why. Possible outcomes: pivot product positioning, pivot target segment, kill product. **Saves $200K+ of wasted V1.1 engineering.**
+Core thesis is broken. Stop forward investment. Conduct deep customer discovery to understand why. Possible outcomes: pivot product positioning, pivot target segment (perhaps India commercial launch with different value prop), kill product. **Saves $300K+ of wasted US compliance + commercial work.**
 
 #### Why This Gate Matters
 
-The original v2.6 plan committed to building pre-visit brief, search, billing, and native mobile *before* knowing if the basic loop worked. That's $200K-$300K of engineering on assumptions.
+The v2.7 plan still required ~$400-580K to reach this same validation point — committing to FDA SaMD work, US legal, US insurance, and US pilot recruitment before testing whether AI note quality was acceptable.
 
-This gate forces a deliberate, data-informed bet on V1.1 — or saves the team from making it.
+The v2.9 plan tests the core thesis at ~$120-150K — about 1/4 the cost. If the thesis is validated (GREEN), Phase 5 commits to US compliance work with confidence. If RED, we save the next $300K+ before spending it.
 
-The gate is not a formality. Founders + CTO + PM + Lead Designer + US Medical Advisor all participate in the decision, with pilot doctor data front and center.
+The gate is not a formality. Founders + Lead Engineer + PM + Designer + Indian Medical Advisor all participate in the decision, with beta doctor data front and center.
 
 ---
 
-### 23.10 PHASE 5 — V1.1 Differentiation Build (Months 5-6) — *Conditional on Green Gate*
+### 23.10 PHASE 5 — US Prerequisites (Weeks 19-22) — *Conditional on Green Gate*
 
-**Goal:** Build the differentiator features that turn 60-day pilots into paid annual subscribers. Pre-visit brief, semantic search, subscription billing, full state-aware compliance, and native iOS app.
+**Goal:** Complete all US-specific compliance, legal, and operational work needed to legally launch in the US. Run in parallel: regulatory work + recruiting US pilot doctors + hardening for US scale.
 
-**Pre-requisites:** MVP Validation Gate = GREEN.
+**Pre-requisites:** Product Validation Gate = GREEN.
 
 **Workstream Deliverables:**
 
 | Workstream | Deliverable |
 |---|---|
-| AI Pipeline | Pre-visit brief generation pipeline (cross-session context aggregation + GPT-4o-mini); embedding generation for all notes (text-embedding-3-large); pgvector index optimization (HNSW) |
-| Backend | `/v1/patients/{id}/pre-visit-brief` endpoint; hybrid search endpoints (pgvector + full-text); follow-up tracking schema; full subscription/billing endpoints (Module 7); patient rights endpoints (Module 6); two-party consent state engine (Module 8); note versioning with amendments (Module 9) |
-| Frontend (PWA) | Pre-visit brief card (loads <1s); semantic+keyword search; full patient history view with follow-up indicators; subscription management screen; trial countdown; payment flow |
-| Native iOS (NEW) | React Native app with custom Swift audio module; jailbreak detection, certificate pinning; biometric note signing (Face ID/Touch ID); App Attest; offline-capable reads via Service Worker equivalent |
-| Caching | Redis caching strategy from Section 19.8.18 implemented; cache invalidation rules tested |
-| Performance | API SLOs verified for read endpoints (p95 250ms, search p95 800ms); PgBouncer in transaction mode; database query plans reviewed |
-| Compliance | MFA mandatory enforced for all doctors; full state-aware two-party consent; patient rights workflows automated; SOC 2 Type I gap assessment kicked off |
-| Auto-Scaling | Section 19.8.19 auto-scaling rules deployed (Container Apps + Functions Premium plan) |
-| Design | Pre-visit brief — the differentiator screen — polished to wow-factor; native iOS UX adaptations |
-| Billing | Stripe integration end-to-end; 60-day trial; subscription lifecycle; webhook handling; invoice generation |
+| Regulatory | FDA SaMD classification assessment complete; written opinion from regulatory consultant |
+| Legal | Delaware LLC formed; US Terms of Service drafted with malpractice clauses; US-specific patient consent script |
+| Insurance | $2M Professional Liability + $2M Cyber Liability quotes secured; policies bound |
+| US Customer | US Medical Advisor onboarded (3% equity + retainer); 3-5 US pilot doctor LOIs signed (leveraging India case studies as credibility) |
+| Compliance | Full US-grade penetration test; remediation of Critical/High findings; HIPAA self-audit; two-party consent state engine deployed (11 states) |
+| Backend | Patient rights workflows fully automated (Module 6); MFA mandatory enforced; US-specific audit log refinements |
+| Operations | US-region infrastructure (Azure East US 2 + West US 2 DR); India region remains for India beta data; isolation verified |
+| Engineering | All Section 19.8 HIGH severity items addressed; production-grade observability for US scale |
 
 **Exit Criteria (Gate to Phase 6):**
-- ✅ Pre-visit brief renders <1s for any patient with ≥1 prior session
-- ✅ Semantic search finds "lumbar strain" when querying "back pain"
-- ✅ Stripe billing tested end-to-end (signup, charge, cancel, refund)
-- ✅ Native iOS app feature-complete in TestFlight
-- ✅ MFA active for all doctors (existing pilot doctors migrated)
-- ✅ Two-party consent enforcement live in 11 states
-- ✅ All Section 19.8 HIGH severity items addressed
+- ✅ FDA classification clear or risk acknowledged with mitigation plan
+- ✅ Delaware LLC formed; insurance bound; US ToS published
+- ✅ US-grade penetration test passed with no Critical/High open findings
+- ✅ 3-5 US pilot doctor LOIs signed
+- ✅ Two-party consent state engine live and tested in 11 states
+- ✅ MFA active for all doctors (India beta doctors migrated)
 
-**Team Focus:** AI/ML on differentiator; Native iOS engineer (contractor) onboarded; Backend on billing + patient rights; Design ensures pre-visit brief screen has wow-factor.
+**Key Risks:** FDA classification could disallow features → must be resolved early in this phase. US pilot doctor recruitment from India can still be hard despite India case studies → US Medical Advisor is critical-path hire.
+
+**Team Focus:** Founders + Legal + Regulatory consultant; Engineering on US-specific compliance polish; concurrent US pilot recruitment.
+
+**Cost in this phase:** ~$60-80K (FDA $15K + Insurance $12K + US Legal $8K + Pen test $10K + US Medical Advisor onboarding $15K + misc).
 
 ---
 
-### 23.11 PHASE 6 — V1.1 Extended Pilot (Month 7)
+### 23.11 PHASE 6 — US Closed Pilot (Weeks 23-26)
 
-**Goal:** 15-20 additional doctors onboarded; pre-visit brief and search receive real-doctor feedback; native iOS in TestFlight with pilot users; ready for paid public launch.
+**Goal:** 5 US pilot doctors using the validated product with real patients and real US PHI for 4 weeks. Final validation that the product works in US workflow context (different from Indian workflow in subtle ways).
 
 **Pre-requisites:** Phase 5 exit criteria met.
 
@@ -3323,58 +3495,77 @@ The gate is not a formality. Founders + CTO + PM + Lead Designer + US Medical Ad
 
 | Workstream | Deliverable |
 |---|---|
-| Customer | 15-20 additional doctors onboarded (Family Medicine + Internal Medicine); cohort retention tracking begun; original 5 pilot doctors begin paid trial (with grandfather discount) |
-| Engineering | Top 10 friction points from MVP feedback resolved; performance optimization at higher concurrency; pre-visit brief quality refinement based on real cross-session data |
-| Marketing | Marketing site live (clinrecall.com); content: how-it-works, security/HIPAA explainer, doctor case studies, pricing |
-| Sales | Outbound to physician communities (Doximity, LinkedIn); referral program design; 3+ doctor case study videos with willing pilot doctors |
-| Compliance | SOC 2 Type I audit kicked off (~3 months); bug bounty private launch (HackerOne) |
-| Operations | CSM full-time at end of Month 7; tier 1 support process active; help docs published |
-| Mobile | Native iOS app refined based on TestFlight feedback; preparing for App Store submission |
+| Customer | All 5 US pilot doctors fully onboarded; weekly 30-min feedback calls with each; US-specific workflow patterns documented |
+| Operations | 24/7 monitoring active; US business hours support; bug triage with <4 hour SLA |
+| Engineering | US-specific bug fixes (different EHR integration patterns, different drug names, different billing terminology); performance tuning under US scale |
+| MLOps | US clinical English vs. Indian clinical English comparison; prompt template adjustments for US-specific terminology |
+| Design | US doctor usability sessions; comparison with Indian beta findings to identify US-specific UX needs |
+| Compliance | US HIPAA audit logs reviewed weekly; first quarterly access review |
+| Product | US Commercial Decision Gate metrics dashboard |
 
-**Exit Criteria (Gate to Phase 7):**
-- ✅ 20+ doctors active on product
-- ✅ Trial-to-paid conversion intent measurable (paying customer pipeline visible)
-- ✅ Marketing site complete with 3+ doctor case studies
-- ✅ Stripe billing tested at scale (10+ live subscriptions in trial)
-- ✅ Native iOS app feature-complete and stable in TestFlight
-- ✅ Pre-visit brief view rate >70% of sessions
+**Exit Criteria (Gate to US COMMERCIAL DECISION):**
+- ✅ All 5 US pilot doctors actively using product (≥10 sessions/week each by Week 3)
+- ✅ Production stability: zero CRITICAL bugs unresolved >24 hours
+- ✅ US doctor edit rate within ±5% of India beta edit rate (validates AI quality transfers)
+- ✅ At least 3 of 5 US doctors say "I'd pay $99/mo for this"
+- ✅ US-specific compliance verified (HIPAA logs, two-party consent in CA/MA/etc., patient rights workflows)
 
-**Team Focus:** Customer Success scaling onboarding; Engineering polish; Founders on marketing pipeline.
+**Team Focus:** Customer Success daily; Engineering on US-specific issues; PM on workflow synthesis between India and US findings.
 
 ---
 
-### 23.12 PHASE 7 — V1.1 Public Launch + iOS App Store (Month 8)
+### 23.12 ████ US COMMERCIAL DECISION GATE ████
 
-**Goal:** Paid subscriptions open to public; native iOS app live in App Store; product can scale beyond pilot cohort.
+**Decision:** Should we open paid subscriptions and invest in V1.1 differentiation?
 
-**Pre-requisites:** Phase 6 exit criteria met.
+**🟢 GREEN — US Commercial Launch Approved**
+Begin Phase 7 (V1.1 Differentiation Build). Open subscriptions, build pre-visit brief / search / native iOS, scale up.
+
+**🟡 YELLOW — Extended US Pilot**
+US pilot reveals US-specific gaps (workflow, pricing, UX). Extend US pilot 4-6 weeks with targeted fixes. Defer V1.1 build.
+
+**🔴 RED — US Workflow Mismatch**
+Product works for Indian doctors but not US doctors. Diagnose and either pivot positioning (different US segment), pivot to India commercial launch (Section 24.11), or kill product.
+
+---
+
+### 23.13 PHASE 7 — V1.1 Differentiation Build + Extended US Pilot (Months 7-8)
+
+**Goal:** Build the differentiator features that turn 60-day pilots into paid annual subscribers. Pre-visit brief, semantic search, subscription billing, native iOS app. Onboard 15-20 additional US doctors as extended pilot.
+
+**Pre-requisites:** US Commercial Decision Gate = GREEN.
 
 **Workstream Deliverables:**
 
 | Workstream | Deliverable |
 |---|---|
-| Mobile | Native iOS app submitted to App Store; TestFlight → App Store transition; production-grade audio reliability validated |
-| Marketing | Public launch announcement; press outreach (HIT News, KevinMD); paid acquisition channels live (Google Search, Doximity ads); referral program live |
-| Customer | Self-serve signup flow polished; trial-to-paid funnel measured; cohort retention dashboards live |
-| Operations | On-call rotation expanded; per-doctor SLA monitoring |
-| Compliance | SOC 2 Type I audit in progress; bug bounty active with 5+ researchers |
-| AI/ML | Weekly evaluation cycles institutionalized; doctor feedback loop integrated into prompt iteration |
+| AI Pipeline | Pre-visit brief generation pipeline (cross-session context aggregation + GPT-4o-mini); embedding generation for all notes (text-embedding-3-large); pgvector index optimization (HNSW) |
+| Backend | `/v1/patients/{id}/pre-visit-brief` endpoint; hybrid search endpoints; follow-up tracking schema; full subscription/billing endpoints (Module 7); note versioning with amendments (Module 9) |
+| Frontend (PWA) | Pre-visit brief card (loads <1s); semantic+keyword search; full patient history view with follow-up indicators; subscription management screen; trial countdown; payment flow |
+| Native iOS | React Native app with custom Swift audio module; jailbreak detection, certificate pinning; biometric note signing (Face ID/Touch ID); App Attest; submitted to App Store |
+| Caching | Redis caching strategy from Section 19.8.18 implemented |
+| Performance | API SLOs verified for read endpoints (p95 250ms, search p95 800ms); PgBouncer in transaction mode |
+| Auto-Scaling | Section 19.8.19 auto-scaling rules deployed |
+| Design | Pre-visit brief polished to wow-factor; native iOS UX adaptations |
+| Billing | Stripe integration end-to-end; 60-day trial; subscription lifecycle; webhook handling; invoice generation |
+| US Customer | 15-20 additional US doctors onboarded (Family Medicine + Internal Medicine); marketing site live; case studies leveraging both India and US pilot stories |
+| Compliance | SOC 2 Type I gap assessment kicked off; bug bounty private launch (HackerOne) |
 
 **Exit Criteria (Gate to Phase 8):**
-- ✅ Native iOS app live in App Store with 4+ star rating from initial reviews
-- ✅ 50+ paying doctors
-- ✅ MRR >$5,000
-- ✅ p95 SLOs holding under public traffic
-- ✅ Customer-reported critical bugs <2/week
-- ✅ Trial-to-paid conversion ≥10% (industry benchmark)
+- ✅ Pre-visit brief renders <1s for any patient with ≥1 prior session
+- ✅ Semantic search finds "lumbar strain" when querying "back pain"
+- ✅ Stripe billing tested at scale (10+ live subscriptions in trial)
+- ✅ Native iOS app live in App Store with 4+ star rating
+- ✅ 20+ US doctors active on product (5 pilot + 15 extended)
+- ✅ Trial-to-paid conversion intent measurable
 
-**Team Focus:** Mobile + Marketing dominate; Engineering on scale operations; Customer Success on conversion optimization.
+**Team Focus:** AI/ML on differentiator; Native iOS engineer (contractor) onboarded; Backend on billing; Marketing live.
 
 ---
 
-### 23.13 PHASE 8 — V1.2 Year 1 Optimization (Months 9-12)
+### 23.14 PHASE 8 — US Public Launch + V1.2 Year 1 Optimization (Months 9-12)
 
-**Goal:** Scale to 500 paying doctors; achieve SOC 2 Type I; launch native Android; close Year 1 with proven unit economics and Series Seed-ready metrics.
+**Goal:** US public launch live; scale to 200-500 paying US doctors; achieve SOC 2 Type I; launch native Android; close Year 1 with proven unit economics and Series Seed-ready metrics.
 
 **Pre-requisites:** Phase 7 exit criteria met.
 
@@ -3382,55 +3573,65 @@ The gate is not a formality. Founders + CTO + PM + Lead Designer + US Medical Ad
 
 | Workstream | Deliverable |
 |---|---|
+| US Launch | Public launch announcement; press outreach (HIT News, KevinMD); paid acquisition channels live (Google Search, Doximity ads); referral program live; self-serve signup polished |
 | Compliance | SOC 2 Type I report achieved; SOC 2 Type II preparation begun |
 | Mobile (Android) | Native Android app live in Play Store (Month 10) — same React Native codebase + Kotlin audio module |
 | Engineering | Database optimizations (read replicas if needed); auto-scaling tuned per real load; cost-per-doctor monitored monthly; performance regression alerts |
 | AI/ML | Multi-specialty prompt templates (Family Medicine refined; Cardiology and Orthopedics evaluated based on demand); MLOps fully institutionalized |
 | Customer | Onboarding fully self-serve; in-app help and FAQs; tier 1 support metrics tracked; churn analysis at cohort level |
 | Marketing | Content marketing engine running; SEO traction; partnership conversations with state medical associations and specialty societies |
-| Funding | Series Seed close ($750K-$1M) with 18+ months runway extended; investor metrics deck up to date |
+| Funding | Series Seed close ($750K-$1M) on validated US traction + India case studies; 18+ months runway extended |
 | Operations | Multi-region DR activated (West US 2 warm-standby); business continuity tabletop exercise |
+| India Beta Continuity | India beta doctors offered continued free access OR formal commercial India launch (V2 decision per Section 24) |
 
 **Exit Criteria (Year 1 Close):**
-- ✅ 500+ paying doctors (or revised target with explanation)
-- ✅ MRR >$50,000; ARR >$500K run-rate
+- ✅ 200-500 paying US doctors (revised down from 500 to account for delayed US start)
+- ✅ MRR >$25,000; ARR >$250K run-rate
 - ✅ SOC 2 Type I report received
 - ✅ Native iOS + Android both live
 - ✅ Doctor NPS >50
 - ✅ Monthly churn <2.5%
 - ✅ AI cost per doctor <$50/year (under budget)
-- ✅ Path to break-even visible (Month 18-24 forecast)
+- ✅ Path to break-even visible (Month 24-30 forecast)
 
-**Key Risks:** CAC may exceed projections — pause aggressive acquisition if CAC >$1,000 until channels optimized. Churn may surface from edge specialties — focus retention work on validated segments.
+**Key Risks:** US launch starts later (Month 9 vs. Month 7 in v2.7) so revenue ramps later. Mitigate by leveraging India case studies + battle-tested product to accelerate US trial-to-paid conversion.
 
-**Team Focus:** Operational excellence; preparing for Series Seed close; building Year 2 plan.
+**Team Focus:** US Customer Success scaling; preparing for Series Seed close; deciding on India commercial launch (V2 path).
 
 ---
 
-### 23.14 Phase Effort & Team Allocation Summary
+### 23.15 Phase Effort & Team Allocation Summary
 
-| Phase | Track | Duration | Primary Team Focus | Estimated Effort (Person-Weeks) |
-|---|---|---|---|---|
-| Phase 0 | Pre-Dev | 4 weeks | Founders + Legal + Regulatory | 24 (mostly external advisors) |
-| Phase 1 | MVP | 4 weeks | All-hands infrastructure (stripped) | 36 (9 FTE × 4 weeks) |
-| Phase 2 | MVP | 4 weeks | Backend + Frontend + AI/ML — single core loop | 36 |
-| Phase 3 | MVP | 4 weeks | Compliance + Security + Pilot Prep | 36 |
-| Phase 4 | MVP | 4 weeks | Customer Success + Engineering ops + MLOps | 36 |
-| **MVP Validation Gate** | — | — | Decision meeting (1 day) | 0 |
-| Phase 5 | V1.1 | 8 weeks | AI/ML differentiator + Backend + Native iOS contractor | 80 |
-| Phase 6 | V1.1 | 4 weeks | Engineering polish + Marketing + Customer Success | 40 |
-| Phase 7 | V1.1 | 4 weeks | Mobile launch + Marketing + Operations | 40 |
-| Phase 8 | V1.2 | 16 weeks | Scale operations + Compliance (SOC 2) + Android | 160 |
-| **Total Year 1** | — | **52 weeks** | — | **~488 person-weeks** |
+| Phase | Track | Duration | Primary Team Focus | Estimated Effort (Person-Weeks) | Estimated Cost |
+|---|---|---|---|---|---|
+| Phase 0 | Eng & India Beta | 2 weeks | Founders + Vendor BAAs + Indian legal | 8 | ~$15-25K |
+| Phase 1 | Eng & India Beta | 4 weeks | Foundation infrastructure + auth + base API (small team) | 16 (4 FTE × 4 wks) | ~$30K |
+| Phase 2 | Eng & India Beta | 4 weeks | Recording + AI note core loop | 16 | ~$30K |
+| Phase 3 | Eng & India Beta | 2 weeks | India beta prep, security hardening | 8 | ~$15K |
+| Phase 4 | Eng & India Beta | 6-8 weeks | India beta operations + iteration | 28-32 | ~$30-40K |
+| **Product Validation Gate** | — | — | Decision meeting | 0 | 0 |
+| Phase 5 | US Validation | 4 weeks | US prerequisites — FDA, legal, insurance, US pilot recruit, pen test | 16 | ~$60-80K |
+| Phase 6 | US Validation | 4 weeks | US closed pilot ops + US-specific tuning | 16 | ~$25K |
+| **US Commercial Decision Gate** | — | — | Decision meeting | 0 | 0 |
+| Phase 7 | US Launch | 8 weeks | V1.1 differentiation + extended US pilot | 60 (team grows to ~7 FTE) | ~$100-120K |
+| Phase 8 | US Launch | 16 weeks | Public launch + V1.2 + SOC 2 + Android | 200 (team at ~10 FTE) | ~$250-300K |
+| **Total Year 1** | — | **~52 weeks** | — | **~370-400 person-weeks** | **~$580-640K** |
 
 **Critical timing comparison:**
-- v2.6 plan: First doctor with real PHI = end of Month 6 (24 weeks from kickoff)
-- **v2.7 plan: First doctor with real PHI = end of Month 4 (16 weeks from kickoff)**
-- **8 weeks earlier = 2 months of de-risked feedback** before committing $200K+ to V1.1 differentiator features
+
+| Plan | Time to Validated Product | Cost to Validated Product | Time to US Commercial | Total Year 1 Cost |
+|---|---|---|---|---|
+| v2.6 (US-first MVP) | 24 weeks | ~$580K | Month 8 | ~$580K |
+| v2.7 (US MVP-first) | 16 weeks | ~$400-500K | Month 8 | ~$580K |
+| **v2.9 (India Beta → US)** | **~12 weeks (India)** | **~$120-150K** | Month 9-10 | **~$580-640K** |
+
+**The strategic difference in v2.9:** Validation cost is decoupled from total cost. If thesis fails (Phase 4 RED gate), you stop at $120-150K and pivot. If thesis succeeds, you proceed to US with confidence.
+
+**Funding implication:** Initial raise can be **$200-300K (angel/founder bridge)** to fund through Product Validation Gate. Series Seed ($500-750K) raised at GREEN gate on validated traction — much easier raise.
 
 ---
 
-### 23.15 Cross-Cutting Engineering Practices (All Phases)
+### 23.16 Cross-Cutting Engineering Practices (All Phases)
 
 These practices begin in Phase 1 and continue throughout:
 
@@ -3448,7 +3649,7 @@ These practices begin in Phase 1 and continue throughout:
 
 ---
 
-### 23.16 Definition of "Done" (Applies to Every Feature)
+### 23.17 Definition of "Done" (Applies to Every Feature)
 
 A feature is not "done" until ALL the following are true:
 
@@ -3468,7 +3669,7 @@ This definition exists because "done" is the most over-claimed status in softwar
 
 ---
 
-### 23.17 Risk-Driven Phase Adjustments
+### 23.18 Risk-Driven Phase Adjustments
 
 Phases may need adjustment based on real-world findings. The decision framework:
 
@@ -3485,7 +3686,7 @@ The goal is not to follow the plan — it's to ship a product doctors love, prof
 
 ---
 
-### 23.18 What Comes After Phase 8 (Year 2 Outlook)
+### 23.19 What Comes After Phase 8 (Year 2 Outlook)
 
 Year 2 priorities derived from Year 1 phase outcomes — not pre-committed but anticipated:
 
@@ -3501,21 +3702,51 @@ These items move into discrete phases as Year 1 data informs prioritization.
 
 ---
 
-### 23.19 The MVP-First Bet — Why It Matters
+### 23.20 The India-Beta-First Bet — Why It Matters
 
 The discipline encoded in this section can be summarised as a single principle:
 
 > **Spend the smallest possible amount of money to learn whether the most important thing is true.**
 
-The most important thing is whether AI-generated clinical notes are accurate enough that doctors will sign them without major edits. Every other product capability — pre-visit briefs, search, native mobile, billing — is downstream of that question.
+The most important thing is whether AI-generated clinical notes are accurate enough that doctors will sign them without major edits. Every other product capability — pre-visit briefs, search, native mobile, billing — is downstream of that question. And every regulatory cost (FDA, US insurance, US legal entity) is downstream of the commercial commitment.
 
-By front-loading **only the work needed to test that question**, we:
-- Get to real-doctor feedback in ~16 weeks instead of ~24 weeks
-- Save $200K-$300K of engineering investment that would otherwise occur on an unvalidated thesis
-- Earn the right to invest confidently in differentiation
-- Or, if the thesis is wrong, learn it cheaply and pivot before exhausting runway
+The v2.9 India-Beta-First plan exploits a unique structural advantage: **the founders are in India and have direct physician network access.** This advantage cannot be replicated by US-based competitors and should not be wasted.
 
-This is not "lean for the sake of lean." It's optimal capital allocation under uncertainty — exactly what an early-stage healthcare AI product requires.
+By front-loading only the engineering work and using India as a friendly test bed:
+- Real-doctor feedback in ~12 weeks at ~$120-150K (vs. $400-580K for direct US validation)
+- Save $250-400K of US compliance and pilot investment that would otherwise occur on unvalidated thesis
+- Earn the right to invest confidently in US launch
+- Or, if the thesis is wrong, learn it cheaply (~$120K) and pivot
+- Build US case studies and battle-tested product before US launch — better US pilot conversion
+
+**Trade-off accepted:** ~6-8 weeks longer total path to US commercial launch (Month 9-10 vs. Month 8). In exchange for ~70% reduction in capital risk if the core thesis fails.
+
+This is not "lean for the sake of lean." It's optimal capital allocation under uncertainty, leveraging founder advantage that is unique to this team's situation. **Most US-based competitors cannot do this.**
+
+---
+
+### 23.21 Why India Beta Doesn't Compromise US Launch
+
+A common concern: "Won't India findings not transfer to US?" Honest answer:
+
+**~70-80% of findings transfer:**
+- AI note extraction quality (medical conversation patterns are universal)
+- Recording reliability in real clinics
+- Workflow friction in patient consultations
+- Trust-through-transparency UX requirements
+- Pre-visit brief usefulness for chronic care
+- Performance under real load
+- Prompt engineering optimization
+- Bug discovery patterns
+
+**~20-30% needs US-specific validation in Phase 6:**
+- US-specific medical terminology (drug names, ICD codes)
+- US clinic billing/insurance workflows
+- HIPAA-specific consent flows
+- US doctor pricing willingness ($99/mo)
+- US-specific EHR mental models
+
+The Phase 6 US Closed Pilot is designed specifically to test the 20-30% that doesn't transfer. By the time we reach Phase 6, the 70-80% is already validated — Phase 6 is fast and confident, not exploratory.
 
 ---
 
@@ -3821,5 +4052,914 @@ This requires architectural separation: India is essentially a separate deployme
 
 ---
 
-*ClinRecall BRD v2.8 — Confidential — April 25, 2026*
-*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering. v2.5 — Section 9 UX Design. v2.6 — Section 23 Phased Implementation Strategy. v2.7 — Section 23 restructured MVP-first: 16 weeks to real PHI instead of 24. v2.8 — Section 24 Multi-Language Support & India Market Architecture: India as Year 2 market; V1 architectural commitments to keep India open (i18n from Day 1, locale-aware data model, Sarvam AI for code-mixed Hinglish); hybrid output (English clinical note + local-language patient summary); India unit economics (₹1,499/mo, 78% gross margin); Indian regulatory framework (DPDP Act, DISHA Bill, Telemedicine Guidelines); Year 2 launch playbook.*
+## 25. VOICE RECOGNITION TECHNOLOGY
+
+This section documents the technical foundations of voice recognition as it applies to ClinRecall — covering the full ASR pipeline, speaker diarization, Indian language challenges, vendor architecture comparison, accuracy benchmarks, and decision rules for vendor selection and upgrade. Engineering and AI/ML team members should treat this as the definitive reference for speech technology decisions throughout development.
+
+---
+
+### 25.1 The Voice Recognition Pipeline — Overview
+
+Every voice recognition system follows the same fundamental pipeline regardless of vendor:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  VOICE RECOGNITION PIPELINE                  │
+│                                                              │
+│  1. AUDIO CAPTURE        Raw waveform from microphone        │
+│         ↓                                                    │
+│  2. PRE-PROCESSING       Noise reduction, normalization      │
+│         ↓                                                    │
+│  3. FEATURE EXTRACTION   Mel Spectrogram (audio → image)     │
+│         ↓                                                    │
+│  4. TRANSCRIPTION        Transformer model → text tokens     │
+│         ↓                                                    │
+│  5. SPEAKER DIARIZATION  Who said what, and when             │
+│         ↓                                                    │
+│  6. OUTPUT               Labelled transcript with timestamps │
+└──────────────────────────────────────────────────────────────┘
+```
+
+ClinRecall uses **AssemblyAI** (India Beta: English + Hindi monolingual) and evaluates **Sarvam AI** (V2 India commercial: code-mixed Hinglish and regional languages) as Layer 2 vendors in the platform architecture (Section 14.2).
+
+---
+
+### 25.2 Step 1-2 — Audio Capture and Pre-Processing
+
+**Audio capture:**
+The device microphone digitises sound at **16kHz, 16-bit PCM, mono** — the optimal format for speech recognition. Human speech is concentrated in the 100Hz-8kHz range; 16kHz captures this without wasted bandwidth.
+
+At 16kHz: 16,000 amplitude measurements per second. A 20-minute consultation = ~19.2 million data points before compression.
+
+**Pre-processing:**
+
+| Step | What It Does | Why It Matters for ClinRecall |
+|---|---|---|
+| Noise reduction | Suppresses clinic ambient noise (AC, footsteps, background voices) using spectral subtraction | Indian clinics often louder than US clinics; critical for beta quality |
+| Voice Activity Detection (VAD) | Identifies and removes silences between speech segments | Reduces processing cost; prevents silence from degrading model |
+| Normalization | Standardises audio amplitude level | Prevents loud doctor voice from dominating quiet patient voice |
+| Format conversion | Converts PWA MediaRecorder output to vendor-required format | AssemblyAI accepts multiple formats; WAV/PCM preferred |
+
+ClinRecall pre-processes **server-side after upload** — not on-device. Reason: consistent quality across device types; mobile battery not impacted; clinic WiFi upload-then-process is reliable enough.
+
+---
+
+### 25.3 Step 3 — Feature Extraction: Mel Spectrograms
+
+**What is a Mel Spectrogram?**
+
+A 2D mathematical representation of audio:
+- **X-axis:** Time (chunked into overlapping 25ms windows)
+- **Y-axis:** Frequency (Mel scale — perceptual scale matching human pitch perception)
+- **Intensity:** Energy (loudness) at each frequency-time point
+
+```
+High freq │ ████░░░░░░░██████░░░░░░░███████
+          │ ████████░░░████████░░░░████████
+          │ ████████████████████████████████
+Low freq  │ ████████████████████████████████
+          └────────────────────────────────▶ Time
+               "Pa-"     "-tient"    "has"
+```
+
+The spectrogram is effectively an **image of sound** — and this insight powers modern speech recognition. Convolutional and transformer layers process it identically to how they process photographs.
+
+**Why Mel scale?** Non-linear — compresses high-frequency differences (humans can't distinguish well) and expands low-frequency differences (where speech content lives). Makes the representation efficient.
+
+**ClinRecall implication:** The 16kHz, mono recording specification is optimised for producing clean Mel Spectrograms. Higher sample rates don't improve accuracy for speech; lower rates (8kHz, phone quality) degrade it.
+
+---
+
+### 25.4 Step 4 — Neural Network Transcription: Transformer Architecture
+
+Modern speech recognition uses **encoder-decoder transformer networks** — the same fundamental architecture as GPT-4.
+
+**The Whisper architecture (foundation for AssemblyAI and Sarvam AI):**
+
+```
+Mel Spectrogram Input
+        ↓
+┌─────────────────────────┐
+│   ENCODER               │
+│   Convolutional layers  │  Processes local audio features
+│   Transformer blocks    │  Learns audio patterns over time
+│   Self-attention heads  │  Relates sounds across the full sequence
+└─────────────────────────┘
+        ↓
+    Compressed Context Vector
+        ↓
+┌─────────────────────────┐
+│   DECODER               │
+│   Transformer blocks    │  Generates text tokens
+│   Cross-attention       │  Attends to audio context
+│   Autoregressive        │  "What word comes next?"
+└─────────────────────────┘
+        ↓
+Text Transcript (token by token)
+```
+
+**How autoregressive decoding works:**
+
+The decoder generates one token at a time, each conditioned on (1) the audio context from the encoder and (2) all previously generated tokens:
+
+- Step 1: Encoder processes full audio → decoder generates "patient"
+- Step 2: Given "patient" + audio context → generates "has"
+- Step 3: Given "patient has" + audio → generates "fever"
+
+This sequential generation is why transcription takes time — a 90-second recording typically takes 10-20 seconds to transcribe.
+
+**Beam search:** Rather than picking the single most likely token at each step (greedy), the decoder keeps multiple candidate sequences ("beams") and selects the globally most probable complete transcript. Reduces errors from locally correct but globally wrong choices.
+
+---
+
+### 25.5 Step 5 — Speaker Diarization: Who Said What
+
+Diarization is the most challenging step for ClinRecall's clinical use case. Without accurate diarization, the Intelligence Layer cannot separate Doctor speech (which drives note extraction) from Patient speech.
+
+**The Diarization Pipeline:**
+
+```
+Audio Transcript (no speaker labels)
+        ↓
+Speaker Embedding Model (ECAPA-TDNN or equivalent)
+  → Converts each speech segment into a compact
+    vector representing the speaker's unique voice profile
+        ↓
+Clustering Algorithm (Spectral or Agglomerative)
+  → Groups similar embeddings together
+  → "These segments are the same speaker"
+        ↓
+Speaker-Labelled Output:
+  "Speaker A [00:02]: Good morning, how are you feeling?"
+  "Speaker B [00:06]: I have had fever for 3 days"
+  "Speaker A [00:10]: Let me check your temperature..."
+```
+
+**What voice embeddings capture:** Fundamental frequency (pitch), formant frequencies (vocal tract resonance), speaking rate, spectral envelope, prosodic patterns. These are stable across different words — a speaker's embedding is consistent whether they say "Good morning" or "The patient has diabetes."
+
+**Diarization failure modes and mitigations:**
+
+| Failure Mode | Cause | ClinRecall Mitigation |
+|---|---|---|
+| Speaker confusion | Very similar voices (same gender + age) | Voice anchor registration at onboarding; note review catches errors |
+| Overlapping speech | Doctor and patient speaking simultaneously | Mark segment as ambiguous; extract from both speakers |
+| Short utterances ("Yes", "Hmm") | Too short for reliable embedding | Group with surrounding context |
+| Background noise | Clinic ambient sound corrupts embeddings | Server-side noise reduction in Step 2 |
+| Third speaker (nurse, family) | Unexpected additional voice in session | Label as Speaker C; Intelligence Layer focuses on registered Doctor role |
+| Microphone distance | Patient far from device | Coach doctor to place device centrally |
+
+**Voice anchor registration — the key diarization improvement:**
+
+At onboarding, the doctor records a 10-second voice sample:
+> *"I am the doctor for this consultation. Let's begin."*
+
+The system stores this as a voice embedding anchor. All future sessions use this anchor to "seed" the clustering — the model knows which cluster to label as Doctor. This improves doctor/patient diarization accuracy from ~87% (blind clustering) to ~94% for registered doctors.
+
+---
+
+### 25.6 Why Indian Languages Are Harder
+
+#### Challenge 1 — Phonetic Complexity
+
+Indian languages contain phonemes absent from English, causing systematic errors in English-trained models:
+
+| Sound Category | Examples | Error Pattern |
+|---|---|---|
+| Retroflex consonants | ट (ṭa), ड (ḍa) — tongue tip curls back to palate | Transcribed as English T/D |
+| Aspirated vs. unaspirated stops | ख (kha) vs. क (ka) | Collapsed — "khana" → "kana" |
+| Dental vs. alveolar | Hindi त (teeth) vs. English T (ridge) | Merged |
+| Long vs. short vowels | Tamil ā vs. a (changes meaning entirely) | Often missed |
+| Schwa deletion | "hamara" spoken as "hmara" in natural speech | Transcribed literally |
+| Nasal vowels | Nasalised vowels in Marathi, Bengali | No English equivalent |
+
+#### Challenge 2 — Code-Mixed Speech
+
+The standard clinical consultation in India sounds like:
+
+> *"Patient ko 3 din se fever hai, BP slightly elevated, diabetes ki history bhi hai. Let's check the CBC report aur phir we'll start Metformin 500mg."*
+
+Standard Whisper assumes the entire audio is one language. When languages switch mid-sentence, the model either commits to one language (missing the other), translates words incorrectly ("fever" → "बुखार"), or produces garbled output at switch points.
+
+**Accuracy impact:** Monolingual English 95%+ → Code-mixed Hinglish 60-75% on standard Whisper.
+
+#### Challenge 3 — Acoustic Diversity
+
+| Factor | Indian Clinical Context | Impact on Accuracy |
+|---|---|---|
+| Accent diversity | 29 states, each with distinct regional accents | Model must include regional variety in training |
+| Device quality | Wide range from flagship to budget smartphones | Variable audio quality must be handled |
+| Ambient noise | Clinic fans, AC, adjacent patients | Explicit noise robustness training required |
+| Medical jargon in local language context | "Metformin" in Hindi sentence | Hybrid vocabulary required |
+
+---
+
+### 25.7 Sarvam AI vs. Standard Whisper — Architecture Comparison
+
+| Component | Standard Whisper | Sarvam AI |
+|---|---|---|
+| Base architecture | Encoder-decoder transformer | Whisper-based (transfer learning) |
+| Training data | Primarily English + 96 languages (limited Indian coverage) | Deep Indian corpora: Hindi, Tamil, Telugu, Kannada, Bengali, Gujarati, Marathi, Malayalam + English |
+| Code-mixed training | Absent — monolingual assumption baked in | Explicitly trained on code-mixed conversations (Hinglish, Tanglish, etc.) |
+| Healthcare data | Not specifically included | Healthcare conversations (clinic recordings, medical dictation) |
+| Tokenizer | English-heavy subword tokenizer | Custom multilingual tokenizer — Devanagari, Tamil, Telugu, Gujarati, Latin scripts + cross-script tokens |
+| Language identification | Single language tag per sequence | Per-segment language ID — detects switches mid-utterance |
+| Phoneme coverage | English phoneme set primarily | Comprehensive Indian phonemes: retroflexes, aspirated stops, long vowels |
+| Acoustic conditions | Clean studio + broadcast audio weighted | Indian clinic conditions explicitly in training set |
+| Medical vocabulary | Limited | Healthcare vocabulary in Indian language context (drug names in Hindi, clinical terms in Tamil) |
+
+**How Sarvam AI handles code-switching:**
+
+```
+Input: "Patient ko fever hai, let's start Metformin"
+        ↓
+Language ID Layer:
+  "Patient ko" → HINDI
+  "fever" → ENGLISH (medical term in Hindi context)
+  "hai, let's" → SWITCH POINT
+  "start Metformin" → ENGLISH
+        ↓
+Per-Segment Transcription:
+  Each word transcribed in its detected language;
+  no unwanted translation
+        ↓
+Output: "Patient ko fever hai, let's start Metformin"
+```
+
+The key innovation: cross-script tokens in the tokenizer. "Metformin" is a single token regardless of surrounding language — eliminating the boundary errors that produce garbled output in standard models.
+
+---
+
+### 25.8 Accuracy Benchmarks — ClinRecall Scenarios
+
+Expected accuracy at 16kHz mono PCM in clinic conditions (based on vendor benchmarks and published research):
+
+| Scenario | AssemblyAI | Sarvam AI | ClinRecall Verdict |
+|---|---|---|---|
+| Studio English (clean) | 97-99% | 95-97% | AssemblyAI preferred |
+| **Clinic English (ambient noise)** | **93-96%** | 91-95% | **AssemblyAI preferred** |
+| Monolingual Hindi (clean) | 88-92% | 92-95% | Sarvam AI better |
+| **Monolingual Hindi (clinic)** | **85-90%** | **90-94%** | **Both viable; Sarvam AI better** |
+| Monolingual Tamil (clean) | 72-80% | 88-93% | Sarvam AI strongly preferred |
+| Monolingual Telugu (clean) | 70-78% | 87-92% | Sarvam AI strongly preferred |
+| Monolingual Gujarati (clean) | 68-75% | 85-90% | Sarvam AI strongly preferred |
+| **Code-mixed Hinglish (clinic)** | **65-75%** | **80-88%** | **Sarvam AI required** |
+| Code-mixed Tamil-English (clinic) | 55-65% | 75-85% | Sarvam AI required |
+| Speaker diarization (2-speaker clinic) | 85-92% | 83-90% | AssemblyAI slightly better |
+
+**Viability thresholds:**
+
+| Transcription Accuracy | Estimated Doctor Edit Rate | Product Viability |
+|---|---|---|
+| >95% | <15% | Excellent — doctors don't feel burdened |
+| 90-95% | 15-30% | Good — acceptable for clinical workflow |
+| 85-90% | 30-45% | Acceptable — borderline; monitor closely |
+| 80-85% | 45-60% | Borderline — doctor fatigue risk; address urgently |
+| <80% | >60% | Not viable — product is a net burden |
+
+**India Beta strategy:** English-primary beta doctors (40% of cohort) experience the "Excellent" range. Hindi-moderate doctors (40%) experience "Good-Acceptable." Heavy code-mix doctors (20%) are in "Borderline" range and explicitly enrolled as stress-testers with managed expectations.
+
+---
+
+### 25.9 Vendor Selection Decision Matrix
+
+| Criterion | Use AssemblyAI | Use Sarvam AI |
+|---|---|---|
+| Doctor language profile | English-primary; monolingual Hindi | Code-mixed; Tamil/Telugu/Gujarati primary |
+| Transcription accuracy needed | 90%+ on English or monolingual Hindi | 85%+ on code-mixed or regional languages |
+| Product phase | India Beta (Phase 4); US Launch (Phases 6-8) | V2 India commercial launch (Year 2) |
+| Diarization quality priority | Yes (AssemblyAI diarization is stronger) | Secondary to transcription |
+| BAA required | Yes — direct BAA available | Evaluation required before PHI processing |
+
+**Session routing logic for India Beta:**
+
+```python
+def select_vendor(session):
+    if session.locale.startswith('en'):
+        return AssemblyAI    # US English or Indian English-primary
+    if session.doctor.language_profile == 'hindi_monolingual':
+        return AssemblyAI    # Adequate for monolingual Hindi
+    if session.doctor.language_profile == 'code_mixed':
+        return SarvamAI      # Required for code-mixed
+    return AssemblyAI        # Default
+```
+
+During India Beta, Sarvam AI is deployed only for the "heavy code-mix" doctor cohort (20% of beta). This limits data residency and BAA requirements while still gathering signal.
+
+---
+
+### 25.10 Upgrade Triggers — When to Switch Vendors
+
+Continuous monitoring via MLOps (Section 13.5) drives vendor decisions:
+
+| Metric | Monitor Frequency | Upgrade Trigger | Action |
+|---|---|---|---|
+| Doctor edit rate | Daily | >40% sustained 7 days | Investigate; likely transcription quality |
+| WER on English golden dataset | Weekly CI | >12% WER | Check AssemblyAI model version |
+| WER on Hindi golden dataset | Weekly CI | >15% WER | Evaluate Sarvam AI for Hindi track |
+| Doctor inaccuracy flags (FR-5.6) | Daily | >10 per 100 sessions | Deep-dive transcription vs. LLM error |
+| Code-mixed complaints | Per pilot review | >3 specific complaints per phase | Accelerate Sarvam AI evaluation |
+| Speaker confusion incidents | Weekly | >5% of sessions | Diarization model update |
+
+**Formal Sarvam AI upgrade to production (V2 India launch):**
+- AssemblyAI WER on code-mixed test set >20% (i.e., <80% accuracy)
+- Doctor edit rate for code-mixed doctors >50% sustained
+- Sarvam AI evaluated showing ≥10 percentage point improvement
+- Sarvam AI BAA executed; data residency confirmed in Azure India region
+- Golden dataset includes Indian code-mixed samples (min 200 labelled examples)
+
+---
+
+### 25.11 Doctor-Facing Communication on Accuracy
+
+Doctors must understand AI limitations before trusting or rejecting the product. The onboarding flow and in-app UX must set accurate expectations:
+
+**For English-primary beta doctors:**
+> *"ClinRecall generates clinical notes from your consultation recordings with approximately 93-96% transcription accuracy. You should expect to make minor edits to 1-2 sentences per note. You are always the author — the AI is your scribe."*
+
+**For Hindi or code-mixed beta doctors:**
+> *"ClinRecall currently handles Hindi best when you speak in a consistent language. If you naturally mix Hindi and English (which most Indian doctors do), you'll find the notes need a bit more editing — typically 3-5 sentences. Your feedback on these edits directly helps us improve. We're working on deeper Hindi-English integration for the next version."*
+
+**Why honesty here matters:** Overclaiming accuracy leads to doctors trusting incorrect notes they didn't review carefully — the exact liability scenario we must avoid. Underclaiming leads to unnecessary churn. The right expectation is surgical: accurate on most content, needs a quick review.
+
+---
+
+### 25.12 Summary — Voice Recognition Technology Decisions (v3.2)
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Target audio format | 16kHz, 16-bit PCM, mono | Optimal for speech; 8kHz too lossy, 44kHz wasteful |
+| Pre-processing location | Server-side (post-upload) | Consistent quality; mobile battery preserved |
+| India Beta primary vendor | **Winner of 4-vendor Phase 2 benchmark** | Section 13.1: AssemblyAI, VibeVoice, Sarvam AI, Azure Speech Services |
+| Sarvam AI status | **Tier 1 V1 candidate** (corrected from v3.1 Tier 2) | Code-mixed Hinglish is reality of Indian beta — must be tested |
+| Azure Speech Services status | **Tier 1 V1 candidate** (added in v3.2) | Already in Microsoft BAA; native Azure; zero new vendor work |
+| Diarization improvement | Voice anchor registration at onboarding | Improves accuracy from ~87% to ~94% |
+| Accuracy floor | 85% transcription, 87% diarization | Below this: doctor edit rate unacceptable |
+| Vendor switching trigger | <80% transcription OR >50% doctor edit rate sustained | Triggers re-evaluation across Tier 1 candidates |
+| Note output language | English always (regardless of input) | Medical record standard; LLM extraction quality |
+| Gemini Nano 4 | Year 2-3 technology radar | Device limits, no iOS SDK, Indian language gaps |
+
+---
+
+### 25.13 VibeVoice-ASR (Microsoft) — Detailed Evaluation (NEW in v3.1)
+
+Released January 2026 by Microsoft Research. Open-source on [GitHub](https://github.com/microsoft/VibeVoice) and [Hugging Face](https://huggingface.co/microsoft/VibeVoice-ASR). Available as managed service in [Azure AI Foundry](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-vibevoice-asr-longform-structured-speech-recognition-at-scale/4501276).
+
+**Architectural difference from all other vendors:**
+
+VibeVoice-ASR produces transcription AND diarization in a **single unified model pass**. Traditional vendors (AssemblyAI) run these as separate sequential steps where alignment errors compound.
+
+```
+Traditional (AssemblyAI):
+  Audio → Transcription Model → Raw text
+               ↓ (separate step)
+         Diarization Model → Speaker labels
+               ↓ (alignment step — error-prone)
+         Speaker-attributed transcript
+
+VibeVoice:
+  Audio → Single Model → {speaker, timestamp, text}
+          (no alignment errors; single coherent output)
+```
+
+**Key specifications:**
+
+| Spec | Value |
+|---|---|
+| Maximum audio length | **60 minutes in a single pass** |
+| Languages | **50+** including Hindi, Tamil, Telugu, Gujarati, Marathi, Bengali |
+| Code-switching | **Native** — handles switches within utterances |
+| Custom hotwords | **Yes** — injected at inference, no retraining |
+| English WER (Open ASR Leaderboard) | **7.77% average** (2.20% LibriSpeech Clean) |
+| Architecture | Continuous speech tokenizers at **7.5 Hz frame rate** |
+| Integration | Hugging Face Transformers v5.3.0+; Azure AI Foundry |
+| License | Open-source (Microsoft Research) |
+
+**Self-hosting cost on Azure (estimated):**
+
+| Setup | Spec | Cost | Throughput |
+|---|---|---|---|
+| Single T4 GPU (NC4as T4 v3) | 4 vCPU, 28GB RAM, 1x T4 | ~$0.50/hr | ~5-6 concurrent 20-min sessions |
+| Peak clinic hours (500 doctors) | ~50 sessions/hr → 10-12 instances | ~$5-6/hr peak | Sufficient |
+| Monthly at scale | ~$1,200/month (peak-weighted) | vs. AssemblyAI ~$1,300/month | **Comparable cost, no BAA dependency** |
+
+**Custom hotwords for Indian medical context:**
+
+```python
+from transformers import pipeline
+
+vibevoice = pipeline("automatic-speech-recognition",
+                     model="microsoft/VibeVoice-ASR")
+
+result = vibevoice(
+    audio_path,
+    generate_kwargs={
+        "hotwords": [
+            "Metformin", "Dolo 650", "Combiflam", "Ecosprin",
+            "Pan-D", "Limcee", "HbA1c", "CBC", "LFT", "KFT",
+            "ECG", "USG", "bukhar", "dard", "khoon", "chakkar"
+        ]
+    }
+)
+# Returns: { speaker: "A", timestamp: "00:14", text: "Patient ko fever..." }
+```
+
+**Phase 2 Benchmark Plan — VibeVoice vs. AssemblyAI:**
+
+| Test | Dataset | VibeVoice Wins If |
+|---|---|---|
+| English clinical WER | 50 synthetic clinical convos | Within 3% of AssemblyAI |
+| Hindi monolingual WER | 30 Hindi convos | Ties or wins |
+| Code-mixed Hinglish WER | 20 code-mixed convos | Ties or wins |
+| Diarization accuracy | 100 convos (2 speakers) | Within 3% of AssemblyAI |
+| Medical term accuracy | Drug names in context | VibeVoice ≥ AssemblyAI (hotwords advantage) |
+| Latency (20 min audio) | 10 consecutive sessions | p95 < 30 seconds |
+| GPU cost per session | Measured on Azure T4 | < $0.25 per session |
+
+**Decision rule (Section 13.1 summary):**
+- VibeVoice within 3% on all metrics → **switch (eliminates AssemblyAI BAA)**
+- VibeVoice >5% worse on English → **keep AssemblyAI; use VibeVoice Hindi/code-mixed track only**
+- VibeVoice >10% better on code-mixed → **switch immediately**
+
+---
+
+### 25.14 Gemini Nano 4 (Google) — Technology Radar (NEW in v3.1)
+
+Previewed April 2026 for Android AICore. Claims: 4x faster inference, 60% lower battery vs. Nano 3. On-device processing — PHI stays on device. [Source: 9to5Google](https://9to5google.com/2026/04/02/gemini-nano-4-android/).
+
+**Why excluded from V1:**
+
+| Limitation | Impact on ClinRecall |
+|---|---|
+| Android: requires Pixel 8+, Samsung S24+ or equivalent | Excludes ~50-60% of Indian clinic doctors on mid-range devices |
+| iOS: Gemini is Siri integration only, NOT a developer SDK | Cannot call from React Native app on iPhone |
+| On-device code-mixed accuracy unknown | Compressed Nano model likely weaker than cloud VibeVoice on Hinglish |
+| Developer preview status | Not production-stable for V1 |
+| Thermal throttling on 20-min sessions | Consecutive clinic appointments drain battery and heat device |
+| No unified on-device diarization API | Separate on-device model needed — adds complexity |
+
+**Re-evaluation triggers for Year 2-3:**
+- Nano-capable device market share >60% among target doctors
+- Google releases ML Kit speech SDK accessible on iOS for app developers
+- Published Indian language accuracy benchmarks show Nano 5/6 competitive
+- On-device diarization quality reaches 87%+ accuracy
+
+Earliest realistic adoption: **US market Year 2 (2028), India market Year 3 (2029)**.
+
+---
+
+### 25.15 Three-Tier Vendor Architecture (v3.2 Final)
+
+```
+TIER 1 — PRODUCTION CANDIDATES (V1, all evaluated in Phase 2)
+├── VibeVoice-ASR (Microsoft, self-hosted Azure)
+│   Unified transcription+diarization, native code-switching,
+│   custom hotwords, no 3rd-party BAA, ~$0.15-0.20/session
+│
+├── AssemblyAI (cloud API)
+│   Proven cloud reliability, strong diarization, per-minute billing
+│
+├── Sarvam AI (Indian languages specialist)
+│   Best code-mixed Hinglish; healthcare-trained on Indian data;
+│   Indian regional language support; new vendor BAA required
+│
+└── Azure Speech Services (Microsoft)
+    Already covered by Microsoft BAA; native Azure;
+    healthcare terminology mode; auto language detection;
+    zero new vendor relationship overhead
+
+TIER 2 — FINE-TUNED / SPECIALISED (Year 2+)
+├── AI4Bharat (IIT Madras) — open-source Indian language models
+│   Fine-tune for Indian medical context if Tier 1 falls short
+│
+└── VibeVoice fine-tuned on proprietary Indian medical dataset
+    Long-term differentiation moat; requires ML expertise
+
+TIER 3 — TECHNOLOGY RADAR (Year 2-3)
+└── Gemini Nano 4 (on-device)
+    Ultimate privacy (PHI on-device), zero marginal cost
+    Deploy when: device penetration >60%, iOS SDK available
+```
+
+**Key change from v3.1:** Sarvam AI moved from Tier 2 (V2-deferred) to Tier 1 (V1 production candidate). Azure Speech Services added to Tier 1 (was missed in earlier versions). Tier 2 redefined from "regional specialist" to "fine-tuned/specialised" — reflecting that the regional specialist (Sarvam AI) is now properly in Tier 1.
+
+---
+
+### 25.16 Vendors Evaluated and Deprioritized (NEW in v3.2)
+
+Several vendors were considered but deprioritized for V1. Documenting reasoning to avoid re-debating:
+
+| Vendor | What It Is | Why Skipped for V1 | Future Consideration |
+|---|---|---|---|
+| **Deepgram** | Strong cloud ASR with healthcare tier and BAA | Comparable to AssemblyAI on English; weaker on Indian languages; cross-vendor relationship overhead with no clear advantage over our 4 Tier 1 candidates | Backup if all 4 Tier 1 candidates fail Phase 2 benchmark |
+| **Google Cloud Speech-to-Text v2 (Chirp 3)** | Excellent multilingual quality including Indian languages; strong code-switching | Cross-cloud (we're on Azure) — adds latency, complexity, separate BAA, separate billing; defeats Microsoft BAA simplicity | Re-evaluate only if all Azure-native + Sarvam AI options fail to meet quality bar |
+| **AI4Bharat (IIT Madras) IndicConformer** | Open-source Indian language models with academic backing | Requires substantial ML engineering to deploy production-grade; less mature ops than commercial options; lacks unified diarization | Year 2+ option for fine-tuning Tier 1 winner on Indian medical data |
+| **Reverie Language Technologies** | Indian-focused commercial ASR vendor | Smaller team; less proven enterprise terms; Sarvam AI is the better Indian-focused choice on healthcare specifically | Skip indefinitely unless Sarvam AI relationship fails |
+| **Krutrim AI (Ola)** | New Indian foundation model | Too new; ASR quality unproven; aggressive marketing exceeds documented benchmarks | Watch only; not for V1 |
+| **OpenAI Whisper (raw, self-hosted)** | Open-source baseline that powers many vendors | VibeVoice already does this better with healthcare hotwords and unified diarization | Subsumed by VibeVoice |
+| **AWS Transcribe Medical** | Healthcare-focused ASR with clinical terminology | We're on Azure, not AWS; cross-cloud breaks Microsoft BAA simplicity | Skip indefinitely while on Azure |
+| **Speechmatics** | Strong multilingual ASR | Not healthcare-focused; no clear advantage over Tier 1 candidates | Skip |
+| **Rev.ai** | English-focused commercial ASR | Weak Indian language support; no healthcare specialisation | Skip |
+
+**Decision principle:** Tier 1 has 4 strong candidates already. Adding more dilutes evaluation effort without improving outcome. Phase 2 benchmark stays at 4 vendors.
+
+---
+
+### 25.17 ASR Vendor Evaluation Playbook (NEW in v3.3)
+
+This is the operational guide for executing the Phase 2 4-vendor ASR benchmark. The AI/ML engineer should be able to start Monday morning and have results by Week 2.
+
+**Time-Box:** 2 weeks total (10 working days). 8 days vendor evaluation + 2 days analysis and decision report.
+
+---
+
+#### 25.17.1 Evaluation Harness Architecture
+
+A vendor-agnostic evaluation harness based on the adapter pattern. Each vendor implements the same interface; the evaluation runner is unaware of vendor specifics.
+
+**Code structure:**
+
+```
+clinrecall-asr-eval/
+├── adapters/
+│   ├── __init__.py
+│   ├── base.py              # Abstract ASRVendorAdapter
+│   ├── assemblyai.py        # AssemblyAI implementation
+│   ├── vibevoice.py         # VibeVoice self-hosted implementation
+│   ├── sarvam.py            # Sarvam AI implementation
+│   └── azure_speech.py      # Azure Speech Services implementation
+├── golden_dataset/
+│   ├── conversations/        # 100 audio files (.wav)
+│   ├── labels/              # 100 ground-truth JSON files
+│   └── manifest.json        # Index of all conversations
+├── evaluation/
+│   ├── metrics.py           # WER, diarization accuracy, NER calculations
+│   ├── runner.py            # Parallel evaluation runner
+│   └── scorecard.py         # Weighted scoring + decision logic
+├── reports/
+│   └── results.csv          # Output scorecard
+└── run_benchmark.py         # Main entry point
+```
+
+**Base adapter interface:**
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+@dataclass
+class StructuredTranscript:
+    segments: list[dict]   # [{speaker, start, end, text}, ...]
+    full_text: str
+    detected_language: str
+    confidence: float
+    processing_time_seconds: float
+    cost_usd: float
+
+class ASRVendorAdapter(ABC):
+    @abstractmethod
+    def transcribe(
+        self,
+        audio_path: str,
+        hotwords: list[str] = None,
+        language_hint: str = None
+    ) -> StructuredTranscript:
+        """Transcribe audio and return structured output."""
+        pass
+
+    @abstractmethod
+    def get_vendor_name(self) -> str:
+        pass
+```
+
+**Main runner:**
+
+```python
+# run_benchmark.py
+adapters = [
+    AssemblyAIAdapter(api_key=os.getenv("ASSEMBLYAI_KEY")),
+    VibeVoiceAdapter(endpoint=os.getenv("VIBEVOICE_ENDPOINT")),
+    SarvamAIAdapter(api_key=os.getenv("SARVAM_KEY")),
+    AzureSpeechAdapter(key=os.getenv("AZURE_SPEECH_KEY")),
+]
+
+dataset = load_golden_dataset("./golden_dataset/manifest.json")
+results = run_parallel_evaluation(adapters, dataset)
+scorecard = compute_weighted_scorecard(results)
+write_decision_report(scorecard, "./reports/results.csv")
+```
+
+---
+
+#### 25.17.2 Golden Dataset Specification
+
+100 conversations total, distributed across language profiles.
+
+**Distribution:**
+
+| Language Profile | Count | Notes |
+|---|---|---|
+| English clinical (Indian English accent) | 50 | Baseline; closest to US launch scenario |
+| Hindi monolingual clinical | 30 | Tests core Hindi handling |
+| Code-mixed Hinglish clinical | 20 | The realistic Indian beta scenario |
+
+**Audio file specifications:**
+- Format: WAV (16kHz, 16-bit PCM, mono)
+- Duration: 18-22 minutes each (typical consultation)
+- Recorded in: simulated clinic conditions (background AC noise, occasional door, two human voices)
+- Speakers: 2 (Doctor + Patient roles); diverse genders, ages, accents
+- Source: Synthetic conversations created with Indian medical advisor based on real consultation patterns; never contain real PHI
+
+**Ground-truth label JSON schema:**
+
+```json
+{
+  "conversation_id": "test-042",
+  "audio_file": "conversations/test-042.wav",
+  "language_profile": "code_mixed_hinglish",
+  "duration_seconds": 1180,
+  "specialty": "family_medicine",
+  "ground_truth": {
+    "full_transcript": "Doctor: Aap ko kab se fever hai? Patient: 3 din se sir, with body ache. Doctor: Let me check your temperature, BP bhi dekhte hain...",
+    "speaker_segments": [
+      {
+        "speaker": "doctor",
+        "start_seconds": 0.5,
+        "end_seconds": 4.2,
+        "text": "Aap ko kab se fever hai?",
+        "language": "hinglish"
+      },
+      {
+        "speaker": "patient",
+        "start_seconds": 4.5,
+        "end_seconds": 8.1,
+        "text": "3 din se sir, with body ache.",
+        "language": "hinglish"
+      }
+    ],
+    "medical_entities": [
+      {"term": "fever", "type": "symptom", "spoken_in": "english"},
+      {"term": "body ache", "type": "symptom", "spoken_in": "english"},
+      {"term": "BP", "type": "vital_sign", "spoken_in": "english"},
+      {"term": "Metformin", "type": "medication", "spoken_in": "english"}
+    ],
+    "expected_diagnoses_mentioned": ["viral_fever", "diabetes"],
+    "follow_ups_committed": [
+      "Return in 3 days if fever persists"
+    ]
+  }
+}
+```
+
+**Dataset creation effort:** ~20 person-hours (Clinical Reviewer creates scripts, voice talent records, AI/ML engineer labels). Should be done in parallel with Phase 1 to be ready for Phase 2 Week 1.
+
+---
+
+#### 25.17.3 Per-Vendor Integration Checklists
+
+**AssemblyAI Integration (Day 1-2)**
+
+| Step | Action | Time |
+|---|---|---|
+| 1 | Sign up at assemblyai.com; verify email | 10 min |
+| 2 | Get API key from dashboard | 5 min |
+| 3 | Install SDK: `pip install assemblyai` | 2 min |
+| 4 | Test single transcription with sample audio | 30 min |
+| 5 | Implement `AssemblyAIAdapter` (transcribe + diarization config) | 4 hrs |
+| 6 | Configure word boost (their hotword equivalent) for medical terms | 1 hr |
+| 7 | Run against full golden dataset | 2 hrs |
+| 8 | Validate output structure matches `StructuredTranscript` | 1 hr |
+
+**Common pitfalls:**
+- Default speaker labels are A/B/C — map to Doctor/Patient based on voice anchor
+- Word boost has 1000-word limit — prioritize ruthlessly
+- Webhook signing in private VNet — use polling instead during eval
+
+**Total integration time:** ~1 day
+
+---
+
+**VibeVoice Integration (Day 1-3)**
+
+| Step | Action | Time |
+|---|---|---|
+| 1 | Provision Azure Container App with T4 GPU (NC4as T4 v3) | 2 hrs |
+| 2 | Pull VibeVoice-ASR Docker image from Microsoft Container Registry | 30 min |
+| 3 | Deploy to Container App; verify GPU is allocated | 1 hr |
+| 4 | Run sanity test with 1-min sample audio | 30 min |
+| 5 | Implement `VibeVoiceAdapter` (HTTP client to your endpoint) | 3 hrs |
+| 6 | Configure custom hotwords (medical vocabulary) | 1 hr |
+| 7 | Pre-warm GPU instance before benchmark run | 15 min |
+| 8 | Run against full golden dataset | 3 hrs |
+| 9 | Validate diarization output (built-in advantage) | 1 hr |
+
+**Common pitfalls:**
+- GPU cold start ~30 seconds — first transcription will look slow; exclude from latency metrics or pre-warm
+- Container App scaling can spawn extra instances mid-benchmark — pin to single instance during eval
+- Output schema is unified (Who+When+What in one pass) — don't accidentally double-process diarization
+
+**Total integration time:** ~1.5 days
+
+---
+
+**Sarvam AI Integration (Day 1-2)**
+
+| Step | Action | Time |
+|---|---|---|
+| 1 | Apply for API access at sarvam.ai/api (note: may take 2-3 days for approval) | 30 min |
+| 2 | Negotiate evaluation BAA / DPA for healthcare data | 2-5 days (parallel) |
+| 3 | Get API key; review documentation | 30 min |
+| 4 | Install Python SDK or HTTP client | 1 hr |
+| 5 | Test single transcription with sample audio | 30 min |
+| 6 | Implement `SarvamAIAdapter` | 4 hrs |
+| 7 | Configure for code-mixed mode (their key advantage) | 1 hr |
+| 8 | Run against full golden dataset | 3 hrs |
+| 9 | Validate code-mixed output preserves original languages | 2 hrs |
+
+**Common pitfalls:**
+- Rate limits during evaluation period — request quota increase early
+- Code-mixed mode vs. monolingual mode produces different outputs — document which you're using
+- Indian region deployment required for healthcare data residency
+- Diarization may be separate API call (not unified like VibeVoice)
+
+**Total integration time:** ~1 day (excluding 2-5 day BAA negotiation that runs in parallel)
+
+---
+
+**Azure Speech Services Integration (Day 1)**
+
+| Step | Action | Time |
+|---|---|---|
+| 1 | Create Azure Speech resource (already in our subscription) | 15 min |
+| 2 | Get key from Azure portal | 5 min |
+| 3 | Install SDK: `pip install azure-cognitiveservices-speech` | 5 min |
+| 4 | Enable Healthcare terminology mode | 30 min |
+| 5 | Test single transcription with sample audio | 30 min |
+| 6 | Implement `AzureSpeechAdapter` | 3 hrs |
+| 7 | Configure auto language detection for code-mixed | 1 hr |
+| 8 | Configure speaker diarization (separate from transcription) | 1 hr |
+| 9 | Run against full golden dataset | 2 hrs |
+
+**Common pitfalls:**
+- Continuous recognition vs. batch produces different latency profiles — use batch for benchmark
+- Healthcare terminology is region-locked (limited regions) — verify available in your Azure region
+- Diarization is separate post-processing step — alignment errors possible
+- Auto language detection adds latency vs. single language
+
+**Total integration time:** ~0.5 day (already in BAA; SDK is mature)
+
+---
+
+#### 25.17.4 Scoring Spreadsheet Template
+
+A pre-built CSV with formulas. Engineer fills in raw measurements; weighted score auto-calculates.
+
+```csv
+Metric,Weight,AssemblyAI,VibeVoice,SarvamAI,AzureSpeech
+Code-mix WER (lower=better),0.35,,,,
+Diarization Accuracy (higher=better),0.20,,,,
+English WER (lower=better),0.15,,,,
+Hindi WER (lower=better),0.10,,,,
+Cost per 20-min session (USD),0.10,,,,
+Integration days (lower=better),0.05,,,,
+BAA simplicity (1-5 scale),0.05,,,,
+,,,,,,
+NORMALIZED SCORES,,,,,
+Code-mix score (1 - WER),,=1-C2,=1-D2,=1-E2,=1-F2
+Diarization score,,=C3,=D3,=E3,=F3
+English score (1 - WER),,=1-C4,=1-D4,=1-E4,=1-F4
+Hindi score (1 - WER),,=1-C5,=1-D5,=1-E5,=1-F5
+Cost score (normalized),,=1-(C6/MAX(C6:F6)),=1-(D6/MAX(C6:F6)),=1-(E6/MAX(C6:F6)),=1-(F6/MAX(C6:F6))
+Integration score,,=1-(C7/MAX(C7:F7)),=1-(D7/MAX(C7:F7)),=1-(E7/MAX(C7:F7)),=1-(F7/MAX(C7:F7))
+BAA score,,=C8/5,=D8/5,=E8/5,=F8/5
+,,,,,,
+WEIGHTED TOTAL,,=SUMPRODUCT(B11:B17,C11:C17),=SUMPRODUCT(B11:B17,D11:D17),=SUMPRODUCT(B11:B17,E11:E17),=SUMPRODUCT(B11:B17,F11:F17)
+RANK,,=RANK(C19,$C$19:$F$19),=RANK(D19,$C$19:$F$19),=RANK(E19,$C$19:$F$19),=RANK(F19,$C$19:$F$19)
+```
+
+The vendor with the highest weighted total wins. If two vendors are within 0.03 of each other, treat as a tie and decide on BAA simplicity tiebreaker.
+
+---
+
+#### 25.17.5 Decision Report Template
+
+A 1-page document the engineer fills in at end of Phase 2. This artifact goes to the Product Validation Gate (Section 23.9) along with India Beta data.
+
+```markdown
+# ClinRecall ASR Vendor Selection Decision Report
+
+**Date:** [YYYY-MM-DD]
+**Phase:** Phase 2, Week [X]
+**Author:** [AI/ML Engineer Name]
+**Reviewers:** [PM, Lead Engineer, Founder]
+
+## TL;DR
+**Selected vendor:** [Vendor Name]
+**Weighted score:** [X.XXX] vs. closest competitor [Y.YYY]
+**Confidence:** [High / Medium / Low]
+**Critical caveat (if any):** [e.g., "Vendor X best on code-mixed but BAA pending"]
+
+## Test Setup
+- Golden dataset: 100 conversations (50 English / 30 Hindi / 20 Hinglish)
+- Test environment: [details]
+- Test date range: [start] to [end]
+
+## Results Summary
+[Paste scorecard table]
+
+## Per-Vendor Notes
+### AssemblyAI
+- Strengths observed: [bullets]
+- Weaknesses observed: [bullets]
+- Integration friction: [days] of [estimate]
+
+### VibeVoice
+[same structure]
+
+### Sarvam AI
+[same structure]
+
+### Azure Speech Services
+[same structure]
+
+## Decision Rationale
+[2-3 paragraphs explaining the choice in plain language]
+
+## Risks Accepted
+- [Risk 1: description + mitigation]
+- [Risk 2: description + mitigation]
+
+## Re-evaluation Triggers
+This decision should be revisited if:
+- [Specific metric] falls below [threshold]
+- [Specific event] occurs (e.g., vendor pricing change)
+
+## Approval
+- [ ] AI/ML Engineer: [name + date]
+- [ ] PM: [name + date]
+- [ ] Lead Engineer: [name + date]
+- [ ] Founder: [name + date]
+```
+
+---
+
+#### 25.17.6 Common Pitfalls — Cross-Vendor
+
+These traps catch every vendor evaluation. Avoid them:
+
+| Pitfall | Why It Matters | Avoidance |
+|---|---|---|
+| Comparing cloud-billed cost to GPU-rented cost | Different cost models — apples to oranges | Normalize to "$/20-min session" including infra amortization |
+| Not pre-warming self-hosted models | Cold start adds 30s; skews latency results | Run 3 warm-up calls before measuring |
+| Single-run measurements | Network jitter, vendor-side scaling can cause variance | Run each conversation 3x; average results |
+| Different audio formats per vendor | Some vendors prefer mp3, some wav | Standardize to 16kHz WAV; provide same format to all |
+| Not accounting for diarization step in non-unified vendors | AssemblyAI/Azure run separately; VibeVoice does both in one pass | Measure end-to-end "audio in → labelled transcript out" time |
+| Comparing default vs. tuned configurations | Hotwords, language hints, custom vocabularies dramatically affect results | Either all default, or all tuned — be consistent |
+| Using clean studio audio for clinic claims | Real clinics are noisier than studio | Add ambient noise to test set or record in actual clinic-like conditions |
+| Ignoring per-vendor language detection | Code-mixed handling varies enormously by vendor | Test code-mixed track explicitly; don't average it into "Hindi" |
+
+---
+
+#### 25.17.7 Time-Box and Schedule
+
+```
+WEEK 1 (Phase 2 Week 3)
+Mon-Tue: Golden dataset prep + AssemblyAI + Azure Speech adapters
+Wed-Thu: VibeVoice GPU provisioning + adapter
+Fri:     Sarvam AI integration (async with BAA negotiation)
+
+WEEK 2 (Phase 2 Week 4)
+Mon-Wed: Run benchmarks across all 4 vendors against full dataset
+Thu:     Score, analyze, identify outliers, re-run if needed
+Fri:     Decision report writing + review meeting
+```
+
+**Total: 10 working days. 8 engineering days + 2 days analysis/decision.**
+
+If 4-vendor benchmark cannot complete in this window:
+- Reduce to top 2 vendors based on initial 1-day spike (likely VibeVoice + Azure Speech given BAA simplicity)
+- Document the deferred 2 vendors as "Phase 5 re-evaluation candidates" if Phase 4 India Beta surfaces issues
+
+---
+
+#### 25.17.8 What Makes This Playbook Worth Having
+
+Without this playbook, the engineer:
+- Spends 3-5 days designing the harness
+- Scores inconsistently across vendors
+- Misses common pitfalls (cold starts, format mismatches)
+- Produces a results document of unknown shape
+- Faces tough questions in the decision review without structured artifacts
+
+With this playbook:
+- Day 1: dataset, harness skeleton, AssemblyAI integration
+- Day 5: All 4 vendors integrated and producing comparable output
+- Day 10: Decision report on Founder's desk
+- Total time saved: ~1 week of engineering
+- Decision quality: dramatically higher (consistent measurement, weighted scoring, documented rationale)
+
+The playbook itself is reusable — when re-evaluating in Year 2 (e.g., if Sarvam AI is upgraded or new entrants emerge), the same harness runs against the same golden dataset producing comparable results.
+
+---
+
+*ClinRecall BRD v3.3 — Confidential — April 25, 2026*
+*v2.0 — Senior Architect + PM review. v2.1 — React Native. v2.2 — Backend API design. v2.3 — Azure + GPT-4o. v2.4 — Security & Performance Engineering. v2.5 — UX Design. v2.6 — Phased Implementation. v2.7 — MVP-first restructure. v2.8 — India Market Architecture. v2.9 — India Beta → US Launch. v3.0 — Section 25 Voice Recognition Technology. v3.1 — VibeVoice + Gemini Nano 4 evaluated. v3.2 — Phase 2 ASR benchmark expanded from 2 vendors to 4: AssemblyAI, VibeVoice-ASR, Sarvam AI (moved from Tier 2 V2-deferred to Tier 1 V1 evaluation), Azure Speech Services (previously missed despite already being in Microsoft BAA). New Section 25.16 documents 9 vendors evaluated and deprioritized (Deepgram, Google Chirp 3, AI4Bharat, Reverie, Krutrim AI, Whisper raw, AWS Transcribe Medical, Speechmatics, Rev.ai). Tier architecture restructured. v3.3 — Section 25.17 ASR Vendor Evaluation Playbook: practical execution guide with adapter-pattern harness architecture, golden dataset JSON schema, per-vendor integration checklists with time estimates, weighted scoring spreadsheet template, decision report template, common pitfalls, 10-day time-box.*
