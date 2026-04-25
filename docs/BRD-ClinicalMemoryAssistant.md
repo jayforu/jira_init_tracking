@@ -1,8 +1,8 @@
 # Business Requirement Document & Business Case
 # ClinRecall — AI-Powered Clinical Memory Assistant for Doctors
 
-**Version:** 2.0
-**Date:** April 23, 2026
+**Version:** 2.6
+**Date:** April 25, 2026
 **Author:** Product Management
 **Status:** Draft for Review — Post Senior Architect + PM Review
 
@@ -12,6 +12,12 @@
 - v1.2 (Apr 22, 2026) — Added Future Product Opportunities (Surgical Consent)
 - v1.3 (Apr 22, 2026) — Added Platform Architecture & Extensibility
 - **v2.0 (Apr 23, 2026) — Comprehensive revision after Senior Architect + Senior PM review. Addresses FDA/SaMD, malpractice liability, two-party consent laws, realistic financials (CAC, churn, LTV), architectural hardening (RTO/RPO/uptime), MLOps framework, vendor risk, and 8 new operational sections.**
+- **v2.1 (Apr 25, 2026) — Native mobile framework decision finalised: React Native with custom native audio modules. Selected for Windows-team friendliness, single codebase, and strong LLM training data for AI-assisted development. Detailed module list and development environment guidance added.**
+- **v2.2 (Apr 25, 2026) — Backend API design added (Section 12.8): full REST endpoint surface (~40 endpoints across 9 modules), async AI processing pattern, presigned-URL audio upload flow, authentication model, error handling, rate limiting, and OpenAPI documentation strategy.**
+- **v2.3 (Apr 25, 2026) — Cloud platform switched from AWS to Azure based on team familiarity. LLM switched from Claude (AWS Bedrock) to GPT-4o (Azure OpenAI Service) — HIPAA-eligible and ~40% cheaper for our workload. Full service stack mapped to Azure equivalents (Container Apps, PostgreSQL Flexible Server, Blob Storage with Immutability, Service Bus, Functions, Event Grid, Key Vault, Monitor + App Insights). Unit economics updated: AI cost per doctor reduced from $71/year to $42/year; gross margin improved from 89% to ~92%. Pre-engineering checklist updated with Azure OpenAI access application (1-2 week approval).**
+- **v2.4 (Apr 25, 2026) — Comprehensive Security & Performance Engineering review added (Section 18.8 in v2.4, renumbered 19.8 in v2.5). Addresses 23 findings across application security testing, AI/LLM-specific controls (prompt injection, output validation), mobile security (certificate pinning, jailbreak detection), insider threat controls, audit/SIEM, performance SLOs per endpoint, load testing, database performance engineering, tiered LLM strategy (~30% AI cost savings), caching strategy, auto-scaling rules, cost anomaly detection. 4 CRITICAL and 7 HIGH severity items must be resolved before engineering kickoff.**
+- **v2.5 (Apr 25, 2026) — User Experience Design section added (new Section 9). Defines 3 core UX principles, 3 critical user journeys, visual design system, key screen designs (recording, pre-visit brief, note review), accessibility requirements (WCAG 2.1 AA), empty/error/loading states, design tooling (Claude Design instead of Figma), usability testing methodology, and UX success metrics. All subsequent sections renumbered (10 through 22).**
+- **v2.6 (Apr 25, 2026) — Phased Implementation Strategy added as Section 23. Defines 9 sequential phases from Phase 0 (Pre-Development Prerequisites) through Phase 9 (Year 1 Optimization). Each phase specifies pre-requisites, workstream-by-workstream deliverables (Infrastructure/Backend/Frontend/AI/Mobile/Design/QA/Compliance/Product), exit criteria, key risks, and team focus. Includes phase gate discipline: no phase starts until previous phase exits cleanly.**
 
 ---
 
@@ -30,26 +36,29 @@
 6. [Scope](#6-scope)
 7. [Functional Requirements](#7-functional-requirements)
 8. [Non-Functional Requirements](#8-non-functional-requirements)
-9. [User Stories](#9-user-stories)
-10. [Compliance & Regulatory Requirements](#10-compliance--regulatory-requirements)
-11. [Data Requirements](#11-data-requirements)
-12. [Technology Stack Recommendations](#12-technology-stack-recommendations)
-13. [Platform Architecture & Extensibility](#13-platform-architecture--extensibility)
-14. [Pricing Strategy](#14-pricing-strategy)
-15. [Go-to-Market Strategy](#15-go-to-market-strategy)
-16. [Success Metrics](#16-success-metrics)
-17. [Delivery Milestones](#17-delivery-milestones)
-18. [Operational Excellence & Governance](#18-operational-excellence--governance)
-    - 18.1 Support & Operations Plan
-    - 18.2 Vendor Risk Management
-    - 18.3 Security Framework & Certifications
-    - 18.4 Model Governance & MLOps
-    - 18.5 Business Continuity & Disaster Recovery
-    - 18.6 Patient Rights & Data Governance
-    - 18.7 Internationalization Roadmap
-19. [Future Product Opportunities](#19-future-product-opportunities)
-20. [Assumptions & Dependencies](#20-assumptions--dependencies)
-21. [Open Questions](#21-open-questions)
+9. [User Experience Design](#9-user-experience-design)
+10. [User Stories](#10-user-stories)
+11. [Compliance & Regulatory Requirements](#11-compliance--regulatory-requirements)
+12. [Data Requirements](#12-data-requirements)
+13. [Technology Stack Recommendations](#13-technology-stack-recommendations)
+14. [Platform Architecture & Extensibility](#14-platform-architecture--extensibility)
+15. [Pricing Strategy](#15-pricing-strategy)
+16. [Go-to-Market Strategy](#16-go-to-market-strategy)
+17. [Success Metrics](#17-success-metrics)
+18. [Delivery Milestones](#18-delivery-milestones)
+19. [Operational Excellence & Governance](#19-operational-excellence--governance)
+    - 19.1 Support & Operations Plan
+    - 19.2 Vendor Risk Management
+    - 19.3 Security Framework & Certifications
+    - 19.4 Model Governance & MLOps
+    - 19.5 Business Continuity & Disaster Recovery
+    - 19.6 Patient Rights & Data Governance
+    - 19.7 Internationalization Roadmap
+    - 19.8 Security & Performance Engineering
+20. [Future Product Opportunities](#20-future-product-opportunities)
+21. [Assumptions & Dependencies](#21-assumptions--dependencies)
+22. [Open Questions](#22-open-questions)
+23. [Phased Implementation Strategy](#23-phased-implementation-strategy)
 
 ---
 
@@ -193,7 +202,7 @@ At the independent-doctor price point ($79-149/month), at least 8 serious compet
 
 | Item | Estimated Cost (USD) |
 |---|---|
-| AWS HIPAA-compliant infrastructure setup | $8,000 |
+| Azure HIPAA-compliant infrastructure setup | $8,000 |
 | HIPAA compliance audit and legal | $12,000 |
 | **FDA / SaMD regulatory assessment (NEW)** | $15,000 |
 | **Penetration testing + security audit (NEW)** | $10,000 |
@@ -210,14 +219,15 @@ At the independent-doctor price point ($79-149/month), at least 8 serious compet
 | Cost Driver | Assumption | Annual Cost per Active Doctor |
 |---|---|---|
 | AssemblyAI (speech-to-text + diarization) | 260 hours/year @ $0.12/hr | $31 |
-| Claude Sonnet 4.6 via Bedrock (extraction) | ~180 avg sessions/year × 15K tokens avg | ~$40 |
-| AWS infra (compute + storage + bandwidth) allocated per doctor | — | $24 |
+| GPT-4o via Azure OpenAI (extraction) | ~180 sessions/year × ~13.5K tokens avg | ~$9 |
+| Embeddings via Azure OpenAI text-embedding-3-large | Patient note embeddings, refresh on edit | ~$2 |
+| Azure infra (compute + storage + bandwidth) allocated per doctor | — | $24 |
 | Email, Auth0, Stripe fees (2.9%) | — | $35 |
-| **Total Variable Cost per Doctor/Year** | — | **~$130** |
+| **Total Variable Cost per Doctor/Year** | — | **~$101** |
 | **Annual Revenue per Doctor** | $99/mo × 12 | $1,188 |
-| **Gross Margin per Doctor** | — | **~89%** |
+| **Gross Margin per Doctor** | — | **~92%** |
 
-At 89% gross margin, the business model is sound *provided CAC is controlled*.
+At 92% gross margin, the business model is sound *provided CAC is controlled*. (Improved from 89% in v2.0 — switching to Azure + GPT-4o reduced AI cost by ~$30/doctor/year.)
 
 #### Customer Acquisition Cost (CAC) Modeling
 
@@ -311,15 +321,15 @@ Plan for Realistic. Budget for Conservative. Celebrate Optimistic.
 | **FDA classification as Software as a Medical Device (SaMD) — NEW** | **Medium** | **Very High** | Engage FDA regulatory consultant before build. Position strictly as documentation tool. Intelligence Layer prompts must not generate clinical recommendations. |
 | **Malpractice claim from AI-generated error — NEW** | **Medium** | **Very High** | Mandatory doctor review; disclaimer on every unsigned note; $2M+ professional liability + cyber insurance; clear indemnification in ToS |
 | **Two-party consent state violation — NEW** | **Medium** | **High** | Product-enforced consent workflow in 11 two-party states; clinic address drives state detection; patient consent acknowledgement cannot be bypassed |
-| **LLM provider uses inputs for training — NEW** | **Low** | **Very High** | Contractual confirmation in writing; AWS Bedrock default is no training use; annual vendor compliance review |
+| **LLM provider uses inputs for training — NEW** | **Low** | **Very High** | Contractual confirmation in writing; Azure OpenAI default is no training use; annual vendor compliance review |
 | HIPAA non-compliance penalty | Low | Very High | Invest in compliance from Day 1, get formal audit before launch |
-| AI accuracy errors in clinical notes | Medium | High | Doctor review step mandatory before saving, no auto-filing, continuous evaluation framework (see Section 18.4) |
+| AI accuracy errors in clinical notes | Medium | High | Doctor review step mandatory before saving, no auto-filing, continuous evaluation framework (see Section 19.4) |
 | Freed AI or competitor copies the pre-visit brief feature | High | Medium | 12-18 month execution lead; invest concurrently in dataset, EHR integration, specialty workflows (see Section 2.3 competitive moat analysis) |
 | Low adoption — doctors don't change habits | Medium | High | Free 60-day pilot, white-glove onboarding for first 50 doctors, measured via D30/D90 retention |
-| Data breach | Low | Very High | AWS HIPAA infra, penetration testing, cyber insurance, SOC 2 Type II by Month 12 |
+| Data breach | Low | Very High | Azure HIPAA infra, penetration testing, cyber insurance, SOC 2 Type II by Month 18 |
 | Difficulty finding first US customers from India | High | Medium | US medical advisor on 3% equity + retainer; 3 pilot LOIs before build begins |
 | AI/LLM API cost spikes | Medium | Medium | Unit economics monitored monthly; evaluate open-source models; enterprise pricing negotiation at 1,000+ doctors |
-| **Vendor lock-in on AssemblyAI or Anthropic — NEW** | Medium | High | Layer 2 and Layer 3 abstract vendor-specific APIs; maintain capability to swap vendors within 4 weeks |
+| **Vendor lock-in on AssemblyAI or Azure OpenAI — NEW** | Medium | High | Layer 2 and Layer 3 abstract vendor-specific APIs; maintain capability to swap vendors within 4 weeks |
 | **Browser audio capture failures (iOS/Android background throttling) — NEW** | High | Medium | PWA from Day 1; native iOS app by Month 8; fallback upload if live stream fails |
 | **Team scaling or key-person dependency — NEW** | Medium | High | Document all critical knowledge; minimum 2 engineers on every critical system; founder succession plan for health/unavailability |
 | **Unrealistic CAC or churn assumptions in financial model — NEW** | Medium | High | Monitor CAC and churn from Month 1; adjust spend if CAC > $900 or monthly churn > 3% |
@@ -577,12 +587,12 @@ ClinRecall is not an EHR. It is not a transcription tool. It is a doctor's perso
 |---|---|
 | NFR-2.1 | All data encrypted at rest (AES-256) |
 | NFR-2.2 | All data encrypted in transit (TLS 1.2+) |
-| NFR-2.3 | Hosted on HIPAA-eligible AWS infrastructure (US-East-1 primary, US-West-2 warm-standby DR) |
+| NFR-2.3 | Hosted on HIPAA-eligible Azure infrastructure (East US 2 primary, West US 2 warm-standby DR) |
 | NFR-2.4 | Multi-tenant isolation via row-level security in PostgreSQL — each doctor accesses only their own data, enforced at database layer |
-| NFR-2.5 | Audit logs written to AWS S3 with Object Lock (WORM compliance mode), 6-year retention, immutable even to root admin |
+| NFR-2.5 | Audit logs written to Azure Blob Storage with Immutability Policies (WORM compliance mode), 6-year retention, immutable even to admin |
 | NFR-2.6 | **Raw audio retained for 72 hours encrypted then hard-deleted** (revised from 1 hour — enables reprocessing on failure and short-window re-review) |
 | NFR-2.7 | Penetration testing conducted before launch and annually thereafter |
-| NFR-2.8 | BAA signed with AWS and all sub-processors handling PHI |
+| NFR-2.8 | BAA signed with Microsoft (Azure + Azure OpenAI) and all sub-processors handling PHI |
 | NFR-2.9 | **SOC 2 Type I by Month 12, Type II by Month 18 (NEW)** |
 | NFR-2.10 | **MFA required for all doctor accounts (no opt-out) (NEW)** |
 | NFR-2.11 | **LLM provider contracts prohibit use of inputs for model training (NEW)** |
@@ -617,7 +627,389 @@ ClinRecall is not an EHR. It is not a transcription tool. It is a doctor's perso
 
 ---
 
-## 9. USER STORIES
+## 9. USER EXPERIENCE DESIGN
+
+### 9.1 UX Philosophy
+
+For a doctor-facing clinical tool, **UX is the product**. A doctor sees ~20 patients per day with 12-18 minutes each. Friction kills adoption regardless of how good the underlying AI is.
+
+ClinRecall's UX must do something paradoxical:
+- **Invisible during the consultation** — zero cognitive overhead while the doctor is with a patient
+- **Deeply useful between consultations** — surfaces critical context in seconds, not minutes
+
+Every design decision is judged against this dual requirement.
+
+---
+
+### 9.2 Three Core UX Principles
+
+#### Principle 1 — One-Tap to Critical Actions
+
+The two most consequential moments in a doctor's day are:
+- **Starting a recording** (when the patient walks in)
+- **Reviewing a generated note** (in 30-second gaps between visits)
+
+Both must be reachable in **one tap from the home screen**. Every additional tap is a defection point. This principle overrides aesthetic preferences.
+
+#### Principle 2 — Information Density Without Clutter
+
+Doctors scan, they don't read. UX must surface the right 5 facts, not all 50.
+
+A pre-visit brief that says *"Patient mentioned knee pain in last 3 visits, no follow-up scheduled"* in one sentence is dramatically more useful than a 200-word summary.
+
+Discipline: every screen must answer "what does the doctor need in the next 10 seconds?" — not "what data could we display?"
+
+#### Principle 3 — Trust Through Transparency
+
+Doctors will not trust AI-generated content unless they can see exactly what came from where.
+
+Every claim in a generated note must be traceable to a moment in the source conversation. If a doctor cannot quickly verify the AI's output, they will not sign it. If they cannot sign confidently, they churn.
+
+---
+
+### 9.3 Core User Journeys
+
+#### Journey 1 — Daily Clinic Day (the 80% use case)
+
+```
+8:30 AM  ─ Doctor opens app on phone before clinic starts
+         ─ HOME SCREEN shows today's appointments
+         ─ Each appointment card shows pre-visit brief preview
+         ─ One tap on first patient → expanded brief
+
+8:45 AM  ─ Patient arrives in exam room
+         ─ Doctor taps "Start Session" (1 tap; patient pre-linked from schedule)
+         ─ Recording indicator visible; everything else minimal
+
+9:05 AM  ─ Consultation ends, doctor taps "End Session"
+         ─ App says: "Note ready in ~90 seconds. We'll notify you."
+         ─ Doctor moves to next patient
+
+9:20 AM  ─ Push notification: "Note ready for John Smith"
+         ─ Doctor reviews during gap between patients
+         ─ Biometric sign (Face ID / Touch ID) — 1 second to commit
+
+         ↺ Repeat 18 times throughout the day
+```
+
+**UX requirement:** Total interaction time per patient on the happy path **under 60 seconds**.
+
+#### Journey 2 — Pre-Visit Preparation (the differentiator)
+
+The doctor opens a patient profile. The pre-visit brief is the first thing seen.
+
+```
+┌──────────────────────────────────────────────────┐
+│ John Smith — 47M — Last visit: 18 days ago       │
+│                                                   │
+│ ⚠ FOLLOW-UPS DUE                                  │
+│ • Knee MRI — you said "let's do this if pain     │
+│   persists past 3 weeks" (3 weeks ago)           │
+│                                                   │
+│ KEY CONTEXT                                       │
+│ • Reported lower back pain in 3 of last 4 visits │
+│ • Currently on Lisinopril 10mg (since Jan)       │
+│ • Mentioned work stress as contributing factor    │
+│                                                   │
+│ LAST VISIT SUMMARY                                │
+│ • [Tap to expand 3-line summary of last visit]   │
+│                                                   │
+│ [Start Session]    [View full history]            │
+└──────────────────────────────────────────────────┘
+```
+
+**Performance:** This screen must load in **under 1 second**. Doctors decide whether to keep using the product based on this screen alone.
+
+#### Journey 3 — Note Review and Signing (the trust moment)
+
+```
+┌──────────────────────────────────────────────────┐
+│ ⚠ AI-GENERATED — PENDING YOUR REVIEW              │
+│                                                   │
+│ CHIEF CONCERN                                     │
+│ Lower back pain, worsening over 2 weeks          │
+│                                  [edit] [source] │
+│                                                   │
+│ OBSERVATIONS                                      │
+│ Patient reports pain radiating to left thigh.    │
+│ Range of motion limited on forward bend.         │
+│                                  [edit] [source] │
+│                                                   │
+│ ASSESSMENT                                        │
+│ Likely lumbar strain; rule out disc involvement  │
+│                                  [edit] [source] │
+│                                                   │
+│ PLAN                                              │
+│ • Physical therapy 2x/week, 4 weeks              │
+│ • Ibuprofen 400mg as needed                      │
+│ • Return if no improvement in 3 weeks            │
+│                                  [edit] [source] │
+│                                                   │
+│ ─────────────────────────────────────────────    │
+│       [Sign & Save Note]    [Discard]            │
+└──────────────────────────────────────────────────┘
+```
+
+**Critical UX features:**
+- The `[source]` button shows the exact moment in the audio where this claim came from (transparency = trust)
+- Inline editing — no modal popups; click to edit in place
+- Single dominant CTA: "Sign & Save"
+- Signing requires biometric (FR-9.2) — Face ID or fingerprint, 1 second
+- Visible disclaimer until signed (FR-9.1)
+
+---
+
+### 9.4 Visual Design System
+
+#### Tone
+
+**Clinical but warm.** Not sterile medical-device, not consumer-app-friendly.
+
+Visual reference points:
+- **Linear** — productivity feel, restraint, density
+- **Notion** — content density, quiet UI
+- **Apple Health** — medical credibility without aggression
+
+Avoid the "every healthcare app uses blue" trap. Differentiate visually through palette and typography.
+
+#### Color Palette
+
+| Use | Color | Hex | Why |
+|---|---|---|---|
+| Primary brand | Deep teal | `#0E5E6F` | Medical-credible, calm, distinct from cliché blues |
+| Critical actions | Coral | `#E6735C` | Warm urgency without alarming red |
+| Success | Sage green | `#5A8A6B` | Confirmed actions, completed states |
+| Warning | Amber | `#D4A04C` | Attention without alarm |
+| Background | Warm white | `#FAF8F5` | Easier on eyes than pure white during long shifts |
+| Surface (cards) | Pure white | `#FFFFFF` | Subtle contrast against background |
+| Text primary | Deep charcoal | `#1A1A1A` | High contrast, accessible |
+| Text secondary | Mid-grey | `#6B6B6B` | Hierarchy without harsh contrast |
+
+Full dark mode required (evening clinic hours, eye fatigue).
+
+#### Typography
+
+- **Inter** — modern, clean, excellent at small sizes (mobile critical)
+- Headings: 18-22pt
+- Body: 14-16pt
+- Captions: 12pt
+- Generous line-height (1.5+) for readability
+- Respects iOS/Android system font scaling
+
+#### Iconography
+
+- **Phosphor Icons** or **Lucide** (both have medical-relevant icons)
+- Avoid Material Design (too generic) and SF Symbols (cross-platform inconsistency)
+
+#### Motion & Animation
+
+- Subtle micro-interactions only
+- Standard durations: 150ms (instant feel), 250ms (transitions), 400ms (page changes)
+- Respects system "reduce motion" preference (accessibility)
+- No bouncy/playful animations — clinical context
+
+---
+
+### 9.5 Critical Screen Specifications
+
+#### 9.5.1 Recording Screen — Highest UX Priority
+
+Single dominant action. Live waveform proves recording works. Nothing distracting.
+
+```
+┌──────────────────────────────────────────────────┐
+│ ◀ John Smith                                      │
+│                                                   │
+│         ┌─────────────────────┐                  │
+│         │      Recording      │                   │
+│         │      00:14:23       │                  │
+│         │                     │                   │
+│         │   ▁▂▄▆▇█▇▆▄▂▁       │                   │
+│         │   (live waveform)   │                  │
+│         └─────────────────────┘                  │
+│                                                   │
+│              [End Session]                        │
+│                                                   │
+│ ⓘ Patient consent acknowledged at 14:08          │
+└──────────────────────────────────────────────────┘
+```
+
+**Anti-patterns explicitly forbidden during recording:**
+- Multiple buttons (pause, settings, etc. — only End Session is allowed)
+- Pop-ups, notifications, alerts of any kind
+- Anything requiring reading
+- Background sync indicators that imply problems
+
+#### 9.5.2 Pre-Visit Brief Card — Differentiator
+
+See Journey 2 design above. Implementation requirements:
+- Loads in <1 second (cache aggressively)
+- Maximum 5 bullet points across all sections
+- Follow-ups due always shown first if any exist
+- Tap-to-expand for full history (lazy loaded)
+
+#### 9.5.3 Note Review Screen — Trust Moment
+
+See Journey 3 design above. Implementation requirements:
+- Inline editing (no modals)
+- `[source]` link plays audio from the relevant moment
+- Cannot be signed until doctor has scrolled through entire note
+- Signing requires biometric — provides legal weight
+
+#### 9.5.4 Search Screen — Demonstrates Semantic Power
+
+```
+┌──────────────────────────────────────────────────┐
+│ Search across all patients                        │
+│ ┌──────────────────────────────────────────────┐│
+│ │ when did I last discuss back pain?           ││
+│ └──────────────────────────────────────────────┘│
+│                                                   │
+│ John Smith — 18 days ago                          │
+│ "Patient reports lower back pain..."              │
+│ [Open]                                            │
+│                                                   │
+│ Sarah Chen — 2 months ago                         │
+│ "Discussed exercise modifications..."             │
+│ [Open]                                            │
+└──────────────────────────────────────────────────┘
+```
+
+Showcases that "back pain" finds notes about "lumbar strain" or "patellar discomfort" via semantic search (pgvector). This is a wow moment for first-time users.
+
+---
+
+### 9.6 Empty States, Error States, Loading States
+
+These are often forgotten and always matter.
+
+| State | Approach |
+|---|---|
+| **Empty patient list** (new doctor) | Friendly illustration + "Add your first patient" CTA + 30-second video tutorial |
+| **No sessions yet** for a patient | "Start your first session with John Smith" — large CTA |
+| **Note generation failed** | Clear explanation of why; retry button; offer manual entry; no blame on doctor |
+| **Recording failed (network)** | "Audio saved locally. Will upload when connection returns." — never lose data |
+| **Loading note** | Skeleton screen showing structure; estimated time remaining |
+| **No search results** | Suggest reformulation; show recent patients as fallback |
+| **Account locked** | Clear next steps; no security-theater language |
+| **Subscription lapsed** | Read-only access preserved (legal compliance); upgrade CTA prominent |
+
+**Design rule:** Error states must never blame the doctor or expose technical jargon. They should tell the doctor what to do next, not what went wrong internally.
+
+---
+
+### 9.7 Performance UX Requirements
+
+UX-specific performance targets (subset of Section 19.8 SLOs):
+
+| Interaction | Target |
+|---|---|
+| App launch (cold) | <2s |
+| App launch (warm) | <500ms |
+| Patient profile open | <1s |
+| Pre-visit brief render | <1s |
+| Search results appear | <800ms |
+| Recording start (after tap) | <500ms |
+| Note generation status update | Real-time push, no polling |
+
+These are perceived-performance targets — they bind UX, not just engineering.
+
+---
+
+### 9.8 Accessibility Requirements
+
+Many physicians have visual fatigue, color blindness, or use accessibility tools. Section 1557 of the ACA requires accessibility in healthcare software.
+
+| Requirement | Standard |
+|---|---|
+| Color contrast | WCAG 2.1 AA (4.5:1 text, 3:1 UI components) |
+| Touch targets | Minimum 44×44pt (iOS) / 48×48dp (Android) |
+| Font scaling | Respects iOS/Android system font size up to 200% |
+| Screen reader | Every interactive element has accessibility label; semantic HTML on web |
+| Voice control | Critical actions usable via Voice Control / Voice Access |
+| Reduced motion | Respects system "reduce motion" preference |
+| Keyboard navigation | All interactions reachable via keyboard (web) |
+| Dark mode | Full dark mode for evening clinic hours, automatic with system setting |
+| Color blindness | Never use color alone to convey information (always pair with icon or label) |
+| Focus indicators | Visible focus indicators on all interactive elements |
+
+Accessibility audit by third party before public launch (Month 6).
+
+---
+
+### 9.9 Design Tooling & Workflow
+
+**Primary design tool: Claude Design** (replaces Figma in this project)
+
+- All design files versioned in Claude Design workspace
+- Design system + component library maintained in Claude Design
+- Engineering pulls design tokens (colors, spacing, typography) directly from Claude Design exports
+- Design reviews conducted asynchronously via Claude Design comments
+- Prototyping for usability testing performed in Claude Design
+
+**Component library:** **Tamagui** for React Native (cross-platform native look) + custom design system on top, exported from Claude Design as design tokens.
+
+**Storybook** maintained for the React PWA + React Native app — every reusable component documented with states, variants, and accessibility notes.
+
+**Workflow:**
+```
+1. Designer creates flow in Claude Design
+2. Engineering reviews via Claude Design comments
+3. Approved designs become source of truth
+4. Component built in Storybook with full state coverage
+5. Component used in app, design tokens kept in sync
+```
+
+---
+
+### 9.10 Designer Hire — Critical Recommendation
+
+**Hire a senior product designer with healthcare experience as one of your first three hires.** Not a generalist. Not a UI specialist. A product designer who has shipped clinical software before.
+
+They will know:
+- Why doctors hate certain interaction patterns (modal popups, multi-step forms during consults)
+- What clinical workflows actually feel like
+- The unwritten rules of clinical software (never interrupt a doctor mid-thought)
+- How to test with doctors who don't have time for usability sessions
+
+**Compensation:** Senior product designer in India ~$3,500-5,000/month, OR contractor with US healthcare experience for 6 months at $80-120/hour.
+
+Add this role to the team plan in Section 2.4 (replace the UI/UX Designer role with this Senior Product Designer role).
+
+---
+
+### 9.11 Usability Testing Methodology
+
+Doctors don't have time for traditional usability sessions. Adapt accordingly.
+
+| Method | Frequency | Format |
+|---|---|---|
+| Async video walkthrough | Weekly with 2-3 pilot doctors | Doctor records 5-min screen-share narration in their own time |
+| Live 15-min session | Bi-weekly with 1 pilot doctor | Specific task evaluation; never longer than 15 min |
+| In-app feedback prompts | Continuous | Trigger after specific events (first note signed, search used, etc.); NPS-style + free text |
+| Cohort analysis | Monthly | Funnel analytics: where do users drop off? |
+| Error pattern review | Weekly | Sentry events analyzed for UX-vs-bug differentiation |
+
+Pilot doctors compensated $50/session for live sessions; async walkthroughs unpaid (light burden).
+
+---
+
+### 9.12 UX Success Metrics
+
+| Metric | Target | Measurement |
+|---|---|---|
+| Time from app open to recording start | <10 seconds | Application Insights instrumentation |
+| Time from recording end to signed note | <5 minutes (median) | Database timestamp delta |
+| Note edit rate | <30% (doctors edit fewer than 30% of generated notes) | Tracks AI quality + UX trust |
+| Pre-visit brief view rate | >80% of sessions | Doctors actually use the differentiator |
+| Search usage per active doctor | >5 searches/week | Adoption of semantic search |
+| In-app NPS | >50 by Month 12 | Post-session prompts |
+| Task completion rate (new doctor onboarding) | >85% | Funnel analytics |
+| Accessibility audit score | WCAG 2.1 AA pass | Third-party audit Month 6, annually thereafter |
+
+---
+
+## 10. USER STORIES
 
 ### Epic 1: Onboarding
 
@@ -675,15 +1067,15 @@ ClinRecall is not an EHR. It is not a transcription tool. It is a doctor's perso
 
 ---
 
-## 10. COMPLIANCE & REGULATORY REQUIREMENTS
+## 11. COMPLIANCE & REGULATORY REQUIREMENTS
 
-### 10.1 HIPAA (Health Insurance Portability and Accountability Act)
+### 11.1 HIPAA (Health Insurance Portability and Accountability Act)
 
 ClinRecall handles Protected Health Information (PHI) as defined by HIPAA. The following requirements are mandatory before any US physician can use the product:
 
 | Requirement | Implementation |
 |---|---|
-| Business Associate Agreement (BAA) | Signed with every doctor at signup and with AWS |
+| Business Associate Agreement (BAA) | Signed with every doctor at signup and with Microsoft (Azure + Azure OpenAI) |
 | PHI Encryption at rest | AES-256 on all stored data |
 | PHI Encryption in transit | TLS 1.2+ on all API calls |
 | Minimum necessary access | Each doctor accesses only their own data |
@@ -691,7 +1083,7 @@ ClinRecall handles Protected Health Information (PHI) as defined by HIPAA. The f
 | Data disposal | Raw audio deleted within 1 hour; account data deleted 90 days post-cancellation |
 | Breach notification | Process established to notify affected doctors within 60 days of discovery |
 
-### 10.2 Informed Consent
+### 11.2 Informed Consent
 
 While the product is doctor-facing, the underlying recordings involve patients. Requirements:
 
@@ -700,13 +1092,13 @@ While the product is doctor-facing, the underlying recordings involve patients. 
 - Consent acknowledgement checkbox in session start flow
 - Product does not manage patient consent directly — this remains the doctor's professional responsibility
 
-### 10.3 Data Residency
+### 11.3 Data Residency
 
-- All PHI stored exclusively on AWS US-East (N. Virginia) and AWS US-West (Oregon) for redundancy
+- All PHI stored exclusively on Azure East US 2 (Virginia) and Azure West US 2 (Washington) for redundancy
 - No PHI transferred to servers outside the United States
 - Development team in India accesses only anonymized or synthetic test data
 
-### 10.4 State-Level Regulations — Expanded
+### 11.4 State-Level Regulations — Expanded
 
 **Two-party consent is a product-enforced workflow in V1, not a disclaimer.**
 
@@ -721,7 +1113,7 @@ Product-level requirements (see FR-8.1 through FR-8.8 in Section 7):
 
 This is not optional and is not a doctor's burden to manage manually.
 
-### 10.5 FDA / Software as a Medical Device (SaMD) — NEW in v2.0
+### 11.5 FDA / Software as a Medical Device (SaMD) — NEW in v2.0
 
 **Classification assessment is a prerequisite to engineering kickoff.**
 
@@ -744,7 +1136,7 @@ Under 21 CFR 820 and FDA SaMD guidance, software that supports clinical decision
 2. Obtain written classification assessment
 3. If any feature is flagged SaMD-adjacent, scope out or add FDA pre-submission (Q-Sub) process
 
-### 10.6 Malpractice Liability Framework — NEW in v2.0
+### 11.6 Malpractice Liability Framework — NEW in v2.0
 
 ClinRecall processes protected clinical information and generates content that can affect patient care. Liability must be allocated explicitly.
 
@@ -765,7 +1157,7 @@ ClinRecall processes protected clinical information and generates content that c
 - Company carries $2M Professional Liability + $2M Cyber Liability insurance
 - Annual review of ToS with healthcare-specialised legal counsel
 
-### 10.7 Additional Regulatory Considerations — NEW in v2.0
+### 11.7 Additional Regulatory Considerations — NEW in v2.0
 
 - **Section 1557 of ACA** — non-discrimination in healthcare software; UI must be accessible (WCAG 2.1 AA) and not exclude protected classes
 - **State-level health tech regulations** — California (CCPA/CPRA, CMIA), New York (SHIELD Act) may impose stricter requirements
@@ -773,9 +1165,9 @@ ClinRecall processes protected clinical information and generates content that c
 
 ---
 
-## 11. DATA REQUIREMENTS
+## 12. DATA REQUIREMENTS
 
-### 11.1 Data Entities
+### 12.1 Data Entities
 
 | Entity | Key Fields | Retention |
 |---|---|---|
@@ -786,13 +1178,13 @@ ClinRecall processes protected clinical information and generates content that c
 | Pre-Visit Brief | Generated at query time from notes — not stored separately | Not persisted |
 | Audit Log | User ID, action, resource, timestamp, IP address | 6 years (HIPAA requirement) |
 
-### 11.2 Data the Product Does NOT Store
+### 12.2 Data the Product Does NOT Store
 
 - Raw audio after note generation is complete
 - Full transcripts of patient speech
 - Any patient-identifiable data beyond what the doctor explicitly enters in the profile
 
-### 11.3 Data Ownership
+### 12.3 Data Ownership
 
 - All patient data belongs to the doctor
 - ClinRecall does not sell, share, or use patient data for any purpose other than delivering the service
@@ -800,69 +1192,82 @@ ClinRecall processes protected clinical information and generates content that c
 
 ---
 
-## 12. TECHNOLOGY STACK RECOMMENDATIONS
+## 13. TECHNOLOGY STACK RECOMMENDATIONS
 
 Keeping the technology boring and proven is a deliberate choice. The competitive advantage of ClinRecall is the product experience and the clinical memory layer — not a novel tech stack. Every component below is selected for reliability, HIPAA eligibility, and speed of development from an India-based team.
 
-### 12.1 AI & Machine Learning Layer
+### 13.1 AI & Machine Learning Layer (v2.3 — Azure-based)
 
 | Function | Recommended Vendor | Rationale |
 |---|---|---|
-| Speech-to-text + Speaker Diarization | **AssemblyAI** | Best-in-class medical diarization accuracy, dedicated healthcare tier, HIPAA BAA available, straightforward API |
-| Note extraction & Pre-visit brief generation | **Claude API (claude-sonnet-4-6) via AWS Bedrock** | Superior structured output for medical terminology, HIPAA-eligible via Bedrock, strongest reasoning for clinical context, contractual no-training default |
-| Semantic embeddings for search | **AWS Bedrock Titan Embeddings** | HIPAA-eligible, cost-effective, integrates with pgvector |
-| Fallback / cost optimisation at scale | AWS Transcribe Medical | Native AWS HIPAA coverage, lower cost for high volume; evaluate after Month 12 |
+| Speech-to-text + Speaker Diarization | **AssemblyAI** | Best-in-class medical diarization accuracy, dedicated healthcare tier, HIPAA BAA available, cloud-agnostic so works on Azure |
+| Note extraction & Pre-visit brief generation | **GPT-4o via Azure OpenAI Service** | HIPAA-eligible via Microsoft BAA, strong medical conversation extraction, ~40% cheaper than alternatives, native Azure integration |
+| Semantic embeddings for search | **text-embedding-3-large via Azure OpenAI** | HIPAA-eligible, cost-effective, integrates with pgvector |
+| Fallback / cost optimisation at scale | Azure Speech Services or AssemblyAI volume tier | Re-evaluate after Month 12 once usage patterns are clear |
+
+**Pre-Build Action Required:** Azure OpenAI Service access is **gated for healthcare/regulated industries**. Application must be submitted to Microsoft in Week 1 — typical approval is 1-2 weeks. Approval includes signed Microsoft BAA covering Azure OpenAI usage with PHI.
+
+**Token Quota Increase Requests:**
+At 500 doctors, default quotas are insufficient. File quota increase requests in Week 4:
+- TPM (Tokens Per Minute): from default ~30K → 200K+
+- RPM (Requests Per Minute): from default ~180 → 600+
+
+Microsoft typically approves within 3-5 business days.
 
 **Vendor Contract Requirements (Non-Negotiable):**
 
 Before any real PHI is processed:
-1. **Signed BAA** with AssemblyAI (direct) and AWS (covering Bedrock/Anthropic inference)
-2. **Written confirmation** that no inputs are used for model training, fine-tuning, retention beyond inference, or model improvement
-3. **Data residency confirmation** that all inference occurs in US AWS regions
+1. **Signed BAA** with AssemblyAI (direct) and Microsoft (covering Azure OpenAI Service)
+2. **Written confirmation** that no inputs are used for model training, fine-tuning, retention beyond inference, or model improvement (Azure OpenAI default policy is no training use, but confirm in writing)
+3. **Data residency confirmation** that all inference occurs in US Azure regions (East US 2 primary, West US 2 backup)
 4. **Incident notification SLA** — vendor must notify of any security incident within 24 hours
 5. **Right to audit** — contractual right to review vendor's security practices annually
 
 **Abstraction Requirement (to prevent vendor lock-in):**
 
-Layer 2 (Processing Engine) and Layer 3 (Intelligence Module) must abstract vendor-specific APIs behind an internal interface. A vendor swap must be achievable within 4 weeks — never longer.
+Layer 2 (Processing Engine) and Layer 3 (Intelligence Module) must abstract vendor-specific APIs behind an internal interface. A model swap (e.g., GPT-4o → GPT-5 or to Llama 3 on Azure ML) must be achievable within 4 weeks — never longer.
 
-### 12.2 Application Stack — Revised
+### 13.2 Application Stack — Revised v2.3 (Azure)
 
 | Layer | Technology | Rationale |
 |---|---|---|
-| Frontend | **React + PWA (Progressive Web App) with Service Workers** | Installable from browser, offline-capable reads, survives tab/network interruptions during recording; native iOS app planned Month 8 |
-| Backend | **Python with FastAPI** (preferred) | Strong ML ecosystem, mature async support; Node.js acceptable if team strongly prefers |
-| Database | **PostgreSQL on AWS RDS Multi-AZ with pgvector extension** | HIPAA-eligible; pgvector enables semantic + full-text hybrid search from Day 1 (no OpenSearch migration needed until 50K+ doctors) |
-| Audio Storage (temporary) | **AWS S3 with server-side encryption + Object Lock** | HIPAA-eligible, 72-hour lifecycle rule, WORM-enforced for audit |
-| Authentication | **Auth0** (preferred) | Built-in MFA, HIPAA-eligible, session management, faster than building in-house |
+| Web Frontend (V1) | **React + PWA (Progressive Web App) with Service Workers** | Fastest path to launch; installable from browser; works on iOS Safari and Android Chrome |
+| **Native Mobile (V2 — Month 8+)** | **React Native + custom native audio modules (Swift + Kotlin)** | Single TypeScript codebase, ~95% Windows-friendly development, strong LLM training data for AI-assisted coding, native-grade audio reliability where it matters. See Section 13.6. |
+| Backend | **Python with FastAPI** (preferred) | Strong ML ecosystem, mature async support; cloud-agnostic |
+| Database | **Azure Database for PostgreSQL — Flexible Server with pgvector extension** | HIPAA-eligible; Multi-AZ HA; pgvector enables semantic + full-text hybrid search from Day 1 |
+| Audio Storage (temporary) | **Azure Blob Storage with Immutability Policies** | HIPAA-eligible, 72-hour lifecycle rule, WORM-enforced for audit (immutable blob policy) |
+| Authentication | **Auth0** (cloud-agnostic) | Built-in MFA, HIPAA-eligible, session management, faster than building in-house. Alternative: Azure AD B2C if going Microsoft-native in Phase 2 |
 | Payments & Billing | **Stripe** | Only credible option; supports Indian companies billing US customers in USD |
-| Search | **Hybrid: pgvector (semantic) + PostgreSQL full-text (keyword)** | Semantic search from Day 1 — a doctor typing "knee pain" finds notes about "patellar discomfort"; this is a key differentiator |
-| Email / Notifications | **AWS SES** | HIPAA-eligible, low cost, reliable |
-| **Event Bus (NEW)** | **AWS EventBridge** | Serverless, HIPAA-eligible, low operational burden; foundation for Layer 6 integrations from Day 1 |
-| **Background Jobs (NEW)** | **AWS SQS + Lambda** | For audio upload processing, note generation pipeline, async operations |
+| Search | **Hybrid: pgvector (semantic) + PostgreSQL full-text (keyword)** | Semantic search from Day 1 — a doctor typing "knee pain" finds notes about "patellar discomfort" |
+| Email / Notifications | **Azure Communication Services** (or SendGrid, Microsoft-owned) | HIPAA-eligible, integrated with Azure Monitor |
+| Event Bus | **Azure Event Grid** | Serverless, HIPAA-eligible; foundation for Layer 6 integrations from Day 1 |
+| Background Jobs | **Azure Service Bus + Azure Functions** | For audio upload processing, note generation pipeline, async operations |
 
-### 12.3 Infrastructure — Revised
+### 13.3 Infrastructure — Revised v2.3 (Azure)
 
 | Component | Choice | Rationale |
 |---|---|---|
-| Cloud Provider | **AWS (US-East-1 primary, US-West-2 warm-standby DR)** | HIPAA BAA available, most trusted by compliance auditors; clearly stated as active-passive DR, not active-active |
-| Containerisation | **Docker + AWS ECS Fargate** | Serverless container orchestration; minimal ops overhead for small team |
-| CI/CD | **GitHub Actions** | Free for small teams, integrates with all AWS services; every deploy requires passing security scan and tests |
-| Monitoring | **AWS CloudWatch + Sentry + Datadog (Month 6+)** | CloudWatch for infra; Sentry for application errors; Datadog for distributed tracing once scale warrants |
-| Observability | **OpenTelemetry tracing across all services (NEW)** | Critical for debugging multi-vendor AI pipeline; traces sensitive data must be scrubbed |
-| Secret management | **AWS Secrets Manager** | Never store credentials in code or environment files |
-| Infrastructure as Code | **Terraform** | All AWS resources defined as code; enables reproducible environments and audit trails |
-| Network Security | **AWS VPC with private subnets, security groups, AWS WAF on public endpoints** | Defense in depth; no direct internet exposure of PHI-handling services |
+| Cloud Provider | **Azure (East US 2 primary, West US 2 warm-standby DR)** | HIPAA BAA available; team has strong Azure familiarity; integrated Microsoft healthcare ecosystem; better hospital procurement fit for Phase 2 |
+| Containerisation | **Azure Container Apps** | Serverless container orchestration on Kubernetes; minimal ops overhead; native Azure integration |
+| CI/CD | **GitHub Actions** | Cloud-agnostic; integrates with all Azure services; every deploy requires passing security scan and tests |
+| Monitoring | **Azure Monitor + Application Insights + Sentry** | App Insights for distributed tracing and APM; Sentry for application error tracking; native Azure integration |
+| Observability | **OpenTelemetry tracing via Application Insights** | Native OTLP support in App Insights; PHI data scrubbed from traces |
+| Secret management | **Azure Key Vault** | Never store credentials in code or environment files; integrates with Container Apps managed identity |
+| Infrastructure as Code | **Terraform** (Azure provider) | All Azure resources defined as code; enables reproducible environments and audit trails |
+| Network Security | **Azure VNet with private endpoints, NSGs, Azure WAF on Front Door** | Defense in depth; no direct internet exposure of PHI-handling services |
+| CDN / Edge | **Azure Front Door** | WAF + CDN + global routing for the React PWA frontend |
+| DDoS Protection | **Azure DDoS Protection Standard** | Required for HIPAA defence-in-depth posture |
+| Backup & Geo-Redundancy | **Azure Backup + GRS (Geo-Redundant Storage) for Blob and PostgreSQL** | Continuous backups; cross-region replication for disaster recovery |
 
-### 12.4 Development Environment (India Team)
+### 13.4 Development Environment (India Team)
 
 - All developers work with **synthetic / anonymised patient data only** — never real PHI
-- Production access is restricted to authorised personnel via AWS IAM roles with MFA; all production access is logged and reviewed monthly
+- Production access is restricted to authorised personnel via Azure RBAC + Azure AD with MFA; all production access is logged and reviewed monthly
 - All code reviewed before merge; no direct pushes to main branch; security linters enforced in CI
 - Penetration testing by a third-party firm before public launch and annually
 - Synthetic medical conversation dataset (500+ labelled samples) maintained for development and testing — built in collaboration with US medical advisor
 
-### 12.5 MLOps & AI Quality Framework — NEW in v2.0
+### 13.5 MLOps & AI Quality Framework — NEW in v2.0
 
 AI quality is not a one-time decision — it is a continuous discipline. Without MLOps practices from Day 1, note quality will silently drift as the Intelligence Layer evolves or the underlying LLM is upgraded.
 
@@ -885,7 +1290,7 @@ AI quality is not a one-time decision — it is a continuous discipline. Without
 
 #### Model Version Management
 - Every note is tagged with the LLM model version and prompt template version that generated it
-- When a new model version is introduced (e.g., Claude Sonnet 4.6 → 4.7), migration runs on the golden dataset first
+- When a new model version is introduced (e.g., GPT-4o → GPT-5), migration runs on the golden dataset first
 - No auto-upgrade in production until regression testing confirms no quality loss
 - Rollback capability to prior model version within 1 hour if issue detected
 
@@ -897,9 +1302,452 @@ AI quality is not a one-time decision — it is a continuous discipline. Without
 
 ---
 
-## 13. PLATFORM ARCHITECTURE & EXTENSIBILITY
+### 13.6 Native Mobile Framework — React Native (NEW in v2.1)
 
-### 13.1 Platform Philosophy
+#### Why React Native (resolves OQ-13)
+
+After evaluating native Swift/Kotlin, Kotlin Multiplatform, Flutter, and React Native against the constraints of (a) Windows-based India team, (b) avoiding double development, (c) AI-assisted coding via Claude/Codex, and (d) audio recording reliability — **React Native with custom native audio modules** is the chosen path.
+
+| Constraint | Why React Native Wins |
+|---|---|
+| Windows team development | ~95% of work happens on Windows; only iOS builds need macOS |
+| Avoid building twice | One TypeScript codebase serves both iOS and Android |
+| Claude/Codex AI coding | Largest LLM training data among cross-platform frameworks; minimal hallucination risk |
+| Audio recording reliability | Solved via thin native modules (~500-800 LOC total) for the recording engine only |
+| Healthcare-grade UX | Proven in production by Heidi Health, Doximity, and similar healthcare apps |
+| Hiring market in India | Abundant React Native talent; TypeScript universally known |
+
+#### Architecture: 95% Shared, 5% Native
+
+```
+┌──────────────────────────────────────────────────┐
+│       React Native Application (~95%)            │
+│  TypeScript: All UI, navigation, state, API,     │
+│  authentication, file handling, note review,     │
+│  search, billing, notifications                  │
+└──────────────────────────────────────────────────┘
+                       │
+               React Native Bridge
+                       │
+            ┌──────────┴──────────┐
+            ▼                     ▼
+    ┌───────────────┐     ┌───────────────┐
+    │ iOS Native    │     │ Android Native│
+    │ Audio Module  │     │ Audio Module  │
+    │ (Swift, ~500 LOC)│  │ (Kotlin, ~500 LOC)│
+    │ AVAudioSession│     │ MediaRecorder +│
+    │ Background mode│    │ Foreground svc │
+    └───────────────┘     └───────────────┘
+```
+
+**Total native code in the entire app: 1,000-1,500 lines.** Everything else is React Native.
+
+#### Required React Native Modules — Off-The-Shelf
+
+| Capability | Module | Purpose | Custom Work |
+|---|---|---|---|
+| **Audio recording (base)** | `react-native-audio-recorder-player` or `react-native-audio-record` | Foundation library; foreground recording | Used as base, extended via custom native module for background reliability |
+| **Authentication** | `react-native-auth0` | Auth0 SDK with MFA support | None |
+| **Secure storage** | `react-native-keychain` | iOS Keychain / Android Keystore for tokens | None |
+| **Encrypted local storage** | `react-native-mmkv` | Fast key-value storage with encryption | None |
+| **Biometric auth** | `react-native-biometrics` | Face ID / Touch ID / fingerprint for note signing | None |
+| **File upload** | `react-native-blob-util` | HTTP file streaming, chunked upload base | Wrap with resumable upload logic (~200 LOC TS) |
+| **Background upload** | `react-native-background-upload` | Continues uploads when app is backgrounded | None |
+| **Push notifications** | `@react-native-firebase/messaging` | FCM (Android) + APNs (iOS) push | None |
+| **Local notifications** | `notifee` | "Note ready for review" notifications | None |
+| **Permissions** | `react-native-permissions` | Microphone, notifications — handles iOS/Android quirks | None |
+| **Network detection** | `@react-native-community/netinfo` | Online/offline status, connection quality | None |
+| **Navigation** | `@react-navigation/native` | Standard navigation (de facto choice) | None |
+| **UI components** | `react-native-paper` (Material) or `tamagui` | UI component library | None |
+| **State management** | `zustand` | Lightweight state management | None |
+| **HTTP client** | `axios` | API calls to FastAPI backend | None |
+| **Forms** | `react-hook-form` | Form handling and validation | None |
+| **Icons** | `react-native-svg` + `react-native-vector-icons` | Iconography | None |
+| **Date/time** | `date-fns` | Date manipulation (lighter than moment.js) | None |
+| **Splash screen** | `react-native-bootsplash` | Branded launch screen | None |
+
+#### Custom Native Module — Audio Recording Engine
+
+The one place we write native code. Two thin modules, one purpose.
+
+**iOS Audio Module (Swift, ~500 LOC):**
+- AVAudioSession configuration for ambient capture
+- Background audio mode (Info.plist + session category management)
+- AVAudioRecorder lifecycle with proper interruption handling (calls, notifications)
+- Audio format optimised for AssemblyAI diarization (16kHz, 16-bit PCM, mono)
+- Local encrypted buffering for offline scenarios
+- Bridge to React Native via Swift `@objc` exposure
+
+**Android Audio Module (Kotlin, ~500 LOC):**
+- MediaRecorder configuration
+- Foreground service to survive battery optimization (Android 12+ requirements)
+- Doze mode and App Standby exemption requests
+- Audio format matching iOS (16kHz, 16-bit PCM, mono)
+- Local encrypted buffering
+- Bridge to React Native via `ReactContextBaseJavaModule`
+
+**Estimated effort:** 2-3 weeks for an experienced native engineer with Claude/Codex assistance.
+
+#### Module Risk Assessment
+
+| Module | Maintenance Risk | Mitigation |
+|---|---|---|
+| `react-native-audio-recorder-player` | Sole maintainer | Forking ready; we have native modules covering critical paths anyway |
+| `react-native-auth0` | Auth0 (corporate) | Low risk; backed by Okta |
+| `react-native-firebase` | Active OSS community | Very low risk |
+| Other listed modules | Multiple maintainers, mature | Low risk |
+
+**Concentration Rule:** No more than 30% of the app should depend on a single non-corporate-maintained module. Our list complies.
+
+---
+
+### 13.7 Development Environment — Windows-Friendly Workflow (NEW in v2.1)
+
+The India team works primarily on Windows machines. The development workflow is designed to maximise Windows compatibility.
+
+#### What Runs on Windows (95% of development)
+
+- All TypeScript / React Native development
+- Backend (Python / FastAPI)
+- Android builds and emulator (Android Studio runs natively on Windows)
+- Database, infrastructure, CI/CD configuration
+- AI-assisted coding with Claude / Codex
+- Code review, version control, documentation
+
+#### What Requires macOS (5% of development)
+
+- iOS builds (Xcode is macOS-only — Apple licensing constraint)
+- iOS Simulator
+- App Store submission and TestFlight uploads
+- Native iOS module debugging in Xcode
+
+#### macOS Access Strategy
+
+| Option | Cost | Best For |
+|---|---|---|
+| **Cloud Mac (MacInCloud or MacStadium)** | $30-80/month per dev | Recommended — flexible, no hardware |
+| **Office Mac Mini M2 (1-2 units)** | ~$700 each one-time | Recommended for core team — shared via screen sharing |
+| **GitHub Actions macOS runners** | $0.08/min | Recommended for CI/CD iOS builds — no manual Mac access needed |
+| **Designated iOS engineer with MacBook** | ~$1,500 one-time | If hiring a full-time iOS specialist |
+
+**Recommended setup for our team:**
+1. **CI/CD does production iOS builds via GitHub Actions macOS runners** — no developer needs Mac for releases
+2. **One office Mac Mini for active iOS native module debugging** — shared by 2-3 engineers as needed
+3. **Cloud Mac subscription as backup** — for occasional remote iOS work
+
+**Estimated additional infrastructure cost: ~$50-150/month** — trivial in context of project budget.
+
+#### Development Workflow Per Engineer
+
+```
+Windows Machine                          Cloud / Office Mac (when needed)
+├── VS Code / IntelliJ                   ├── Xcode (iOS builds)
+├── React Native Metro bundler           ├── iOS Simulator
+├── Android Studio + Emulator            └── App Store Connect
+├── Python FastAPI dev server
+├── Docker containers
+├── PostgreSQL (local)
+├── Claude / Codex
+└── Git, GitHub
+```
+
+For 95% of work, the engineer never connects to a Mac. iOS-specific tasks (native audio module changes, App Store submission) are batched and handled in dedicated Mac sessions.
+
+#### CI/CD Pipeline (Mac-Free for Daily Development)
+
+```
+Developer pushes to feature branch (on Windows)
+    ↓
+GitHub Actions runs tests on Linux + Android builds
+    ↓
+On merge to main:
+    ↓
+GitHub Actions Linux runner: Backend tests, Android APK build
+GitHub Actions macOS runner: iOS build, sign, upload to TestFlight
+    ↓
+Both APK and iOS build available for QA
+```
+
+Engineers never touch a Mac for normal feature work — only when debugging iOS-specific native code.
+
+---
+
+### 13.8 Backend API Design (NEW in v2.2)
+
+#### 12.8.1 API Design Principles
+
+| Principle | Decision | Rationale |
+|---|---|---|
+| Architectural style | **REST** (not GraphQL) | Better HIPAA audit trail; simpler caching; dramatically stronger Claude/Codex support; well-defined resources fit our domain |
+| Versioning | **URL prefix `/v1/` from Day 1** | Future-proof; never have to break clients; standard practice |
+| Authentication | **JWT access tokens (Auth0-issued)** | 15-minute access tokens + refresh tokens; no session state in backend |
+| Async pattern | **`202 Accepted` + job ID + push/poll** | Long-running AI work doesn't block clients; resilient to network drops |
+| File uploads | **Azure Blob Storage SAS URLs** | Audio bytes never traverse the API server; saves bandwidth and reduces failure surface |
+| API documentation | **OpenAPI 3.1 (auto-generated by FastAPI)** | Single source of truth; auto-generates React Native TypeScript client |
+| Error format | **RFC 7807 Problem Details** | Standardised, machine-parseable, well-supported across clients |
+| Idempotency | **`Idempotency-Key` header on writes** | Mobile network retries won't duplicate sessions, notes, or charges |
+
+#### 12.8.2 API Surface — by Module
+
+**Module 1: Authentication & Account**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/v1/auth/signup` | Create doctor account; returns email verification flow |
+| POST | `/v1/auth/login` | Email + password → JWT (Auth0 brokered) |
+| POST | `/v1/auth/mfa/challenge` | Trigger MFA |
+| POST | `/v1/auth/mfa/verify` | Verify MFA code |
+| POST | `/v1/auth/refresh` | Refresh expired access token |
+| POST | `/v1/auth/logout` | Revoke refresh token |
+| POST | `/v1/auth/forgot-password` | Initiate reset |
+| POST | `/v1/auth/reset-password` | Complete reset |
+| GET | `/v1/me` | Get current doctor profile |
+| PATCH | `/v1/me` | Update doctor profile (name, specialty, clinic) |
+| POST | `/v1/me/baa/accept` | Accept Business Associate Agreement |
+
+**Module 2: Patient Profiles**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/v1/patients?q=&page=&limit=` | List/search patients |
+| POST | `/v1/patients` | Create patient profile |
+| GET | `/v1/patients/{patient_id}` | Get patient details |
+| PATCH | `/v1/patients/{patient_id}` | Update patient |
+| DELETE | `/v1/patients/{patient_id}` | Soft archive (data retained) |
+| GET | `/v1/patients/{patient_id}/sessions` | List sessions for patient |
+| GET | `/v1/patients/{patient_id}/pre-visit-brief` | Get the synthesised pre-visit brief |
+
+**Module 3: Recording Sessions** (most complex module — AI pipeline orchestration)
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/v1/sessions` | Start new session — returns `session_id` and Azure Blob SAS URLs for audio chunks |
+| POST | `/v1/sessions/{session_id}/consent` | Record patient consent acknowledgement (state-aware) |
+| POST | `/v1/sessions/{session_id}/chunks` | Register an uploaded audio chunk (metadata only) |
+| POST | `/v1/sessions/{session_id}/complete` | Mark recording complete → triggers async processing pipeline |
+| GET | `/v1/sessions/{session_id}` | Get session status (recording, processing, ready, signed) |
+| GET | `/v1/sessions/{session_id}/note` | Get the AI-generated note (when status=ready) |
+| PATCH | `/v1/sessions/{session_id}/note` | Doctor edits note before signing |
+| POST | `/v1/sessions/{session_id}/note/regenerate` | Discard and re-generate note (max 2 attempts) |
+| POST | `/v1/sessions/{session_id}/note/sign` | Doctor signs note (immutable thereafter) |
+| POST | `/v1/sessions/{session_id}/note/flag` | Flag inaccuracy for clinical review |
+| POST | `/v1/sessions/{session_id}/note/amend` | Add amendment to a signed note |
+| GET | `/v1/sessions/{session_id}/note/export` | Export signed note as PDF (with integrity hash) |
+
+**Module 4: Search**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/v1/search?q=` | Hybrid search across all patients (semantic + keyword via pgvector) |
+| GET | `/v1/patients/{patient_id}/search?q=` | Search within a patient's history |
+
+**Module 5: Compliance & State Rules**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/v1/compliance/state-rules?state=CA` | Returns consent rules for a US state (one-party vs two-party) |
+| GET | `/v1/compliance/consent-script?state=CA&language=en` | Standard consent script for doctor to read to patient |
+
+**Module 6: Patient Rights (HIPAA)**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/v1/patients/{patient_id}/data-access-request` | Generate full data export (PDF) for patient |
+| POST | `/v1/patients/{patient_id}/data-deletion-request` | Action a deletion request |
+| POST | `/v1/patients/{patient_id}/correction-request` | Add correction amendment |
+| GET | `/v1/patients/{patient_id}/disclosure-accounting` | List who accessed this patient's data |
+
+**Module 7: Subscription & Billing**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/v1/subscription/start-trial` | Start 60-day free trial |
+| POST | `/v1/subscription/subscribe` | Begin paid subscription |
+| GET | `/v1/subscription/me` | Current subscription status |
+| POST | `/v1/subscription/cancel` | Cancel subscription |
+| GET | `/v1/subscription/invoices` | List invoices |
+| GET | `/v1/subscription/invoices/{invoice_id}` | Get invoice PDF |
+
+**Module 8: Webhooks (Inbound)**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/v1/webhooks/stripe` | Stripe billing events |
+| POST | `/v1/webhooks/assemblyai` | Transcription complete callback |
+| POST | `/v1/webhooks/auth0` | Account events (optional) |
+
+**Module 9: Operations & Admin**
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/v1/healthz` | Liveness probe (returns 200 if alive) |
+| GET | `/v1/readyz` | Readiness probe (checks DB, Blob Storage, Azure OpenAI connectivity) |
+| GET | `/v1/version` | Build/deploy version (for support troubleshooting) |
+| POST | `/v1/admin/templates` | Manage Intelligence Layer templates (admin scope only) |
+| GET | `/v1/admin/templates/{id}/evaluate` | Run template against golden dataset |
+| GET | `/v1/admin/audit-log` | Query audit logs (admin scope only, immutable WORM read) |
+
+**Total V1 endpoint count: ~40 endpoints across 9 modules.**
+
+#### 12.8.3 Critical Design Pattern — Audio Upload Flow
+
+Audio bytes never go through the API server. This is essential for performance and reliability.
+
+```
+1. Mobile app → POST /v1/sessions
+   Response: {
+     session_id: "abc123",
+     upload_urls: [sas_url_1, sas_url_2, ...]   // Azure Blob SAS URLs
+   }
+
+2. Mobile app → PUT directly to Azure Blob Storage (each audio chunk, ~1MB each)
+   Bytes stream from device to Blob Storage — API server has zero involvement
+
+3. Mobile app → POST /v1/sessions/abc123/chunks
+   Sends metadata only: { chunk_id, sequence_number, sha256, size_bytes }
+
+4. Mobile app → POST /v1/sessions/abc123/complete
+   API validates all chunks present + checksums match → enqueues processing
+```
+
+**Why this matters:** A 30-minute recording is ~50MB. Streaming through the API server would consume bandwidth, memory, and create a single point of failure. Azure Blob Storage handles this natively via Block Blob upload, plus enables resumable uploads on flaky clinic WiFi.
+
+#### 12.8.4 Critical Design Pattern — Async AI Processing
+
+```
+1. POST /v1/sessions/{id}/complete returns 202 Accepted
+   { status: "processing", estimated_seconds: 90, poll_url: "/v1/sessions/abc123" }
+
+2. Backend enqueues job → Azure Service Bus → Azure Function processes:
+   a. Stitch audio chunks from Blob Storage into single file
+   b. Submit to AssemblyAI for transcription + diarization
+   c. AssemblyAI webhook → POST /v1/webhooks/assemblyai
+   d. Function submits transcript to GPT-4o (Azure OpenAI) for note extraction
+   e. Result written to PostgreSQL (extracted_output table)
+   f. Event Grid event: NoteReadyForReview
+   g. Push notification sent to doctor's device
+
+3. Mobile app polls GET /v1/sessions/{id} OR receives push
+   When status="ready", fetches /v1/sessions/{id}/note for review
+```
+
+This pattern keeps the API responsive even when AI processing takes 60-180 seconds.
+
+#### 12.8.5 Authentication & Authorization Model
+
+```
+┌──────────────┐                            ┌──────────────┐
+│ Mobile/Web   │   1. Login (email/pwd)     │   Auth0      │
+│   Client     │──────────────────────────▶ │  (Identity)  │
+└──────────────┘                            └──────────────┘
+       │                                           │
+       │   2. Receive: access_token (15min),       │
+       │      refresh_token (30 days)              │
+       │◀──────────────────────────────────────────┘
+       │
+       │   3. API call with Bearer access_token
+       ▼
+┌──────────────────────────────────────────────────────────┐
+│              FastAPI Backend                              │
+│  - Verifies JWT signature (Auth0 public keys, cached)    │
+│  - Extracts: doctor_id, scopes                            │
+│  - Enforces row-level security (doctor sees only own data)│
+│  - Logs every PHI access to WORM audit log                │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Authorization rules:**
+- Every query scoped by `doctor_id` from JWT (enforced at PostgreSQL row-level security layer)
+- Admin endpoints require additional `admin` scope (separate Auth0 role)
+- All PHI access logged to immutable audit log (Azure Blob Storage Immutability Policy, 6-year retention)
+
+#### 12.8.6 Error Format — RFC 7807 Problem Details
+
+```json
+{
+  "type": "https://api.clinrecall.com/errors/consent-required",
+  "title": "Patient consent not recorded",
+  "status": 422,
+  "detail": "Recording cannot start in California without explicit patient consent acknowledgement",
+  "instance": "/v1/sessions/abc123/start"
+}
+```
+
+Standard, machine-parseable, easy for clients to handle uniformly.
+
+#### 12.8.7 Pagination Standard
+
+```json
+GET /v1/patients?page=2&limit=50
+
+{
+  "data": [...],
+  "meta": {
+    "page": 2,
+    "limit": 50,
+    "total": 327,
+    "has_next": true
+  }
+}
+```
+
+#### 12.8.8 Rate Limiting
+
+| Endpoint Class | Limit |
+|---|---|
+| Auth endpoints | 10 requests / minute / IP |
+| Read endpoints | 100 requests / minute / doctor |
+| Write endpoints | 30 requests / minute / doctor |
+| AI-triggering endpoints (`/complete`, `/regenerate`) | 10 requests / hour / doctor |
+| Search endpoints | 60 requests / minute / doctor |
+
+Rate limits enforced via Redis-backed sliding window counter.
+
+#### 12.8.9 API Documentation Strategy
+
+- **FastAPI auto-generates OpenAPI 3.1 spec** at runtime
+- `/docs` serves Swagger UI for interactive testing
+- `/redoc` serves ReDoc for cleaner reading
+- OpenAPI spec versioned in Git
+- **TypeScript client auto-generated** for the React Native app via `openapi-typescript-codegen`
+- Postman collection generated from spec for QA and partner debugging
+
+**Critical benefit:** The mobile app's API client is auto-generated. Adding a new backend endpoint automatically gives the mobile team a typed client method — no hand-coding, no drift between backend and clients.
+
+#### 12.8.10 Backend Technology Choices
+
+| Concern | Choice | Rationale |
+|---|---|---|
+| Web framework | **FastAPI** (Python 3.12+) | Auto OpenAPI, async, Pydantic validation, strong LLM training data |
+| ORM | **SQLAlchemy 2.0** with async support | Mature, type-safe, async-native |
+| Migrations | **Alembic** | Standard for SQLAlchemy |
+| Validation | **Pydantic v2** | Built into FastAPI, fastest Python validation library |
+| Background jobs | **Azure Service Bus + Azure Functions** (V1) | Serverless, no Celery ops burden initially |
+| Cache | **Azure Cache for Redis** | Standard; rate limiting, session cache |
+| API tests | **pytest + pytest-asyncio + httpx** | Standard FastAPI testing stack |
+| Type checking | **mypy** strict mode + **ruff** for linting | Catch errors at CI time |
+| Local dev | **Docker Compose** with Postgres, Redis, Azurite (Azure Blob/Queue emulator) | Reproducible local environment |
+
+#### 12.8.11 Estimated Codebase Size
+
+For V1 with the endpoints above:
+
+| Component | Estimated LOC |
+|---|---|
+| API route handlers (~40 endpoints) | 3,000-5,000 |
+| Pydantic schemas (request/response) | 2,000 |
+| Business logic / service layer | 3,000 |
+| Database models + migrations | 2,000 |
+| Tests (target 80% coverage) | 4,000 |
+| **Total backend codebase** | **~14,000-16,000 lines** |
+
+Well within Claude/Codex productive zone. FastAPI patterns are extremely well-represented in LLM training data.
+
+---
+
+## 14. PLATFORM ARCHITECTURE & EXTENSIBILITY
+
+### 14.1 Platform Philosophy
 
 ClinRecall V1 is a product. But the architecture underneath it must be a platform.
 
@@ -915,7 +1763,7 @@ This section defines the six-layer platform architecture, the rules for keeping 
 
 ---
 
-### 13.2 The Six Platform Layers
+### 14.2 The Six Platform Layers
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -1060,7 +1908,7 @@ Every integration is a separate, independently deployable connector. The platfor
 
 ---
 
-### 13.3 How Use Cases Plug In
+### 14.3 How Use Cases Plug In
 
 Adding a new use case to the platform requires exactly four things — no core platform changes:
 
@@ -1076,7 +1924,7 @@ Without this architecture, adding a new use case would require 4-6 months of pla
 
 ---
 
-### 13.4 Use Case Expansion Roadmap
+### 14.4 Use Case Expansion Roadmap
 
 ```
 Phase 1 — V1 (Months 1-7)
@@ -1110,7 +1958,7 @@ Phase 4 — Platform (Month 30+)
 
 ---
 
-### 13.5 V1 Architectural Decisions That Must Be Made Correctly Now
+### 14.5 V1 Architectural Decisions That Must Be Made Correctly Now
 
 These are the decisions where getting it wrong in V1 creates expensive rework when Phase 2 begins. They cost almost nothing to get right now.
 
@@ -1126,7 +1974,7 @@ These are the decisions where getting it wrong in V1 creates expensive rework wh
 
 ---
 
-### 13.6 What This Architecture Enables Commercially
+### 14.6 What This Architecture Enables Commercially
 
 | Without Platform Architecture | With Platform Architecture |
 |---|---|
@@ -1141,15 +1989,15 @@ A single-product company at 3,000 doctors might achieve a 5-6x ARR valuation mul
 
 ---
 
-## 14. PRICING STRATEGY
+## 15. PRICING STRATEGY
 
-### 14.1 Pricing Philosophy
+### 15.1 Pricing Philosophy
 
 Price signals quality. Independent practice physicians already pay $150-400/month for EHR tools, scheduling software, and dictation services. Pricing ClinRecall below $80/month signals that it is a commodity; pricing it above $150/month before brand trust is established creates friction for early adopters.
 
 **The right price for V1 is $99/month.**
 
-### 14.2 Pricing Structure
+### 15.2 Pricing Structure
 
 | Plan | Price | Who It's For | What's Included |
 |---|---|---|---|
@@ -1158,14 +2006,14 @@ Price signals quality. Independent practice physicians already pay $150-400/mont
 | Annual (Phase 2) | $79/month billed annually ($948/year) | Committed users | 20% discount for annual commitment — introduce at Month 9 |
 | Clinic Pack (Phase 3) | $249/month | 2-5 doctors in same practice | Shared billing, separate data per doctor — introduce at Month 18 |
 
-### 14.3 Pricing Rationale
+### 15.3 Pricing Rationale
 
 - **No per-session or per-patient limits** — usage-based pricing creates anxiety during busy clinic days; doctors stop using the product when they feel they're "spending" per use
 - **No credit card for trial** — reduces signup friction; doctors are busy; the barrier to trying must be near zero
 - **Annual pricing deferred to Month 9** — only offer annual discounts once retention data confirms D90 > 55%; discounting before then locks in churners at a loss
 - **No freemium tier** — a freemium model in a HIPAA-regulated product creates compliance complexity (free users still generate PHI) and trains doctors to expect the product for free
 
-### 14.4 Competitive Pricing Context
+### 15.4 Competitive Pricing Context
 
 | Competitor | Price | ClinRecall Advantage |
 |---|---|---|
@@ -1178,13 +2026,13 @@ At $99/month, ClinRecall is the most affordable serious solution in the market w
 
 ---
 
-## 15. GO-TO-MARKET STRATEGY
+## 16. GO-TO-MARKET STRATEGY
 
-### 15.1 The Core Challenge
+### 16.1 The Core Challenge
 
 ClinRecall is built in India and sold to US physicians. The biggest risk is not the product — it is finding the first customers from 12,000 kilometres away in a market that runs on professional trust and word-of-mouth. Every element of the go-to-market strategy is designed to solve this specific constraint.
 
-### 15.2 The Principle: Validate Before You Build
+### 16.2 The Principle: Validate Before You Build
 
 **Do not write production code until market signal is confirmed.**
 
@@ -1195,7 +2043,7 @@ Before engineering begins, build a landing page describing ClinRecall — what i
 - 100 visitors → 0-5 signups = messaging problem, revisit positioning before building
 - 100 visitors → 5-15 signups = borderline; conduct 10 doctor interviews before deciding
 
-### 15.3 Phase 1 — Discovery & Validation (Days 1-30)
+### 16.3 Phase 1 — Discovery & Validation (Days 1-30)
 
 **Goal:** Talk to 10 US independent practice physicians. Not to pitch. To learn.
 
@@ -1215,13 +2063,13 @@ Before engineering begins, build a landing page describing ClinRecall — what i
 **Outreach message template for Doximity/LinkedIn:**
 > "Hi Dr. [Name] — I'm building a tool to help independent practice doctors reduce the time they spend on notes and preparing for return visits. I'm not pitching anything — I'd love 20 minutes to understand how you currently work. Happy to share what I'm learning with you in return. Would you be open to a quick call?"
 
-### 15.4 Phase 2 — Three Blocking Decisions (Days 30-60)
+### 16.4 Phase 2 — Three Blocking Decisions (Days 30-60)
 
 These decisions must be made before engineering starts. Getting them wrong mid-build is expensive.
 
 | Decision | Recommendation | Action |
 |---|---|---|
-| AI Stack | AssemblyAI + Claude via AWS Bedrock | Sign BAAs with both; get sandbox API keys |
+| AI Stack | AssemblyAI + GPT-4o via Azure OpenAI Service | Apply for Azure OpenAI access (1-2 wk approval); sign BAAs with both; get sandbox API keys |
 | US Legal Entity | Delaware LLC | Use Stripe Atlas or Firstbase; takes 2 weeks, costs ~$500 |
 | US Medical Advisor | 1 physician with independent practice network | Offer 1-2% equity or $500-1,000/month retainer; recruit within 30 days |
 
@@ -1231,7 +2079,7 @@ These decisions must be made before engineering starts. Getting them wrong mid-b
 - Compliance sanity checks from a clinical perspective
 - Ongoing feedback on whether the product actually fits physician workflow
 
-### 15.5 Phase 3 — Concierge MVP & Pilot (Days 60-90)
+### 16.5 Phase 3 — Concierge MVP & Pilot (Days 60-90)
 
 **Do not build the full product for the pilot.**
 
@@ -1248,7 +2096,7 @@ Give this to **5 pilot doctors at no charge** in exchange for:
 
 **The signal you're looking for:** A doctor says *"I don't want to go back to how I worked before."* That sentence — not revenue, not conversion rate — is the sign that you have product-market fit.
 
-### 15.6 Phase 4 — Paid Launch & Acquisition (Months 5-9)
+### 16.6 Phase 4 — Paid Launch & Acquisition (Months 5-9)
 
 **Channel 1 — Word of Mouth (Primary)**
 Physicians trust other physicians more than any marketing. One doctor who loves the product and tells 3 colleagues is worth $50,000 in advertising. Invest in making the first 50 doctors so happy they become unpaid advocates.
@@ -1265,7 +2113,7 @@ Hire a US-based healthcare sales advisor on pure commission (15-20% of first-yea
 **Channel 5 — Targeted Digital Advertising (Month 9+)**
 Only after organic channels are validated and customer acquisition cost (CAC) is understood. Google Search ads targeting "medical scribe app", "doctor note taking app", "HIPAA voice recorder for doctors." Budget: $5,000/month initially.
 
-### 15.7 The 90-Day Priority Order
+### 16.7 The 90-Day Priority Order
 
 | Priority | Action | Timeline | Owner |
 |---|---|---|---|
@@ -1273,13 +2121,13 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | 2 | Talk to 10 US doctors — listen, don't pitch | Weeks 2-4 | Founder |
 | 3 | Form Delaware LLC | Week 2 | Founder |
 | 4 | Find and onboard US medical advisor | Weeks 2-6 | Founder |
-| 5 | Sign AssemblyAI BAA + AWS Bedrock BAA | Week 4 | Founder + Legal |
+| 5 | Sign AssemblyAI BAA + Microsoft BAA (Azure + Azure OpenAI); apply for Azure OpenAI access | Week 1-4 | Founder + Legal |
 | 6 | Build concierge MVP | Months 2-3 | Engineering |
 | 7 | Onboard 5 pilot doctors (free) | Month 3 | Founder + Medical Advisor |
 | 8 | Collect weekly feedback, iterate | Month 4 | PM + Engineering |
 | 9 | Open paid subscriptions at $99/month | Month 5-6 | Founder |
 
-### 15.8 India-to-USA Operational Model
+### 16.8 India-to-USA Operational Model
 
 | Challenge | Solution |
 |---|---|
@@ -1288,13 +2136,13 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | Support across timezones | Async-first support (email/chat); doctors are busy during the day and prefer async |
 | Payment collection | Stripe supports Indian companies charging US customers in USD |
 | Legal contracts | Delaware LLC signs all US customer agreements; India entity handles employment |
-| Data never leaves the US | AWS US infrastructure; India team uses VPN to access anonymised dev environment only |
+| Data never leaves the US | Azure US infrastructure; India team uses VPN to access anonymised dev environment only |
 
 ---
 
-## 16. SUCCESS METRICS
+## 17. SUCCESS METRICS
 
-### 16.1 Acquisition Metrics — Revised to Realistic Targets
+### 17.1 Acquisition Metrics — Revised to Realistic Targets
 
 | Metric | Month 3 Target | Month 6 Target | Month 12 Target |
 |---|---|---|---|
@@ -1305,7 +2153,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 > Targets revised from v1.x — conversion rate reduced from 25-30% (unrealistic) to 10-12% (industry benchmark).
 
-### 16.2 Engagement Metrics (Product-Market Fit Signals)
+### 17.2 Engagement Metrics (Product-Market Fit Signals)
 
 | Metric | Target |
 |---|---|
@@ -1315,7 +2163,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | D30 retention (still active 30 days after signup) | >70% |
 | D90 retention | >55% |
 
-### 16.3 Quality Metrics
+### 17.3 Quality Metrics
 
 | Metric | Target |
 |---|---|
@@ -1324,7 +2172,7 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | App uptime | >99.5% |
 | Support tickets per 100 active doctors per month | <5 |
 
-### 16.4 Business Health Metrics — NEW in v2.0
+### 17.4 Business Health Metrics — NEW in v2.0
 
 | Metric | Target | Trigger for Concern |
 |---|---|---|
@@ -1336,18 +2184,18 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 | AI Unit Cost per Active Doctor per Year | <$140 | >$200 |
 | Net Revenue Retention (Month 12+) | >100% | <90% |
 
-### 16.5 North Star Metric
+### 17.5 North Star Metric
 
 **Weekly Active Recording Doctors (WARD)** — the number of doctors who recorded at least one session in the past 7 days. This metric best captures whether the product has become a genuine part of clinical workflow.
 
 ---
 
-## 17. DELIVERY MILESTONES
+## 18. DELIVERY MILESTONES
 
 | Milestone | Target Date | Deliverables |
 |---|---|---|
 | **M-1 — Pre-Build Validation (NEW)** | Month 0 | Landing page live, 10+ doctor interviews complete, 3 pilot LOIs signed, FDA/SaMD assessment complete, BAAs signed |
-| M0 — Project Kickoff | Month 1, Week 1 | Team assembled (9-10 people), tech stack decided, AWS HIPAA account set up, Terraform foundation |
+| M0 — Project Kickoff | Month 1, Week 1 | Team assembled (9-10 people), tech stack decided, Azure HIPAA subscription set up, Azure OpenAI access approved, Terraform foundation |
 | M1 — Foundation | Month 2, Week 2 | Auth (MFA), patient profiles, basic UI shell, consent workflow scaffolding |
 | M2 — Recording MVP | Month 3, Week 2 | PWA recording, failure-resistant capture, audio upload, speaker diarization integration |
 | M3 — AI Note Generation + MLOps | Month 4, Week 2 | Note extraction, review/edit/sign flow, golden dataset v1, evaluation pipeline |
@@ -1361,13 +2209,13 @@ Only after organic channels are validated and customer acquisition cost (CAC) is
 
 ---
 
-## 18. OPERATIONAL EXCELLENCE & GOVERNANCE
+## 19. OPERATIONAL EXCELLENCE & GOVERNANCE
 
 This section was added in v2.0 to address gaps identified in senior review. It covers operational domains that are often deferred but are critical to a credible enterprise-grade healthcare product.
 
 ---
 
-### 18.1 Support & Operations Plan
+### 19.1 Support & Operations Plan
 
 **Support Tiers:**
 
@@ -1398,16 +2246,16 @@ This section was added in v2.0 to address gaps identified in senior review. It c
 
 ---
 
-### 18.2 Vendor Risk Management
+### 19.2 Vendor Risk Management
 
 Critical dependencies and mitigations:
 
 | Vendor | Risk | Mitigation |
 |---|---|---|
-| AssemblyAI | Pricing change, acquisition, outage, accuracy regression | Layer 2 vendor abstraction; evaluate Deepgram and AWS Transcribe Medical as backups; track monthly error rates |
-| Anthropic / AWS Bedrock | Model deprecation, pricing spike, training data policy change | Layer 3 LLM abstraction; maintain readiness to swap to GPT-4 or Google Med-PaLM; contractual notice requirements |
-| AWS | Service outage, region failure, pricing change | Multi-AZ deployment, documented DR plan, warm-standby in US-West-2 |
-| Auth0 | Breach, acquisition, pricing | Documented migration path to AWS Cognito or Supabase Auth |
+| AssemblyAI | Pricing change, acquisition, outage, accuracy regression | Layer 2 vendor abstraction; evaluate Deepgram and Azure Speech Services as backups; track monthly error rates |
+| Microsoft / Azure OpenAI | Model deprecation, pricing spike, training data policy change | Layer 3 LLM abstraction; maintain readiness to swap to Llama 3 (Azure ML) or other models; contractual notice requirements |
+| Microsoft / Azure | Service outage, region failure, pricing change | Multi-AZ deployment, documented DR plan, warm-standby in West US 2 |
+| Auth0 | Breach, acquisition, pricing | Documented migration path to Azure AD B2C |
 | Stripe | Account freeze, fraud issue | Backup payment processor (Adyen or Paddle) pre-evaluated |
 
 **Quarterly Vendor Review:**
@@ -1421,7 +2269,7 @@ Critical dependencies and mitigations:
 
 ---
 
-### 18.3 Security Framework & Certifications
+### 19.3 Security Framework & Certifications
 
 | Framework | Target | Why |
 |---|---|---|
@@ -1447,9 +2295,9 @@ Critical dependencies and mitigations:
 
 ---
 
-### 18.4 Model Governance & MLOps
+### 19.4 Model Governance & MLOps
 
-Extends Section 12.5 with governance-specific practices.
+Extends Section 13.5 with governance-specific practices.
 
 **Model Change Control Board (Month 6+):**
 - Membership: PM, AI/ML Engineer, Clinical Content Reviewer
@@ -1476,17 +2324,17 @@ When a doctor flags a hallucinated fact (FR-5.6):
 
 ---
 
-### 18.5 Business Continuity & Disaster Recovery
+### 19.5 Business Continuity & Disaster Recovery
 
 **Disaster Scenarios and Responses:**
 
 | Scenario | Probability | Impact | Response |
 |---|---|---|---|
-| AWS US-East-1 region outage (>4 hours) | Low | High | Failover to US-West-2 warm-standby; RTO 1 hour |
+| Azure East US 2 region outage (>4 hours) | Low | High | Failover to West US 2 warm-standby; RTO 1 hour |
 | Founder unavailability (health, personal emergency) | Low | Very High | Documented runbooks; secondary authorised operator; 30-day operational handoff plan |
-| India office loses power/internet for >48 hours | Medium | Medium | Remote work arrangements; AWS Cloud9 / Gitpod for development; no production access required from India |
+| India office loses power/internet for >48 hours | Medium | Medium | Remote work arrangements; GitHub Codespaces / Gitpod for development; no production access required from India |
 | Key engineer departure | Medium | High | No single-person knowledge dependency; all critical systems documented; minimum 2 engineers per critical system |
-| AssemblyAI 48+ hour outage | Low | High | Temporary fallback to AWS Transcribe Medical (lower quality but available); proactive doctor communication |
+| AssemblyAI 48+ hour outage | Low | High | Temporary fallback to Azure Speech Services (lower quality but available); proactive doctor communication |
 | Data corruption event | Very Low | Very High | Point-in-time recovery from continuous backups; forensic analysis; doctor communication |
 | Cyberattack / ransomware | Low | Very High | Immutable WORM backups unaffected by ransomware; incident response plan; cyber insurance |
 
@@ -1497,7 +2345,7 @@ When a doctor flags a hallucinated fact (FR-5.6):
 
 ---
 
-### 18.6 Patient Rights & Data Governance
+### 19.6 Patient Rights & Data Governance
 
 **Rights Supported (via Module 10 functional requirements):**
 
@@ -1521,12 +2369,12 @@ When a doctor flags a hallucinated fact (FR-5.6):
 
 **Cross-Border Data Handling:**
 - No PHI ever accessible to India-based employees without documented business-critical need and signed BAA-equivalent contractual protection
-- Production PHI storage: US AWS regions only
+- Production PHI storage: US Azure regions only (East US 2 + West US 2)
 - India development environment: synthetic data only, verified quarterly
 
 ---
 
-### 18.7 Internationalization Roadmap
+### 19.7 Internationalization Roadmap
 
 V1 is US-only. Future international expansion is planned but deliberately deferred until US market is validated.
 
@@ -1539,7 +2387,7 @@ V1 is US-only. Future international expansion is planned but deliberately deferr
 | Phase 5 | EU | GDPR + MDR (Medical Device Regulation) | Year 4-5 |
 
 **Architectural Implications (V1):**
-- Storage Layer must support multiple data residency regions (implementable via AWS multi-region with region-based routing)
+- Storage Layer must support multiple data residency regions (implementable via Azure multi-region with region-based routing via Front Door)
 - Intelligence Module must support multilingual extraction (English, French, Spanish likely priority)
 - Capture Layer must handle regional language/accent variations
 - All regulatory framework handlers (HIPAA, GDPR, etc.) pluggable per region
@@ -1548,13 +2396,376 @@ These are architectural considerations for V1 design, not features. Getting them
 
 ---
 
-## 19. FUTURE PRODUCT OPPORTUNITIES
+### 19.8 Security & Performance Engineering (NEW in v2.4)
+
+This section consolidates findings from the v2.4 Senior Security Architect + Performance Engineer review. 23 findings were identified across security and performance domains. The 4 CRITICAL and 7 HIGH severity items must be addressed before or during early engineering. The remainder are tracked as ongoing engineering discipline.
+
+---
+
+#### 19.8.1 Application Security Testing (CRITICAL)
+
+The CI/CD pipeline must enforce automated security testing on every commit. No code reaches production without passing these gates.
+
+| Test Type | Tool | Trigger | Block Deploy On |
+|---|---|---|---|
+| **SAST** (static analysis) | GitHub Advanced Security or Snyk Code | Every PR | Critical or High severity findings |
+| **SCA** (dependency scanning) | Dependabot + Snyk Open Source | Daily + every PR | Known CVE in production dependency |
+| **Container scanning** | Microsoft Defender for Containers or Trivy | Every image build | Critical/High CVEs in base image or layers |
+| **DAST** (dynamic) | OWASP ZAP automated scan | Nightly on staging | New OWASP Top 10 finding |
+| **Secret scanning** | GitHub Secret Scanning + TruffleHog | Every PR | Any secret committed |
+| **IaC scanning** | Checkov on Terraform | Every PR | Misconfigured Azure resource |
+
+**Penetration testing:** Third-party manual penetration test before public launch (Month 6) and annually thereafter. Bug bounty program launches at Month 12 (post SOC 2 Type I).
+
+---
+
+#### 19.8.2 AI / LLM-Specific Security Controls (CRITICAL)
+
+LLMs introduce attack vectors not present in traditional applications. The following controls are mandatory.
+
+| Control | Implementation |
+|---|---|
+| **Prompt injection mitigation** | Transcripts sanitized before LLM call: strip instruction-like patterns ("ignore previous instructions"), use structured input format with clear delimiters, system prompt explicitly instructs model to ignore embedded instructions in user content |
+| **Output schema validation** | Every LLM response is validated against a strict JSON schema; non-conforming output triggers regeneration (max 2 attempts) then human review |
+| **Output content filtering** | Azure AI Content Safety filters applied to all LLM outputs; flag harmful content, profanity, or unexpected medical claims |
+| **Prompt template integrity** | All prompt templates hashed; runtime verifies template hash matches signed expected hash; tampering triggers alert |
+| **PHI minimization in prompts** | Only the minimum necessary context sent to the LLM; patient names redacted to placeholders before LLM call |
+| **Hard guardrails** | Intelligence Layer prompts explicitly forbid: generating diagnoses, recommending specific medications/dosages, providing clinical advice. System reminds in every prompt. |
+| **Hallucination flagging** | Doctor flags via FR-5.6 trigger automated review; pattern detection identifies systemic issues |
+| **Adversarial testing** | Quarterly red-team exercise: deliberately attempt prompt injection, jailbreaking, PHI extraction via the LLM |
+
+---
+
+#### 19.8.3 Mobile Application Security (HIGH)
+
+| ID | Requirement |
+|---|---|
+| MS-1 | **Certificate pinning** for all API connections (prevents MITM on hostile WiFi) |
+| MS-2 | **Jailbreak / root detection** — app refuses to run on compromised devices, with user notification |
+| MS-3 | **App integrity verification** — Apple App Attest (iOS), Play Integrity API (Android) |
+| MS-4 | **On-device PHI encryption** — any cached patient data encrypted with device-bound key (Secure Enclave / Keystore) |
+| MS-5 | **Screen recording / screenshot prevention** during note review and patient profile screens |
+| MS-6 | **Biometric re-auth on app resume** — Face ID / Touch ID required if app backgrounded > 5 minutes |
+| MS-7 | **Local data wipe on uninstall and on N failed biometric attempts** |
+| MS-8 | **Code obfuscation** — production builds use ProGuard (Android) and Swift compile-time obfuscation |
+| MS-9 | **No PHI in mobile logs** — production builds strip debug logging entirely |
+| MS-10 | **Disable copy/paste** for note content (prevents PHI leakage to other apps) |
+
+---
+
+#### 19.8.4 Production Access & Insider Threat Controls (HIGH)
+
+The India-based team requires structural safeguards beyond "use synthetic data."
+
+| Control | Implementation |
+|---|---|
+| **2-person code review** | Every PR requires 2 approvals; for changes touching auth, PHI handling, or audit logs, one reviewer must be designated security reviewer |
+| **2-person production deployment** | Deployment to production requires 2-person approval (one engineer requests, another approves); logged in audit trail |
+| **Code signing** | All production builds signed with Sigstore / cosign; runtime verifies signature before execution |
+| **Privileged Access Management (PAM)** | Production PHI access requires break-glass workflow: time-limited, justification logged, all session activity recorded, post-access review |
+| **Separation of duties** | Developers cannot directly deploy; deployers cannot edit code; security cannot bypass code review; documented role matrix |
+| **Background checks** | Any team member with potential production access undergoes background check before access granted |
+| **No production access from India** | India team has zero direct production access; all production operations via CI/CD or US-based on-call |
+| **Immutable audit trail** | All privileged actions logged to WORM storage; 6-year retention; SIEM alerting on anomalies |
+
+---
+
+#### 19.8.5 Audit Logging & SIEM Integration (HIGH)
+
+Beyond HIPAA basics, the following events must be logged immutably:
+
+| Event Type | Detail |
+|---|---|
+| Authentication | All logins (success/fail), MFA challenges, password changes, account lockouts |
+| Authorization | Permission denials, RBAC role changes, scope escalations |
+| PHI Access | Every read/write of patient data with doctor_id, patient_id, action, timestamp, IP |
+| Bulk Operations | Any operation accessing >50 patients in single request (potential data exfiltration) |
+| Admin Operations | Template changes, user impersonation, configuration changes |
+| Cryptographic Operations | Key Vault secret access, certificate rotations, signing key usage |
+| Database | Schema migrations, manual queries against production, replication events |
+
+**SIEM:** Microsoft Sentinel (native Azure integration) ingests all logs. Detection rules:
+- 5+ failed logins from one IP in 5 minutes → alert
+- Doctor accessing >100 patient records in 1 hour → alert
+- API call from new geographic region for a doctor → alert
+- Configuration change outside business hours → alert
+- Key Vault access from non-approved service principal → critical alert
+
+---
+
+#### 19.8.6 Authentication Hardening (HIGH)
+
+Auth0 features to be configured (not defaults):
+
+| Feature | Configuration |
+|---|---|
+| Anomaly Detection | Enabled — block sign-ins from suspicious IPs |
+| Brute Force Protection | Enabled — 10 failed attempts triggers 15-minute lockout |
+| Suspicious IP Throttling | Enabled — known TOR exit nodes and proxy IPs throttled |
+| Compromised Credentials | HIBP integration — password matched against known breaches blocks signup/reset |
+| Geo-velocity Detection | Login from US then Asia within 1 hour → MFA challenge |
+| Device Trust | Track trusted devices per doctor; new device → MFA challenge |
+| Session Management | Access token 15 min, refresh token 30 days, idle timeout 30 min |
+| Logout Enforcement | Refresh tokens revoked across all devices on suspicious activity |
+
+---
+
+#### 19.8.7 PHI Protection in Logs and Errors (MEDIUM)
+
+| Control | Implementation |
+|---|---|
+| Structured logging | All logs use JSON with explicit field marking; PHI fields marked and never logged |
+| Log scrubbing middleware | Backend redacts emails, phone numbers, names, MRNs, SSN-like patterns from any log output |
+| Error sanitization | Sentry breadcrumbs scrubbed before transmission; no request bodies, no headers with auth |
+| Log retention | Application logs 90 days, audit logs 6 years (HIPAA), error logs 30 days |
+| Log access | Engineering can view logs in non-production; production logs require break-glass workflow |
+| Quarterly log audit | Security team samples production logs quarterly to verify no PHI leakage |
+
+---
+
+#### 19.8.8 Web Application Security Headers (MEDIUM)
+
+| Header | Value |
+|---|---|
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
+| `Content-Security-Policy` | Strict policy: only own origin + Auth0 + Azure CDN |
+| `X-Frame-Options` | `DENY` (no embedding) |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | Disable all unused features (camera, geolocation, etc.) |
+| `CORS` | Allowlist only known origins (web app domain, mobile app schemes) |
+
+Subresource Integrity (SRI) hashes for any externally loaded JS; sensitive operations (note signing, deletion) require additional API request signing with HMAC.
+
+---
+
+#### 19.8.9 Secret Rotation Policy (MEDIUM)
+
+| Secret | Rotation Cadence | Mechanism |
+|---|---|---|
+| AssemblyAI API key | 90 days | Azure Key Vault rotation policy + manual notification |
+| Azure OpenAI API key | 90 days | Azure Key Vault rotation policy |
+| Database master credentials | 90 days | Azure Database for PostgreSQL automatic rotation |
+| JWT signing keys | 30 days (auto by Auth0) | Auth0 standard |
+| Service principal secrets | 90 days | Azure managed identity preferred where possible |
+| Stripe API key | 180 days | Stripe rotation + manual update |
+| Auth0 management API token | 90 days | Auth0 standard |
+| Encryption keys (envelope encryption) | Annual | Azure Key Vault with key versioning; old keys retained for decryption |
+
+Compromised key rotation: <4 hours from detection to full rotation.
+
+---
+
+#### 19.8.10 Cross-Tenant Isolation Testing (MEDIUM)
+
+Row-level security in PostgreSQL is the primary control; testing must verify it never fails.
+
+| Test | Frequency |
+|---|---|
+| Automated cross-tenant access tests in CI | Every commit |
+| Doctor A attempting to read Doctor B's data via every API endpoint | Every commit |
+| Penetration test specifically targeting cross-tenant access | Quarterly |
+| Manual code review of any RLS policy change | Every PR |
+
+A single cross-tenant data leak is a HIPAA breach. The discipline is non-negotiable.
+
+---
+
+#### 19.8.11 Bug Bounty Program (MEDIUM)
+
+- Private bug bounty launched Month 12 (post SOC 2 Type I)
+- HackerOne or Bugcrowd platform
+- Initial scope: production web app + API (mobile added Month 18)
+- Rewards: $500 (low) → $5,000 (critical)
+- Public bug bounty considered Year 2
+
+---
+
+#### 19.8.12 Performance SLOs — Per Endpoint (CRITICAL)
+
+| Endpoint Class | p50 | p95 | p99 |
+|---|---|---|---|
+| Auth (`/v1/auth/*`) | 100ms | 300ms | 500ms |
+| Read (list, get) | 100ms | 250ms | 500ms |
+| Write (create, update) | 200ms | 500ms | 1s |
+| Search (semantic + keyword) | 300ms | 800ms | 1.5s |
+| Session start | 200ms | 500ms | 1s |
+| Note generation (async, end-to-end) | 60s | 90s | 180s |
+| Pre-visit brief generation | 5s | 15s | 30s |
+
+SLOs measured continuously via Application Insights; weekly SLO review meeting; quarterly SLO refresh based on user feedback.
+
+Error budget: 99.9% uptime = 43 min/month. SLO violations consume error budget; budget exhausted = freeze on non-critical changes until SLO recovers.
+
+---
+
+#### 19.8.13 Load Testing Strategy (CRITICAL)
+
+| Test | Frequency | Tool |
+|---|---|---|
+| Baseline load test | Pre-release | Azure Load Testing or k6 |
+| Stress test (find breaking point) | Quarterly | k6 |
+| Soak test (24 hour sustained load) | Pre-major-release | k6 |
+| Spike test (sudden traffic surge) | Quarterly | k6 |
+| Chaos engineering (random failures) | Month 12+ | Azure Chaos Studio |
+
+**Test scenarios:**
+- Peak clinic hours (9am-5pm ET): 500 concurrent doctors recording sessions
+- Batch note generation: 100 sessions complete simultaneously
+- Search-heavy patterns: 100 doctors searching concurrently
+- Cold start scenarios: scaling from 0 → 100 instances
+
+Dedicated load test environment: separate Azure subscription, synthetic data, isolated from production.
+
+---
+
+#### 19.8.14 AI Pipeline Performance Targets (HIGH)
+
+End-to-end note generation pipeline budget breakdown:
+
+| Step | Target p95 | Concern Threshold |
+|---|---|---|
+| Audio chunk stitching from Blob Storage | 5s | >10s |
+| AssemblyAI processing (20 min audio) | 60s | >90s |
+| GPT-4o note extraction | 15s | >30s |
+| Pre-visit brief context fetch + GPT-4o-mini | 10s | >20s |
+| Database write + push notification | 2s | >5s |
+| **Total p95 end-to-end** | **90s** | **>120s** |
+
+Monitoring and alerts on every stage. If any stage exceeds threshold for >5% of sessions in 1 hour, alert on-call.
+
+Optimization tactics:
+- Prompt engineering for token efficiency (less input = faster + cheaper)
+- Parallelize independent steps (pre-visit brief while transcription runs)
+- Streaming GPT-4o output where it improves perceived performance
+- Pre-warm Azure Functions with health-check schedule
+
+---
+
+#### 19.8.15 Database Performance Engineering (HIGH)
+
+| Concern | Implementation |
+|---|---|
+| Connection pooling | **PgBouncer in transaction mode** from Day 1; sized for 3x peak concurrent connections |
+| Query timeouts | Statement timeout 30 seconds default; longer queries explicitly approved |
+| Indexing strategy | Documented in `schema.sql`; mandatory `EXPLAIN ANALYZE` review for new queries |
+| N+1 query prevention | SQLAlchemy lazy loading explicitly disabled; eager loading required; PR review checks |
+| Slow query log | All queries >1s logged; daily review by on-call |
+| Read replicas | Add read replica at Month 12 if read load >70% of capacity; use for search queries first |
+| Connection limits | Per-tenant connection cap: 10; prevents one runaway doctor from starving the pool |
+| Vacuum strategy | Auto-vacuum tuned for high-write workload; manual vacuum during maintenance windows |
+| pgvector index | HNSW index on embeddings; `ef_construction=200`, `m=16` defaults; tune at scale |
+| Partitioning | Sessions table partitioned by month at >10M sessions |
+
+---
+
+#### 19.8.16 Mobile Performance Targets (HIGH)
+
+| Metric | Target |
+|---|---|
+| First Contentful Paint (PWA, 4G) | <1.5s |
+| First Contentful Paint (PWA, 3G) | <2.5s |
+| Time to Interactive (PWA) | <3s |
+| Initial JS bundle (gzipped) | <300KB |
+| Largest screen JS bundle (gzipped) | <100KB |
+| Native app launch time | <2s cold, <500ms warm |
+| API call retry strategy | Exponential backoff: 1s, 3s, 9s; max 3 attempts |
+| Offline reads | Last 50 patient profiles + 20 most recent notes cached via Service Worker |
+| Crash-free rate | >99.5% sessions |
+
+Mobile performance monitored via Application Insights mobile SDK + Firebase Performance.
+
+---
+
+#### 19.8.17 Tiered LLM Model Strategy (MEDIUM — saves ~30% AI cost)
+
+Not every AI task needs GPT-4o. Documented model selection:
+
+| Task | Model | Rationale |
+|---|---|---|
+| Note extraction | **GPT-4o** | High stakes — doctor signs the result; quality matters |
+| Pre-visit brief | **GPT-4o-mini** | Lower stakes; doctor reviews; 17x cheaper, 3x faster, sufficient quality |
+| Search query understanding | **GPT-4o-mini** | Quick, low-stakes interpretation |
+| Embedding generation | **text-embedding-3-large** | Quality matters for retrieval accuracy |
+| Document summarization (admin) | **GPT-4o-mini** | Internal use; non-clinical |
+
+Estimated savings: ~30% of LLM cost without quality impact on critical path.
+
+Model selection encoded in Intelligence Layer template; can be tuned per use case via configuration without code changes.
+
+---
+
+#### 19.8.18 Caching Strategy (MEDIUM)
+
+| Data | Cache Layer | TTL | Invalidation |
+|---|---|---|---|
+| Doctor profile | Redis | 5 min | On profile update |
+| Patient list | Redis | 1 min | On patient create/edit/archive |
+| Pre-visit brief | Redis | 60 min | On new session for that patient |
+| Search results | Redis | 30 sec | Time-based only |
+| Auth0 JWKS (public keys) | In-memory | 24 hours | Standard rotation |
+| Static assets (CSS, JS, images) | Azure Front Door CDN | 1 year (with versioned filenames) | Cache bust on deploy |
+| API GET responses (read-only) | Front Door CDN | Variable | Per-resource invalidation |
+
+Cache poisoning protection: cache keys include doctor_id where relevant; never cache cross-tenant data.
+
+---
+
+#### 19.8.19 Auto-Scaling Configuration (MEDIUM)
+
+**Backend API (Azure Container Apps):**
+- Min replicas: 2 (HA)
+- Max replicas: 20 (cost cap)
+- Scale up: CPU >70% sustained 1 min OR concurrent requests >50/replica
+- Scale down: CPU <30% sustained 10 min
+- Cooldown: 5 min between scale events
+
+**Background Functions (Audio Processing):**
+- Plan: **Azure Functions Premium Plan** (avoids cold start latency)
+- Min instances: 1 always-warm
+- Max instances: 50
+- Scale on: queue depth in Service Bus > 5 messages
+
+**Database:**
+- Vertical scale only (Multi-AZ HA);no read replicas in V1
+- Storage auto-grow enabled
+- Manual review at 70% capacity threshold
+
+---
+
+#### 19.8.20 Cost Anomaly Detection (LOW)
+
+Daily Azure Cost Management alerts. Triggers:
+- Day-over-day cost increase >25% on any service
+- Week-over-week increase >20% overall
+- Single doctor's AI cost >$0.50/day (10x normal)
+- Total monthly burn rate trending >$X (configured per stage)
+
+Cost dashboards visible to engineering; weekly cost review meeting starting Month 6.
+
+---
+
+#### 19.8.21 Findings Summary
+
+| Severity | Security | Performance | Total |
+|---|---|---|---|
+| CRITICAL | 2 (18.8.1, 18.8.2) | 2 (18.8.12, 18.8.13) | 4 |
+| HIGH | 4 (18.8.3, 18.8.4, 18.8.5, 18.8.6) | 3 (18.8.14, 18.8.15, 18.8.16) | 7 |
+| MEDIUM | 5 (18.8.7-18.8.11) | 5 (18.8.17-18.8.20, plus search at scale) | 10 |
+| LOW | 1 (DDoS quantification) | 1 (18.8.20) | 2 |
+| **Total** | **12** | **11** | **23** |
+
+**Pre-engineering kickoff requirement:** All 4 CRITICAL items must have committed implementation plan and budget. HIGH items must have target dates within Month 6.
+
+---
+
+## 20. FUTURE PRODUCT OPPORTUNITIES
 
 This section documents product opportunities that are validated and strategically relevant but deliberately deferred beyond V1. They are captured here so they are not lost, and to ensure V1 architectural decisions do not inadvertently block them.
 
 ---
 
-### 17.1 Surgical Consent Documentation — Hospital Enterprise Product
+### 20.1 Surgical Consent Documentation — Hospital Enterprise Product
 
 **Source:** Direct input from practicing hospital physician, April 2026.
 
@@ -1665,7 +2876,7 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 
 ---
 
-## 20. ASSUMPTIONS & DEPENDENCIES
+## 21. ASSUMPTIONS & DEPENDENCIES
 
 ### Assumptions
 
@@ -1673,13 +2884,13 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 - AI speaker diarization accuracy is sufficient (>90%) for clinical use when limited to two speakers
 - Doctors are comfortable with a browser-based mobile web app; a native app is not required for V1
 - The development team in India can engage US pilot doctors remotely with the support of a US-based medical advisor
-- AWS HIPAA-eligible services are sufficient for compliance requirements without additional on-premise infrastructure
+- Azure HIPAA-eligible services are sufficient for compliance requirements without additional on-premise infrastructure
 
 ### Dependencies
 
 | Dependency | Owner | Risk if Delayed |
 |---|---|---|
-| AWS HIPAA BAA signing | Founders | Blocks all PHI data storage |
+| Microsoft (Azure + Azure OpenAI) BAA signing + Azure OpenAI access approval | Founders | Blocks all PHI data storage and AI processing |
 | AI/ML vendor selection (speech-to-text + diarization) | Engineering | Blocks Module 4 development |
 | HIPAA compliance advisor engagement | Founders | Blocks launch clearance |
 | US medical advisor / pilot doctor recruitment | Founders + GTM | Delays pilot and market feedback |
@@ -1688,26 +2899,28 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 
 ---
 
-## 21. OPEN QUESTIONS
+## 22. OPEN QUESTIONS
 
 | # | Question | Owner | Priority | Status |
 |---|---|---|---|---|
-| OQ-1 | Which AI/ML provider to use for speech-to-text and speaker diarization? | Engineering + PM | High | **RESOLVED** → AssemblyAI. Best medical diarization accuracy, HIPAA BAA available. See Section 12.1. |
-| OQ-2 | Which LLM to use for note extraction and pre-visit brief generation? | Engineering + PM | High | **RESOLVED** → Claude Sonnet 4.6 via AWS Bedrock. Superior structured medical output, HIPAA-eligible. See Section 12.1. |
-| OQ-3 | Do we need a HIPAA-compliant LLM provider agreement, or can we anonymize before sending to LLM? | Legal + Engineering | High | **RESOLVED** → Sign BAA with Anthropic via AWS Bedrock and with AssemblyAI directly. No anonymization required. See Section 12.1. |
+| OQ-1 | Which AI/ML provider to use for speech-to-text and speaker diarization? | Engineering + PM | High | **RESOLVED** → AssemblyAI. Best medical diarization accuracy, HIPAA BAA available. See Section 13.1. |
+| OQ-2 | Which LLM to use for note extraction and pre-visit brief generation? | Engineering + PM | High | **RE-RESOLVED (v2.3)** → GPT-4o via Azure OpenAI Service. HIPAA-eligible, ~40% cheaper than alternatives, native Azure integration. See Section 13.1. |
+| OQ-3 | Do we need a HIPAA-compliant LLM provider agreement, or can we anonymize before sending to LLM? | Legal + Engineering | High | **RE-RESOLVED (v2.3)** → Sign BAA with Microsoft (covers Azure + Azure OpenAI) and with AssemblyAI directly. Apply for Azure OpenAI access in Week 1 (1-2 week approval). No anonymization required. See Section 13.1. |
 | OQ-4 | What is the patient consent flow and how do we make it doctor-proof without adding friction? | PM + Legal | High | **RESOLVED (v2.0)** → State-aware workflow with mandatory checkbox and script. See Section 7 Module 8. |
 | OQ-5 | Who is our first US medical advisor, and what is their compensation structure? | Founders | High | **Upgraded** → 3% equity vesting 2 years + $2,000/month retainer. See Section 2.4. |
-| OQ-6 | Should we offer an annual pricing option ($79/month billed annually) at launch? | PM + Founders | Medium | **RESOLVED** → Defer annual pricing to Month 9. Only offer after D90 retention confirms >55%. See Section 14.2. |
+| OQ-6 | Should we offer an annual pricing option ($79/month billed annually) at launch? | PM + Founders | Medium | **RESOLVED** → Defer annual pricing to Month 9. Only offer after D90 retention confirms >55%. See Section 15.2. |
 | OQ-7 | What is our position on doctors exporting data to their EHR manually vs. waiting for integration? | PM | Medium | **RESOLVED (v2.0)** → V1: manual export (copy-paste + PDF). Epic integration planned V3. |
 | OQ-8 | How do we handle multi-specialty? A cardiologist's note structure differs from a GP's. | PM | Medium | **RESOLVED (v2.0)** → V1 launches with Family Medicine and Internal Medicine only. One specialty template, well-tested. |
 | **OQ-9 (NEW)** | **FDA/SaMD classification — is ClinRecall a medical device under FDA rules?** | **Regulatory + PM** | **CRITICAL** | **Open — Must be resolved before engineering kickoff. Engage FDA consultant in Week 1.** |
 | **OQ-10 (NEW)** | **Which professional liability insurance carrier and coverage level?** | **Founders + Legal** | **CRITICAL** | **Open — $2M Professional + $2M Cyber minimum. Quote needed Week 2.** |
 | **OQ-11 (NEW)** | **How do we acquire the first 200 signups if initial CAC is higher than projected?** | **PM + Founders** | **High** | **Open — Tie CAC threshold to go/no-go decision; pause acquisition if CAC >$1,000 until channel mix is fixed.** |
 | **OQ-12 (NEW)** | **Synthetic medical conversation dataset — how do we build a realistic 500-sample test set without PHI?** | **Engineering + Clinical Reviewer** | **High** | **Open — Options: synthesis via LLM with clinical review, licensed datasets (MIMIC-III), simulated clinical scenarios.** |
-| **OQ-13 (NEW)** | **Native mobile app: iOS first, Android first, or simultaneous?** | **PM + Engineering** | **Medium** | **Open — iOS first preferred; US physician device usage skews iPhone. Android by Month 10.** |
+| **OQ-13** | **Native mobile app: iOS first, Android first, or simultaneous?** | **PM + Engineering** | **Medium** | **RESOLVED (v2.1)** → React Native single codebase; iOS first to TestFlight at Month 8, Android via same codebase at Month 9-10. See Section 13.6. |
 | **OQ-14 (NEW)** | **Seed funding strategy — bootstrap, angel round, or institutional seed?** | **Founders** | **High** | **Open — $750K-$1M target. Prefer angel round led by healthcare-experienced angels.** |
 | **OQ-15 (NEW)** | **SOC 2 auditor selection and timeline — who do we engage?** | **Founders + Compliance** | **Medium** | **Open — Common choices: Vanta, Drata, Secureframe (compliance-as-a-service); target Type I by Month 12.** |
 | **OQ-16 (NEW)** | **How do we handle a doctor using the product in multiple states (telehealth, traveling)?** | **PM + Legal** | **Medium** | **Open — Default to strictest applicable state's two-party consent; prompt doctor to confirm state at session start.** |
+| **OQ-17 (NEW v2.3)** | **Azure OpenAI Service access application — when do we apply and which subscription tier?** | **Founders + Engineering** | **CRITICAL** | **Open — Must apply Week 1 of project. Healthcare/regulated industry track. 1-2 week approval. Without approval, AI pipeline cannot be built.** |
+| **OQ-18 (NEW v2.3)** | **TPM/RPM quota strategy — when do we request increases and to what level?** | **Engineering** | **High** | **Open — Default ~30K TPM is insufficient at 500 doctors. File quota increase request Week 4 for 200K+ TPM, 600+ RPM. Re-evaluate at 2,500 doctors.** |
 
 ---
 
@@ -1732,7 +2945,8 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 10. Draft and test standard patient consent script with pilot doctors
 
 **Weeks 3-4 — Vendor & Compliance:**
-11. Sign BAAs with AssemblyAI and AWS (covering Bedrock) — resolves OQ-1/2/3
+11. **Apply for Azure OpenAI Service access (healthcare/regulated industry track) — critical path; 1-2 week approval (OQ-17)**
+12. Sign BAAs with AssemblyAI and Microsoft (covering Azure + Azure OpenAI) — resolves OQ-1/2/3
 12. Obtain written confirmation of no-training-use from both vendors
 13. Engage SOC 2 readiness partner (Vanta, Drata, or Secureframe) — resolves OQ-15
 
@@ -1740,13 +2954,458 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 - FDA classification clear? ✓
 - Insurance quotes secured? ✓
 - 3 pilot LOIs signed? ✓
-- BAAs signed? ✓
+- BAAs signed (AssemblyAI + Microsoft)? ✓
+- Azure OpenAI Service access approved? ✓
 - Team plan funded (9-10 roles)? ✓
+- **Section 19.8 CRITICAL items have implementation plan and budget? (SAST/DAST/SCA pipeline, AI security controls, performance SLOs defined, load testing strategy)? ✓**
 
 **If all gate criteria met → Month 1 Engineering Kickoff with revised $582K Year 1 budget.**
 **If any gate criterion fails → pause build; address root cause before proceeding.**
 
 ---
 
-*ClinRecall BRD v2.0 — Confidential — April 23, 2026*
-*This document reflects comprehensive senior Architect + PM review findings. Major revisions in v2.0 include: realistic financial model with CAC/churn/LTV, FDA/SaMD assessment requirement, malpractice liability framework, two-party consent enforcement, architectural hardening (RTO/RPO/uptime/DR), MLOps and model governance framework, SOC 2 roadmap, vendor risk management, business continuity plan, and patient rights workflows.*
+## 23. PHASED IMPLEMENTATION STRATEGY
+
+This section defines the engineering execution plan: 9 sequential phases from pre-development through Year 1 optimization. Each phase has explicit goals, workstream deliverables, exit criteria, and risk gates.
+
+**Phase Gate Discipline:**
+- A phase only completes when every workstream's exit criteria are met
+- The next phase does not start until the previous phase exits cleanly
+- Exit criteria are demoable, measurable, or verifiable — not opinions
+
+This discipline prevents "we'll fix it later" drift that destroys early-stage products.
+
+---
+
+### 23.1 Implementation Timeline Overview
+
+```
+PHASE 0  ─ Pre-Development Prerequisites      Weeks -4 to 0   No code; gates
+PHASE 1  ─ Foundation Sprint                  Month 1         Infra, auth shell
+PHASE 2  ─ Recording MVP                      Month 2         Capture working
+PHASE 3  ─ AI Note Generation                 Month 3         Core value live
+PHASE 4  ─ Memory Layer                       Month 4         Differentiator
+PHASE 5  ─ Compliance & Hardening             Month 5         Audit-ready
+PHASE 6  ─ Closed Pilot                       Month 6         5 doctors, real PHI
+PHASE 7  ─ Extended Pilot & Polish            Month 7         15-20 doctors
+PHASE 8  ─ Public Launch + Native iOS         Month 8         Paid subscriptions
+PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, SOC 2, scale
+```
+
+---
+
+### 23.2 PHASE 0 — Pre-Development Prerequisites (Weeks -4 to 0)
+
+**Goal:** Resolve every blocker that would halt or invalidate engineering work. No code is written in this phase.
+
+**Pre-requisites:** None (this is the start).
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Regulatory | FDA SaMD classification assessment complete; written opinion from regulatory consultant |
+| Legal | Delaware LLC formed; ToS drafted with malpractice clauses; Microsoft + AssemblyAI BAAs signed |
+| Insurance | $2M Professional Liability + $2M Cyber Liability quotes secured; policies bound |
+| Customer | 3 US pilot doctor Letters of Intent signed |
+| Vendor Setup | Azure OpenAI Service access application submitted (1-2 wk approval); Auth0 account provisioned; Stripe account created |
+| Hiring | 9-10 person team committed (offers signed): 2 Backend, 1 Frontend, 1 AI/ML, 1 DevOps, 1 QA, 1 PM, 1 Senior Product Designer, 1 Clinical Reviewer (PT), 1 CSM (PT, Month 6 start) |
+| Tools | GitHub organization, Claude Design workspace, Azure subscription, Datadog/Sentry trial accounts |
+| Advisor | US Medical Advisor onboarded (3% equity + retainer) |
+
+**Exit Criteria (Gate to Phase 1):**
+- ✅ FDA classification clear or risk acknowledged with mitigation plan
+- ✅ Both BAAs signed (Microsoft, AssemblyAI)
+- ✅ Insurance bound
+- ✅ 3 pilot LOIs signed
+- ✅ Azure OpenAI access approved
+- ✅ Team committed (signed offers)
+- ✅ Funding secured ($750K-$1M seed or founder commitment)
+
+**Key Risks:** FDA classification could disallow planned features → must be resolved before any build. Azure OpenAI approval could be delayed → cannot delay BAA signing while awaiting access decision.
+
+**Team Focus:** Founders + Legal + Regulatory consultant. Engineering team finalizing offers but not yet productive.
+
+---
+
+### 23.3 PHASE 1 — Foundation Sprint (Month 1)
+
+**Goal:** Working infrastructure, CI/CD, authentication, and project skeleton — no user-facing features yet, but a doctor could log in and see an empty dashboard.
+
+**Pre-requisites:** Phase 0 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Infrastructure | Azure subscription configured; Terraform monorepo structure; East US 2 environment provisioned (VNet, Container Apps, PostgreSQL Flexible Server with pgvector, Blob Storage, Key Vault, Service Bus, Event Grid, Front Door) |
+| DevOps | GitHub Actions CI/CD pipeline live; SAST/SCA/secret scanning gates active; Terraform plan/apply automation; Azurite local emulator setup |
+| Backend | FastAPI skeleton; SQLAlchemy + Alembic migrations; Pydantic schemas; row-level security policies; auth middleware; `/healthz`/`/readyz` endpoints; OpenAPI auto-gen |
+| Authentication | Auth0 integrated; signup/login/MFA flows working; JWT validation; refresh token rotation |
+| Database | Initial schema: doctors, patients, sessions, transcripts, extracted_outputs, audit_log; row-level security policies enforced |
+| Frontend | React PWA shell with React Router; Auth0 login flow; protected routes; design system foundations from Claude Design (color tokens, typography, components stubs); Storybook setup |
+| Design | Claude Design workspace populated with design system; recording screen, pre-visit brief, note review wireframes ratified by US Medical Advisor |
+| QA | Test infrastructure: pytest + httpx for backend; Vitest + React Testing Library for frontend; CI runs all tests |
+| Compliance | Audit log writes from auth events; WORM Blob policy configured |
+
+**Exit Criteria (Gate to Phase 2):**
+- ✅ A doctor can sign up, verify email, complete MFA, log in, see empty dashboard
+- ✅ All API endpoints behind authentication; row-level security verified by automated tests
+- ✅ Production deploy via PR merge works end-to-end
+- ✅ SAST/SCA gates blocking insecure code
+- ✅ Audit log capturing all auth events to WORM storage
+
+**Key Risks:** Team unfamiliar with Azure-specific quirks → mitigate with senior DevOps engineer. Auth0 + RLS integration complexity → spike early in Week 1.
+
+**Team Focus:** All-hands on infrastructure and shell. No product features yet.
+
+---
+
+### 23.4 PHASE 2 — Recording MVP (Month 2)
+
+**Goal:** A doctor can create a patient, start a recording session, and have the audio stored securely. No AI yet — just the capture pipeline working end-to-end.
+
+**Pre-requisites:** Phase 1 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Backend | Patient CRUD endpoints (Module 2); Session start/chunks/complete endpoints (Module 3 partial); SAS URL generation for Blob uploads; consent recording endpoint |
+| Frontend (PWA) | Patient list + patient profile screens; "Add Patient" flow; recording screen with live waveform; one-tap session start; consent acknowledgement workflow (state-aware for two-party states) |
+| Audio Capture | Browser MediaRecorder integration; chunk-based upload via Service Worker; offline buffering on network drop; resumable upload on reconnect |
+| AI Pipeline | AssemblyAI integration tested with synthetic conversation; transcription webhook → backend ingestion; speaker diarization output validated |
+| Compliance | Two-party consent rules engine; clinic state detection from doctor profile; consent audit logged |
+| QA | Synthetic medical conversation dataset v1 (50 samples) created with Clinical Reviewer; integration tests for full upload pipeline |
+| Design | Recording screen polished per design system; live waveform animation; success/error states designed |
+
+**Exit Criteria (Gate to Phase 3):**
+- ✅ Doctor records a 20-minute synthetic conversation end-to-end without losing data
+- ✅ Audio chunks uploaded directly to Blob Storage via SAS URLs (never through API server)
+- ✅ Recording survives network interruption (Service Worker buffers, resumes upload)
+- ✅ AssemblyAI returns speaker-diarized transcript within target latency
+- ✅ Consent workflow enforced in two-party states (CA, FL, IL, etc.)
+- ✅ All recording metadata in audit log
+
+**Key Risks:** Browser audio capture flakiness on iOS Safari → tested early in Week 1; PWA limitations may force native iOS sooner than planned. AssemblyAI webhook delivery in private VNet → use public endpoint with signature verification.
+
+**Team Focus:** Backend + Frontend on recording pipeline; AI/ML on AssemblyAI integration; QA building golden dataset.
+
+---
+
+### 23.5 PHASE 3 — AI Note Generation (Month 3)
+
+**Goal:** A doctor records a session, and within 90 seconds receives an AI-generated structured note that they can review, edit, and sign.
+
+**Pre-requisites:** Phase 2 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| AI Pipeline | Azure OpenAI integration (GPT-4o for note extraction, GPT-4o-mini for lower-stakes); prompt template stored as versioned config; Intelligence Layer abstraction |
+| Backend | Async note generation pipeline (Service Bus → Azure Functions → AssemblyAI → Azure OpenAI → DB); note CRUD with versioning; note signing workflow with biometric placeholder; flag-as-inaccurate endpoint |
+| Frontend (PWA) | Note review screen with section-by-section structure; inline editing; "source" link to audio timestamp; visible disclaimer until signed; sign-and-save flow |
+| MLOps | Golden dataset v2 (200 samples); automated evaluation pipeline; output schema validation; hallucination detection heuristics |
+| Compliance | Note signature audit (timestamp + IP + content hash); immutable signed notes; Azure AI Content Safety integration |
+| Design | Note review screen polished; trust-through-transparency interactions (source highlighting); error states for generation failure |
+| QA | End-to-end test: synthetic conversation → note generated → doctor edits → signs → immutable; regression tests against golden dataset |
+
+**Exit Criteria (Gate to Phase 4):**
+- ✅ End-to-end p95 note generation latency ≤90s
+- ✅ Generated notes pass schema validation 99%+ of the time
+- ✅ Doctor can review, edit, and sign notes via mobile browser without friction
+- ✅ Signed notes are immutable; subsequent edits create new versions
+- ✅ Output validation rejects content outside schema; max 2 regeneration attempts honored
+- ✅ All generated content carries disclaimer until signed
+
+**Key Risks:** GPT-4o latency variability → tested with Premium plan to avoid Function cold starts. Output schema drift across model versions → strict validation + golden dataset regression. Prompt injection from patient speech → sanitization at transcript ingestion.
+
+**Team Focus:** AI/ML lead drives Intelligence Layer; Frontend on note review UX (the trust moment); QA expanding golden dataset.
+
+---
+
+### 23.6 PHASE 4 — Memory Layer (Month 4)
+
+**Goal:** The product's differentiator — pre-visit briefs, semantic search, and longitudinal patient context — works at quality.
+
+**Pre-requisites:** Phase 3 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| AI Pipeline | Pre-visit brief generation pipeline (cross-session context aggregation + GPT-4o-mini); embedding generation for all notes (text-embedding-3-large); pgvector index optimization (HNSW) |
+| Backend | `/v1/patients/{id}/pre-visit-brief` endpoint; search endpoints (hybrid pgvector + full-text); patient history endpoints with pagination; follow-up tracking schema |
+| Frontend (PWA) | Pre-visit brief card on patient profile (loads <1s); search screen with semantic+keyword results; full patient history view; follow-up indicators |
+| Caching | Redis caching for pre-visit briefs (60-min TTL); patient list cache (1-min TTL); cache invalidation on note updates |
+| Performance | API SLOs verified for read endpoints (p95 250ms, search p95 800ms); database query plans reviewed; PgBouncer in transaction mode |
+| Design | Pre-visit brief design polished — the differentiator; search results presentation (semantic match highlighting) |
+
+**Exit Criteria (Gate to Phase 5):**
+- ✅ Pre-visit brief generated for any patient with ≥1 prior session, p95 <1s render
+- ✅ Semantic search finds notes about "lumbar strain" when querying "back pain"
+- ✅ Cross-session pattern detection working (e.g., "knee pain mentioned in 3 of last 4 visits")
+- ✅ All performance SLOs met under simulated load
+- ✅ Pre-visit brief content evaluated against golden dataset >90% accuracy
+
+**Key Risks:** pgvector performance at scale unknown — load test with 100K embeddings. Pre-visit brief quality drops if past notes are sparse — handle gracefully ("Limited prior context available").
+
+**Team Focus:** AI/ML on the differentiator; Backend on search performance; Designer ensures pre-visit brief screen wow-factor.
+
+---
+
+### 23.7 PHASE 5 — Compliance & Hardening (Month 5)
+
+**Goal:** The product is audit-ready, secure, billable, and supports the full regulatory and operational scope. Ready to handle real PHI.
+
+**Pre-requisites:** Phase 4 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Compliance | HIPAA self-audit complete; SOC 2 Type I gap assessment via Vanta/Drata; data retention policies enforced; patient rights workflows (Module 10) |
+| Security | Third-party penetration test; remediation of Critical/High findings; cross-tenant isolation tests in CI; secret rotation policies; PHI log scrubbing middleware |
+| Subscription/Billing | Stripe integration end-to-end; 60-day trial; subscription lifecycle; webhook handling; invoice generation; cancellation + 90-day data retention |
+| Operations | Status page (status.clinrecall.com); incident response runbook; on-call rotation set up; Sentry + Application Insights alerting tuned |
+| AI Safety | Guardrails verified — no diagnoses, no medication dosages without doctor verification; prompt template integrity verification; quarterly red-team exercise plan |
+| Backend | Subscription endpoints (Module 7); patient rights endpoints (Module 6); admin endpoints with separate scope |
+| Frontend | Subscription management screen; trial countdown; payment method update; data export download |
+
+**Exit Criteria (Gate to Phase 6):**
+- ✅ Penetration test report shows no Critical/High open findings
+- ✅ HIPAA self-audit checklist 100% complete
+- ✅ Subscription billing tested end-to-end (signup, charge, cancel, refund)
+- ✅ Patient rights workflows demonstrable (export, deletion, correction)
+- ✅ Status page live; incident runbooks documented; on-call rotation active
+- ✅ Cross-tenant isolation tests passing in CI for every endpoint
+
+**Key Risks:** Penetration test reveals architectural issues → buffer 2 weeks for remediation. SOC 2 readiness assessment may surface gaps requiring back-fill into earlier phases.
+
+**Team Focus:** All hands on hardening; QA expands automation; Security lead drives pen test remediation.
+
+---
+
+### 23.8 PHASE 6 — Closed Pilot (Month 6)
+
+**Goal:** 5 pilot doctors using the product with real patients, generating real PHI, providing weekly feedback. The first time the system handles real production workload.
+
+**Pre-requisites:** Phase 5 exit criteria met. Pilot doctors onboarded with patient consent processes ready.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Customer | 5 pilot doctors fully onboarded (signed, trained, recorded first session); weekly 30-min feedback calls scheduled |
+| Operations | 24/7 monitoring active; bug triage process running; daily ops standup; doctor-reported issues tracked in dedicated queue |
+| Engineering | Bug fixes from real usage (priority over new features); performance tuning based on production telemetry; AI quality improvements based on flagged notes |
+| MLOps | Real production conversations evaluated weekly; prompt template adjustments deployed via feature flags; hallucination rate tracked |
+| Design | Usability sessions with all 5 pilot doctors (15-min, biweekly); friction points documented; UX adjustments prioritized |
+| Compliance | Real audit logs reviewed weekly for anomalies; first quarterly access review |
+
+**Exit Criteria (Gate to Phase 7):**
+- ✅ All 5 pilot doctors actively using product (≥10 sessions/week each)
+- ✅ Note quality satisfaction >85% (doctor-reported)
+- ✅ No CRITICAL bugs open >24 hours
+- ✅ Pilot doctor NPS >40
+- ✅ At least 2 pilot doctors say "I don't want to go back to how I worked before"
+- ✅ Production stability: 99.9% uptime sustained for 4 consecutive weeks
+
+**Key Risks:** Real PHI surfaces edge cases not covered by synthetic data. Pilot doctors may churn early if onboarding is rough → invest in white-glove onboarding. AI accuracy regression in real-world conditions → tighten MLOps loop.
+
+**Team Focus:** Customer Success + Engineering on stabilization; PM on feedback synthesis; minimal new feature work.
+
+---
+
+### 23.9 PHASE 7 — Extended Pilot & Polish (Month 7)
+
+**Goal:** 15-20 additional doctors onboarded; product polished based on Phase 6 feedback; marketing site live; ready for paid public launch.
+
+**Pre-requisites:** Phase 6 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Customer | 15-20 additional doctors onboarded (mix of family medicine + internal medicine specialties); cohort retention tracking begun |
+| Engineering | Top 10 friction points from Phase 6 resolved; performance optimization at higher concurrency; specialty-specific note templates if Phase 6 surfaces clear specialty differences |
+| Marketing | Marketing site live (clinrecall.com); content: how-it-works, security/HIPAA explainer, doctor case studies from Phase 6, pricing page |
+| Sales | Outbound to physician communities (Doximity, LinkedIn); referral program design; case study videos with willing pilot doctors |
+| Compliance | SOC 2 Type I audit kicked off; bug bounty program private launch (HackerOne) |
+| Operations | Customer Success Manager (US-based, part-time) onboarded; support tier 1 process active; help docs published |
+
+**Exit Criteria (Gate to Phase 8):**
+- ✅ 20+ doctors active on product
+- ✅ Trial-to-paid conversion intent measurable (waitlist of paying customers)
+- ✅ All Phase 6 friction points resolved
+- ✅ Marketing site complete with 3+ doctor case studies
+- ✅ Stripe billing tested at scale (10+ live subscriptions in trial)
+- ✅ Native iOS app feature-complete in TestFlight
+
+**Key Risks:** Specialty-specific UX issues (e.g., cardiologist needs differ from family medicine) — V1 stays focused on family medicine + internal medicine, defer others. Marketing claims must be reviewed by legal — no FDA-violating language.
+
+**Team Focus:** Engineering finishing polish; Customer Success scaling onboarding; Founders on marketing and sales pipeline.
+
+---
+
+### 23.10 PHASE 8 — Public Launch + Native iOS (Month 8)
+
+**Goal:** Paid subscriptions open to public; native iOS app live in App Store; product can scale beyond pilot cohort.
+
+**Pre-requisites:** Phase 7 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Mobile | Native iOS app via React Native + custom Swift audio module submitted to App Store; TestFlight → App Store transition; production-grade audio reliability |
+| Marketing | Public launch announcement; press outreach (HIT News, KevinMD, etc.); paid acquisition channels live (Google Search, Doximity ads); referral program live |
+| Customer | Self-serve signup flow polished; trial-to-paid funnel measured; cohort retention dashboards live |
+| Operations | Customer Success Manager full-time; on-call expanded; SLA monitoring per doctor cohort |
+| Compliance | SOC 2 Type I audit in progress (~3 months); bug bounty private program with 5+ active researchers |
+| AI/ML | Weekly evaluation cycles institutionalized; doctor feedback loop integrated into prompt iteration |
+
+**Exit Criteria (Gate to Phase 9):**
+- ✅ Native iOS app live in App Store with 4+ star rating from initial reviews
+- ✅ 50+ paying doctors
+- ✅ MRR >$5,000
+- ✅ p95 SLOs holding under public traffic
+- ✅ Customer-reported critical bugs <2/week
+- ✅ Trial-to-paid conversion ≥10% (industry benchmark)
+
+**Key Risks:** App Store review may surface compliance issues (microphone usage, health claims) — submit to TestFlight early in Phase 7 to surface issues. Public traffic exposes scaling issues invisible at pilot scale.
+
+**Team Focus:** Mobile + Marketing dominate; Engineering on scale operations; Customer Success on conversion optimization.
+
+---
+
+### 23.11 PHASE 9 — Year 1 Optimization (Months 9-12)
+
+**Goal:** Scale to 500 paying doctors; achieve SOC 2 Type I; open native Android; close Year 1 with proven unit economics and Series Seed-ready metrics.
+
+**Pre-requisites:** Phase 8 exit criteria met.
+
+**Workstream Deliverables:**
+
+| Workstream | Deliverable |
+|---|---|
+| Compliance | SOC 2 Type I report achieved; SOC 2 Type II preparation begun |
+| Mobile | Native Android app live in Play Store (Month 10) |
+| Engineering | Database optimizations (read replicas if needed); auto-scaling tuned; cost-per-doctor monitored monthly; performance regression alerts |
+| AI/ML | Multi-specialty prompt templates (initially family medicine; cardiology and orthopedics evaluated based on demand) |
+| Customer | Onboarding fully self-serve; in-app help and FAQs; tier 1 support metrics tracked; churn analysis at cohort level |
+| Marketing | Content marketing engine running; SEO traction; partnership conversations with state medical associations and specialty societies |
+| Funding | Series Seed close ($750K-$1M) with 18+ months runway extended; investor metrics deck up to date |
+
+**Exit Criteria (Year 1 Close):**
+- ✅ 500+ paying doctors (or revised target with explanation)
+- ✅ MRR >$50,000; ARR >$500K run-rate
+- ✅ SOC 2 Type I report received
+- ✅ Native iOS + Android both live
+- ✅ Doctor NPS >50
+- ✅ Monthly churn <2.5%
+- ✅ AI cost per doctor <$50/year (under budget)
+- ✅ Path to break-even visible (Month 18-24 forecast)
+
+**Key Risks:** CAC may exceed projections — pause aggressive acquisition if CAC >$1,000 until channels optimized. Churn may surface from edge specialties — focus retention work on validated segments.
+
+**Team Focus:** Operational excellence; preparing for Series Seed close; building Year 2 plan.
+
+---
+
+### 23.12 Phase Effort & Team Allocation Summary
+
+| Phase | Duration | Primary Team Focus | Estimated Effort (Person-Weeks) |
+|---|---|---|---|
+| Phase 0 | 4 weeks | Founders + Legal + Regulatory | 24 (mostly external advisors) |
+| Phase 1 | 4 weeks | All-hands infrastructure | 36 (9 FTE × 4 weeks) |
+| Phase 2 | 4 weeks | Backend + Frontend + AI/ML | 36 |
+| Phase 3 | 4 weeks | AI/ML + Frontend (note review) | 36 |
+| Phase 4 | 4 weeks | AI/ML + Backend (search) | 36 |
+| Phase 5 | 4 weeks | Compliance + Security + QA | 36 |
+| Phase 6 | 4 weeks | Customer Success + Engineering ops | 36 |
+| Phase 7 | 4 weeks | Mobile + Marketing + Engineering | 40 (CSM joins) |
+| Phase 8 | 4 weeks | Mobile + Marketing + Operations | 40 |
+| Phase 9 | 16 weeks | Scale operations + Compliance | 160 |
+| **Total Year 1** | **52 weeks** | — | **~480 person-weeks** |
+
+---
+
+### 23.13 Cross-Cutting Engineering Practices (All Phases)
+
+These practices begin in Phase 1 and continue throughout:
+
+| Practice | Cadence |
+|---|---|
+| Sprint cadence | 2-week sprints, with Phase boundaries aligning to sprint endings |
+| Sprint review | End of each sprint, demo to PM + Founders + advisors |
+| Code review | Every PR, 2 approvals (1 security reviewer for sensitive areas) |
+| Production deploy | Continuous (multiple times daily); requires 2-person approval for production environment |
+| Security review | Every PR via SAST/SCA; manual security review for Auth/PHI/Audit changes |
+| AI evaluation | Weekly automated golden dataset run; alert on regression |
+| Cost review | Weekly engineering cost review starting Phase 6 |
+| Customer feedback synthesis | Weekly during pilot phases; biweekly thereafter |
+| Retrospective | End of each phase; documented learnings; improvements applied to next phase |
+
+---
+
+### 23.14 Definition of "Done" (Applies to Every Feature)
+
+A feature is not "done" until ALL the following are true:
+
+| Criterion | Requirement |
+|---|---|
+| Code | Merged to main, code review approved by 2 |
+| Tests | Unit tests passing; integration tests passing; relevant E2E test added |
+| Security | SAST/SCA passed; sensitive areas have security review |
+| Documentation | API documented in OpenAPI; user-facing changes have help doc updated |
+| Accessibility | WCAG 2.1 AA verified for any UI changes |
+| Performance | No SLO regression in load test |
+| Deployment | Deployed to staging, smoke tested; deployed to production with on-call awareness |
+| Telemetry | Application Insights events instrumented; dashboard updated if relevant |
+| Audit | If touches PHI: audit log entry verified |
+
+This definition exists because "done" is the most over-claimed status in software. Without explicit criteria, work appears finished but isn't.
+
+---
+
+### 23.15 Risk-Driven Phase Adjustments
+
+Phases may need adjustment based on real-world findings. The decision framework:
+
+| Trigger | Response |
+|---|---|
+| Phase exit criteria slip by >2 weeks | Stop work; root-cause analysis; PM + founders decide whether to descope, extend, or restructure |
+| Critical bug in production for >24 hours | All non-critical work stops; 100% on stabilization |
+| AI quality drops below 85% | Phase paused for prompt + dataset improvement |
+| Pilot doctor churn signals product-market fit issue | Halt scaling; refocus on the smallest unit that works |
+| Compliance/regulatory finding | Top priority; can pause feature work for up to 4 weeks if needed |
+| Cost per doctor exceeds $200/year | Pause acquisition until unit economics restored |
+
+The goal is not to follow the plan — it's to ship a product doctors love, profitably and compliantly. The plan is a hypothesis to be tested, not a contract to be honored at any cost.
+
+---
+
+### 23.16 What Comes After Phase 9 (Year 2 Outlook)
+
+Year 2 priorities derived from Year 1 phase outcomes — not pre-committed but anticipated:
+
+- **EHR integration** (Epic, Cerner connectors) — Phase 10-11
+- **ConsentDoc Phase 2 product** for hospital surgical consent (Section 20.1)
+- **SOC 2 Type II** completion
+- **Multi-specialty templates** beyond family medicine
+- **HITRUST certification** preparation for hospital sales
+- **International expansion** (Canada first per Section 19.7)
+- **Series A funding** based on validated metrics
+
+These items move into discrete phases as Year 1 data informs prioritization.
+
+---
+
+*This phased strategy is the engineering execution arm of the BRD. Sections 1-22 define the what and why. Section 23 defines the how and when.*
+
+---
+
+*ClinRecall BRD v2.6 — Confidential — April 25, 2026*
+*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering (23 findings). v2.5 — New Section 9 User Experience Design; sections renumbered. v2.6 — New Section 23 Phased Implementation Strategy: 9 sequential phases (Phase 0 Pre-Dev through Phase 9 Year 1 Optimization), workstream deliverables, exit criteria, risk gates, definition-of-done. Engineering execution plan complete.*
