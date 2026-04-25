@@ -1,7 +1,7 @@
 # Business Requirement Document & Business Case
 # ClinRecall — AI-Powered Clinical Memory Assistant for Doctors
 
-**Version:** 2.6
+**Version:** 2.7
 **Date:** April 25, 2026
 **Author:** Product Management
 **Status:** Draft for Review — Post Senior Architect + PM Review
@@ -18,6 +18,7 @@
 - **v2.4 (Apr 25, 2026) — Comprehensive Security & Performance Engineering review added (Section 18.8 in v2.4, renumbered 19.8 in v2.5). Addresses 23 findings across application security testing, AI/LLM-specific controls (prompt injection, output validation), mobile security (certificate pinning, jailbreak detection), insider threat controls, audit/SIEM, performance SLOs per endpoint, load testing, database performance engineering, tiered LLM strategy (~30% AI cost savings), caching strategy, auto-scaling rules, cost anomaly detection. 4 CRITICAL and 7 HIGH severity items must be resolved before engineering kickoff.**
 - **v2.5 (Apr 25, 2026) — User Experience Design section added (new Section 9). Defines 3 core UX principles, 3 critical user journeys, visual design system, key screen designs (recording, pre-visit brief, note review), accessibility requirements (WCAG 2.1 AA), empty/error/loading states, design tooling (Claude Design instead of Figma), usability testing methodology, and UX success metrics. All subsequent sections renumbered (10 through 22).**
 - **v2.6 (Apr 25, 2026) — Phased Implementation Strategy added as Section 23. Defines 9 sequential phases from Phase 0 (Pre-Development Prerequisites) through Phase 9 (Year 1 Optimization). Each phase specifies pre-requisites, workstream-by-workstream deliverables (Infrastructure/Backend/Frontend/AI/Mobile/Design/QA/Compliance/Product), exit criteria, key risks, and team focus. Includes phase gate discipline: no phase starts until previous phase exits cleanly.**
+- **v2.7 (Apr 25, 2026) — Section 23 restructured around MVP-first discipline. The riskiest assumption ("AI note quality is acceptable to doctors") must be tested before investing in differentiator features. Restructure: MVP Track (Months 1-4, ships in ~10 weeks instead of 24); MVP Validation Gate (Go/No-Go); V1.1 Differentiation Track (Months 5-8, only if MVP validated); V1.2 Optimization Track (Months 9-12). Pre-visit brief, semantic search, subscription billing, native mobile, MFA, two-party consent enforcement, SOC 2, and patient rights workflows DEFERRED from MVP to V1.1. Doctors get to real PHI usage 3-4 months faster.**
 
 ---
 
@@ -2964,37 +2965,102 @@ The doctor friend who surfaced this use case is a valuable potential advisor for
 
 ---
 
-## 23. PHASED IMPLEMENTATION STRATEGY
+## 23. PHASED IMPLEMENTATION STRATEGY (MVP-FIRST)
 
-This section defines the engineering execution plan: 9 sequential phases from pre-development through Year 1 optimization. Each phase has explicit goals, workstream deliverables, exit criteria, and risk gates.
+This section defines the engineering execution plan structured around **MVP-first discipline**. The riskiest product assumption must be validated with the smallest possible build before investing in differentiator features.
+
+**The Core Assumption to Test:**
+> *"AI-generated clinical notes are accurate enough that doctors will sign them without major edits."*
+
+If this is true, everything else (pre-visit brief, search, EHR integration) is solvable. If false, no amount of polish saves the product. The MVP must test this single hypothesis with minimum build.
+
+**Three Tracks:**
+- **MVP Track (Months 1-4)** — Test core assumption with 5 pilot doctors using real PHI
+- **V1.1 Track (Months 5-8)** — Build differentiator and scale to public launch (only if MVP validated)
+- **V1.2 Track (Months 9-12)** — Optimize, certify, expand
 
 **Phase Gate Discipline:**
 - A phase only completes when every workstream's exit criteria are met
 - The next phase does not start until the previous phase exits cleanly
 - Exit criteria are demoable, measurable, or verifiable — not opinions
-
-This discipline prevents "we'll fix it later" drift that destroys early-stage products.
+- The **MVP Validation Gate** is the most important gate in the plan: a Go/No-Go decision based on real doctor data
 
 ---
 
 ### 23.1 Implementation Timeline Overview
 
 ```
-PHASE 0  ─ Pre-Development Prerequisites      Weeks -4 to 0   No code; gates
-PHASE 1  ─ Foundation Sprint                  Month 1         Infra, auth shell
-PHASE 2  ─ Recording MVP                      Month 2         Capture working
-PHASE 3  ─ AI Note Generation                 Month 3         Core value live
-PHASE 4  ─ Memory Layer                       Month 4         Differentiator
-PHASE 5  ─ Compliance & Hardening             Month 5         Audit-ready
-PHASE 6  ─ Closed Pilot                       Month 6         5 doctors, real PHI
-PHASE 7  ─ Extended Pilot & Polish            Month 7         15-20 doctors
-PHASE 8  ─ Public Launch + Native iOS         Month 8         Paid subscriptions
-PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, SOC 2, scale
+═══════════════════════ MVP TRACK ═══════════════════════
+PHASE 0  ─ Pre-Development Prerequisites    Weeks -4 to 0   No code; legal/regulatory gates
+PHASE 1  ─ MVP Foundation                   Month 1         Stripped infra, auth, base API
+PHASE 2  ─ MVP Core Loop                    Month 2         Recording + AI note end-to-end
+PHASE 3  ─ MVP Hardening + Pilot Prep       Month 3         HIPAA, pen test, onboarding
+PHASE 4  ─ MVP Closed Pilot                 Month 4         5 doctors with REAL PHI
+
+████████ MVP VALIDATION GATE ████████ (Go / No-Go / Iterate decision)
+
+══════════════════ V1.1 DIFFERENTIATION ═════════════════
+PHASE 5  ─ V1.1 Build                       Months 5-6      Pre-visit brief, search, billing
+PHASE 6  ─ V1.1 Extended Pilot              Month 7         15-20 doctors, native iOS in TestFlight
+PHASE 7  ─ V1.1 Public Launch               Month 8         Paid subscriptions, iOS App Store
+
+═════════════════ V1.2 OPTIMIZATION ════════════════════
+PHASE 8  ─ V1.2 Year 1 Optimization         Months 9-12     Native Android, SOC 2 Type I, scale
 ```
+
+**Key insight:** MVP ships in ~10 weeks (vs. 24 weeks in original v2.6 plan). Real doctor feedback arrives 3-4 months sooner. Engineering investment in differentiator features happens *after* foundation is validated.
 
 ---
 
-### 23.2 PHASE 0 — Pre-Development Prerequisites (Weeks -4 to 0)
+### 23.2 What Stays in MVP (Non-Negotiable)
+
+These items cannot be deferred — they are either legally required or are the core thing the MVP exists to test.
+
+| Component | Why MVP-Critical |
+|---|---|
+| HIPAA-compliant Azure infrastructure + signed BAAs (Microsoft + AssemblyAI) | Legal requirement; cannot handle PHI without |
+| FDA SaMD classification clearance | Regulatory blocker; cannot ship until resolved |
+| Recording → AssemblyAI → GPT-4o → note pipeline | This IS the product; the loop being tested |
+| Note review, edit, save — with mandatory disclaimer until signed | Doctor must own clinical content; trust requirement |
+| Audit log to immutable Blob Storage (WORM) | HIPAA requirement |
+| Encryption at rest (AES-256) + in transit (TLS 1.2+) | HIPAA requirement |
+| Auth0 with email verification (basic auth, no MFA yet) | Reasonable identity baseline |
+| Patient profile + session storage | Need to store the data |
+| Penetration test + HIPAA self-audit | Required before real PHI handling |
+| $2M Professional Liability + $2M Cyber insurance | Liability blocker |
+| 3 pilot doctor LOIs signed | Validation we'll have users |
+| One-party-consent state restriction (NY, TX, others) | Avoids two-party-consent state enforcement complexity |
+| Family Medicine / Internal Medicine specialty only | Single specialty template tested first |
+| PWA only (no native mobile yet) | Faster ship; tested in real clinic conditions |
+
+---
+
+### 23.3 What's Deferred from V1 to V1.1
+
+These items are valuable but cannot be tested meaningfully until MVP foundation is validated. Building them in MVP means investing 3-4 months before learning whether the underlying premise holds.
+
+| Deferred Feature | Original Phase | New Phase | Why Deferred |
+|---|---|---|---|
+| Pre-visit brief (the differentiator) | Phase 4 | V1.1 (Phase 5) | Cannot test cross-session synthesis until base notes exist and are trusted |
+| Semantic search (pgvector) | Phase 4 | V1.1 (Phase 5) | Doctors find notes by patient name + date in MVP; semantic search adds complexity |
+| Subscription billing (Stripe) | Phase 5 | V1.1 (Phase 5) | Pilot is free; collect payment intent only |
+| MFA (mandatory) | Phase 1 | V1.1 (Phase 5) | Email verification + strong password sufficient for 5 doctors |
+| Two-party consent state enforcement | Phase 5 | V1.1 (Phase 5) | Restrict pilot to one-party-consent states (NY, TX) |
+| Patient rights workflows (export/delete/correct) | Phase 5 | V1.1 (Phase 5) | Manual handling for ≤100 patients |
+| Native iOS app | Phase 8 | V1.1 (Phase 6-7) | PWA tested first in real clinic settings; native deferred until needed |
+| Native Android app | Phase 9 | V1.2 (Phase 8) | Same logic; iOS first |
+| SOC 2 Type I | Phase 9 | V1.2 (Phase 8) | HIPAA only for MVP; SOC 2 is for hospital sales (not MVP segment) |
+| Auto-scaling, multi-region DR | Phase 5 | V1.1 (Phase 5) | Single region, manual scaling for 5-doctor pilot |
+| Note signing with biometric | Phase 3 | V1.1 (Phase 6) | Password re-auth for MVP |
+| Note amendment with versioning | Phase 3 | V1.1 (Phase 5) | Edit + save sufficient for MVP |
+| Mobile-specific security (cert pinning, jailbreak detection) | Phase 5 | V1.1 (Phase 6-7) | Tied to native mobile launch |
+| Bug bounty program | Phase 9 | V1.2+ | Pen test only for MVP |
+| Internationalization architecture | V1.2+ | Year 2 | US-only for MVP |
+| Multi-specialty templates | V1.2 | V1.2+ | Family/Internal Medicine only initially |
+
+---
+
+### 23.4 PHASE 0 — Pre-Development Prerequisites (Weeks -4 to 0)
 
 **Goal:** Resolve every blocker that would halt or invalidate engineering work. No code is written in this phase.
 
@@ -3028,9 +3094,9 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 ---
 
-### 23.3 PHASE 1 — Foundation Sprint (Month 1)
+### 23.5 PHASE 1 — MVP Foundation (Month 1)
 
-**Goal:** Working infrastructure, CI/CD, authentication, and project skeleton — no user-facing features yet, but a doctor could log in and see an empty dashboard.
+**Goal:** Working HIPAA-compliant infrastructure, CI/CD, authentication, and project skeleton — a doctor can sign up, verify email, log in, see an empty dashboard. No product features yet.
 
 **Pre-requisites:** Phase 0 exit criteria met.
 
@@ -3038,32 +3104,32 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 | Workstream | Deliverable |
 |---|---|
-| Infrastructure | Azure subscription configured; Terraform monorepo structure; East US 2 environment provisioned (VNet, Container Apps, PostgreSQL Flexible Server with pgvector, Blob Storage, Key Vault, Service Bus, Event Grid, Front Door) |
-| DevOps | GitHub Actions CI/CD pipeline live; SAST/SCA/secret scanning gates active; Terraform plan/apply automation; Azurite local emulator setup |
-| Backend | FastAPI skeleton; SQLAlchemy + Alembic migrations; Pydantic schemas; row-level security policies; auth middleware; `/healthz`/`/readyz` endpoints; OpenAPI auto-gen |
-| Authentication | Auth0 integrated; signup/login/MFA flows working; JWT validation; refresh token rotation |
-| Database | Initial schema: doctors, patients, sessions, transcripts, extracted_outputs, audit_log; row-level security policies enforced |
-| Frontend | React PWA shell with React Router; Auth0 login flow; protected routes; design system foundations from Claude Design (color tokens, typography, components stubs); Storybook setup |
-| Design | Claude Design workspace populated with design system; recording screen, pre-visit brief, note review wireframes ratified by US Medical Advisor |
+| Infrastructure | Azure subscription configured; Terraform monorepo structure; East US 2 environment provisioned (VNet, Container Apps, PostgreSQL Flexible Server, Blob Storage with Immutability, Key Vault, Service Bus, Event Grid, Front Door). **Single region only — no DR yet.** |
+| DevOps | GitHub Actions CI/CD pipeline live; **CRITICAL Section 19.8 items only:** SAST/SCA/secret scanning gates; Terraform plan/apply automation; Azurite local emulator |
+| Backend | FastAPI skeleton; SQLAlchemy + Alembic; Pydantic schemas; row-level security policies; auth middleware; `/healthz`/`/readyz` endpoints; OpenAPI auto-gen |
+| Authentication | Auth0 integrated; signup/login flows; **email verification only (MFA deferred to V1.1)**; JWT validation; refresh token rotation |
+| Database | Initial schema: doctors, patients, sessions, transcripts, extracted_outputs, audit_log; row-level security enforced. **No pgvector yet** — added in V1.1 with semantic search |
+| Frontend | React PWA shell with React Router; Auth0 login flow; protected routes; design system foundations from Claude Design (color tokens, typography); Storybook setup |
+| Design | Claude Design workspace with design system; **recording screen + note review wireframes ratified by US Medical Advisor (NOT pre-visit brief — that's V1.1)** |
 | QA | Test infrastructure: pytest + httpx for backend; Vitest + React Testing Library for frontend; CI runs all tests |
 | Compliance | Audit log writes from auth events; WORM Blob policy configured |
 
 **Exit Criteria (Gate to Phase 2):**
-- ✅ A doctor can sign up, verify email, complete MFA, log in, see empty dashboard
+- ✅ A doctor can sign up, verify email, log in, see empty dashboard
 - ✅ All API endpoints behind authentication; row-level security verified by automated tests
 - ✅ Production deploy via PR merge works end-to-end
 - ✅ SAST/SCA gates blocking insecure code
 - ✅ Audit log capturing all auth events to WORM storage
 
-**Key Risks:** Team unfamiliar with Azure-specific quirks → mitigate with senior DevOps engineer. Auth0 + RLS integration complexity → spike early in Week 1.
+**What's NOT in this phase (vs. v2.6):** MFA, pgvector, two-party consent rules engine, multi-region DR, billing.
 
-**Team Focus:** All-hands on infrastructure and shell. No product features yet.
+**Team Focus:** All-hands on infrastructure and shell.
 
 ---
 
-### 23.4 PHASE 2 — Recording MVP (Month 2)
+### 23.6 PHASE 2 — MVP Core Loop (Month 2)
 
-**Goal:** A doctor can create a patient, start a recording session, and have the audio stored securely. No AI yet — just the capture pipeline working end-to-end.
+**Goal:** End-to-end loop working: doctor creates patient → records 20-min consultation → receives AI-generated note within 90 seconds → can review, edit, sign. **This phase IS the MVP.**
 
 **Pre-requisites:** Phase 1 exit criteria met.
 
@@ -3071,31 +3137,37 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 | Workstream | Deliverable |
 |---|---|
-| Backend | Patient CRUD endpoints (Module 2); Session start/chunks/complete endpoints (Module 3 partial); SAS URL generation for Blob uploads; consent recording endpoint |
-| Frontend (PWA) | Patient list + patient profile screens; "Add Patient" flow; recording screen with live waveform; one-tap session start; consent acknowledgement workflow (state-aware for two-party states) |
-| Audio Capture | Browser MediaRecorder integration; chunk-based upload via Service Worker; offline buffering on network drop; resumable upload on reconnect |
-| AI Pipeline | AssemblyAI integration tested with synthetic conversation; transcription webhook → backend ingestion; speaker diarization output validated |
-| Compliance | Two-party consent rules engine; clinic state detection from doctor profile; consent audit logged |
-| QA | Synthetic medical conversation dataset v1 (50 samples) created with Clinical Reviewer; integration tests for full upload pipeline |
-| Design | Recording screen polished per design system; live waveform animation; success/error states designed |
+| Backend | Patient CRUD endpoints (Module 2); Session lifecycle endpoints (Module 3 — start, chunks, complete); SAS URL generation for Blob uploads; basic consent acknowledgement endpoint; async note generation pipeline (Service Bus → Azure Functions → AssemblyAI → Azure OpenAI → DB); note CRUD with edit + save (no versioning yet); flag-as-inaccurate endpoint |
+| Frontend (PWA) | Patient list + patient profile screens; "Add Patient" flow; recording screen with live waveform; one-tap session start; **consent checkbox (simplified — full state-aware enforcement deferred to V1.1)**; note review screen with inline editing and password-re-auth signing; visible disclaimer until signed |
+| Audio Capture | Browser MediaRecorder; chunk-based upload via Service Worker; offline buffering on network drop; resumable upload on reconnect |
+| AI Pipeline | AssemblyAI integration; Azure OpenAI integration (GPT-4o for extraction, GPT-4o-mini for low-stakes); single Intelligence Layer template for Family Medicine; prompt template stored as versioned config |
+| MLOps (basic) | Synthetic medical conversation dataset (100 samples) co-created with Clinical Reviewer; basic schema validation; hallucination detection heuristics; manual quality review process |
+| Compliance | Note signature audit (timestamp + IP + content hash); signed notes immutable; Azure AI Content Safety integration; basic prompt-injection sanitization |
+| Design | Recording screen polished per design system; note review screen polished with trust-through-transparency interactions ("source" link to audio timestamp) |
+| QA | E2E test: synthetic conversation → note generated → doctor edits → signs → immutable; regression tests against golden dataset |
 
 **Exit Criteria (Gate to Phase 3):**
-- ✅ Doctor records a 20-minute synthetic conversation end-to-end without losing data
-- ✅ Audio chunks uploaded directly to Blob Storage via SAS URLs (never through API server)
-- ✅ Recording survives network interruption (Service Worker buffers, resumes upload)
-- ✅ AssemblyAI returns speaker-diarized transcript within target latency
-- ✅ Consent workflow enforced in two-party states (CA, FL, IL, etc.)
-- ✅ All recording metadata in audit log
+- ✅ Doctor records a 20-min synthetic conversation end-to-end without data loss
+- ✅ Audio chunks upload directly to Blob via SAS URLs (never traverse API server)
+- ✅ Recording survives network interruption (Service Worker buffers + resumes)
+- ✅ AssemblyAI returns speaker-diarized transcript with target latency
+- ✅ Note generated within p95 90 seconds end-to-end
+- ✅ Generated notes pass schema validation 95%+ of the time
+- ✅ Doctor can review, edit, sign via mobile browser
+- ✅ Signed notes immutable; disclaimer shown until signed
+- ✅ All actions logged to WORM audit trail
 
-**Key Risks:** Browser audio capture flakiness on iOS Safari → tested early in Week 1; PWA limitations may force native iOS sooner than planned. AssemblyAI webhook delivery in private VNet → use public endpoint with signature verification.
+**What's NOT in this phase (vs. v2.6):** Pre-visit brief, semantic search, note versioning, biometric signing, two-party consent rules engine, full state detection.
 
-**Team Focus:** Backend + Frontend on recording pipeline; AI/ML on AssemblyAI integration; QA building golden dataset.
+**Key Risks:** Browser audio capture flakiness on iOS Safari → spike Week 1 of Phase 2. AssemblyAI webhook in private VNet → use public endpoint with signature verification. GPT-4o latency variability → use Azure Functions Premium plan.
+
+**Team Focus:** Tight coordination — Backend + AI/ML + Frontend all working on the single happy-path loop.
 
 ---
 
-### 23.5 PHASE 3 — AI Note Generation (Month 3)
+### 23.7 PHASE 3 — MVP Hardening + Pilot Prep (Month 3)
 
-**Goal:** A doctor records a session, and within 90 seconds receives an AI-generated structured note that they can review, edit, and sign.
+**Goal:** Product is HIPAA-compliant, security-tested, and ready to onboard 5 pilot doctors handling real patient PHI. Audit-ready for the first time.
 
 **Pre-requisites:** Phase 2 exit criteria met.
 
@@ -3103,31 +3175,33 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 | Workstream | Deliverable |
 |---|---|
-| AI Pipeline | Azure OpenAI integration (GPT-4o for note extraction, GPT-4o-mini for lower-stakes); prompt template stored as versioned config; Intelligence Layer abstraction |
-| Backend | Async note generation pipeline (Service Bus → Azure Functions → AssemblyAI → Azure OpenAI → DB); note CRUD with versioning; note signing workflow with biometric placeholder; flag-as-inaccurate endpoint |
-| Frontend (PWA) | Note review screen with section-by-section structure; inline editing; "source" link to audio timestamp; visible disclaimer until signed; sign-and-save flow |
-| MLOps | Golden dataset v2 (200 samples); automated evaluation pipeline; output schema validation; hallucination detection heuristics |
-| Compliance | Note signature audit (timestamp + IP + content hash); immutable signed notes; Azure AI Content Safety integration |
-| Design | Note review screen polished; trust-through-transparency interactions (source highlighting); error states for generation failure |
-| QA | End-to-end test: synthetic conversation → note generated → doctor edits → signs → immutable; regression tests against golden dataset |
+| Compliance | HIPAA self-audit complete; all CRITICAL items from Section 19.8 addressed (SAST/DAST/SCA pipeline active, AI security controls — prompt injection, output validation, content filtering, prompt template integrity); BAAs verified active |
+| Security | Third-party penetration test scoped to MVP surface; all Critical/High findings remediated; cross-tenant isolation tests in CI verifying every endpoint; PHI log scrubbing middleware |
+| Operations | Status page (status.clinrecall.com); incident response runbook v1; on-call rotation for 5-doctor pilot; Sentry + Application Insights alerting; Slack-based bug triage |
+| AI Safety | Quarterly red-team exercise plan documented; output validation rejects out-of-schema content; max 2 regeneration attempts honored |
+| Pilot Onboarding | Pilot doctor onboarding playbook (60-min initial training); patient consent script provided; pilot dashboard for ops team to monitor each doctor's usage; weekly feedback call agenda template |
+| Product | Pilot-only feature flags (e.g., manual data export support, direct line to engineering); single-specialty (Family Medicine + Internal Medicine) UX validated |
 
 **Exit Criteria (Gate to Phase 4):**
-- ✅ End-to-end p95 note generation latency ≤90s
-- ✅ Generated notes pass schema validation 99%+ of the time
-- ✅ Doctor can review, edit, and sign notes via mobile browser without friction
-- ✅ Signed notes are immutable; subsequent edits create new versions
-- ✅ Output validation rejects content outside schema; max 2 regeneration attempts honored
-- ✅ All generated content carries disclaimer until signed
+- ✅ Penetration test report shows no Critical/High open findings
+- ✅ HIPAA self-audit checklist 100% complete
+- ✅ All Section 19.8 CRITICAL items operational (SAST/DAST/SCA blocking, AI security controls active)
+- ✅ Cross-tenant isolation tests passing in CI for every endpoint
+- ✅ Status page live; incident runbooks documented; on-call rotation active
+- ✅ 5 pilot doctors confirmed (signed pilot agreement, scheduled onboarding)
+- ✅ All MVP code paths covered by automated tests; production-grade observability live
 
-**Key Risks:** GPT-4o latency variability → tested with Premium plan to avoid Function cold starts. Output schema drift across model versions → strict validation + golden dataset regression. Prompt injection from patient speech → sanitization at transcript ingestion.
+**What's NOT in this phase (vs. v2.6):** Subscription billing (pilot is free), patient rights workflows automation (manual handling for ≤100 patients), SOC 2 audit (deferred to V1.2).
 
-**Team Focus:** AI/ML lead drives Intelligence Layer; Frontend on note review UX (the trust moment); QA expanding golden dataset.
+**Key Risks:** Pen test reveals architectural issues → buffer 2 weeks in this phase for remediation. Pilot doctor onboarding may surface workflow surprises before formal pilot starts.
+
+**Team Focus:** Security + Compliance leadership; QA expands automation; Customer Success Manager (PT) onboarded.
 
 ---
 
-### 23.6 PHASE 4 — Memory Layer (Month 4)
+### 23.8 PHASE 4 — MVP Closed Pilot (Month 4)
 
-**Goal:** The product's differentiator — pre-visit briefs, semantic search, and longitudinal patient context — works at quality.
+**Goal:** 5 pilot doctors using the product with real patients for 4 consecutive weeks. The first time the system handles real PHI in production. Generate the data needed for the MVP Validation Gate decision.
 
 **Pre-requisites:** Phase 3 exit criteria met.
 
@@ -3135,92 +3209,141 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 | Workstream | Deliverable |
 |---|---|
-| AI Pipeline | Pre-visit brief generation pipeline (cross-session context aggregation + GPT-4o-mini); embedding generation for all notes (text-embedding-3-large); pgvector index optimization (HNSW) |
-| Backend | `/v1/patients/{id}/pre-visit-brief` endpoint; search endpoints (hybrid pgvector + full-text); patient history endpoints with pagination; follow-up tracking schema |
-| Frontend (PWA) | Pre-visit brief card on patient profile (loads <1s); search screen with semantic+keyword results; full patient history view; follow-up indicators |
-| Caching | Redis caching for pre-visit briefs (60-min TTL); patient list cache (1-min TTL); cache invalidation on note updates |
-| Performance | API SLOs verified for read endpoints (p95 250ms, search p95 800ms); database query plans reviewed; PgBouncer in transaction mode |
-| Design | Pre-visit brief design polished — the differentiator; search results presentation (semantic match highlighting) |
+| Customer | All 5 pilot doctors fully onboarded (signed, trained, recorded first session within Week 1); weekly 30-min feedback calls with each doctor |
+| Operations | 24/7 monitoring active; bug triage process running; daily ops standup; doctor-reported issues tracked in dedicated queue with <4 hour acknowledgement SLA |
+| Engineering | Bug fixes from real usage prioritized over new features; performance tuning based on production telemetry; AI quality improvements based on flagged notes |
+| MLOps | Real production conversations evaluated weekly; prompt template adjustments deployed via feature flags (cohort by cohort); hallucination rate, doctor edit rate, note quality satisfaction tracked daily |
+| Design | Usability sessions with all 5 pilot doctors (15-min, biweekly); friction points documented; UX adjustments deployed within sprint cycle |
+| Compliance | Real audit logs reviewed weekly for anomalies; first quarterly access review |
+| Product | Daily metrics dashboard tracking the 4 critical questions for the MVP Validation Gate |
 
-**Exit Criteria (Gate to Phase 5):**
-- ✅ Pre-visit brief generated for any patient with ≥1 prior session, p95 <1s render
-- ✅ Semantic search finds notes about "lumbar strain" when querying "back pain"
-- ✅ Cross-session pattern detection working (e.g., "knee pain mentioned in 3 of last 4 visits")
-- ✅ All performance SLOs met under simulated load
-- ✅ Pre-visit brief content evaluated against golden dataset >90% accuracy
+**Daily Metrics Tracked (Critical for Validation Gate):**
 
-**Key Risks:** pgvector performance at scale unknown — load test with 100K embeddings. Pre-visit brief quality drops if past notes are sparse — handle gracefully ("Limited prior context available").
+| Metric | What It Tells Us |
+|---|---|
+| Doctor edit rate per note (% of notes edited >2 sentences) | Does AI quality justify the workflow? |
+| Time from recording end to signed note (median) | Does the workflow fit a clinic day? |
+| Sessions per active doctor per week | Is the product becoming part of the workflow? |
+| Doctor-reported note quality satisfaction (1-5 weekly) | Trust signal |
+| Number of doctors saying "I don't want to go back" by Week 4 | Product-market fit signal |
 
-**Team Focus:** AI/ML on the differentiator; Backend on search performance; Designer ensures pre-visit brief screen wow-factor.
+**Exit Criteria (Gate to MVP VALIDATION DECISION):**
+- ✅ All 5 pilot doctors actively using product (≥10 sessions/week each by Week 3)
+- ✅ Production stability: zero CRITICAL bugs unresolved >24 hours
+- ✅ All 4 weeks of data collected for MVP Validation Gate decision
+- ✅ Daily metrics dashboard accurate and trusted
+
+**Key Risks:** Real PHI surfaces edge cases not covered by synthetic data — buffer engineering capacity for fast bug response. Pilot doctors may churn early if onboarding is rough — invest in white-glove daily check-ins for Week 1.
+
+**Team Focus:** Customer Success daily; Engineering on stabilization (no new feature work); PM synthesizes feedback nightly.
 
 ---
 
-### 23.7 PHASE 5 — Compliance & Hardening (Month 5)
+### 23.9 ████ MVP VALIDATION GATE — Go / No-Go / Iterate ████
 
-**Goal:** The product is audit-ready, secure, billable, and supports the full regulatory and operational scope. Ready to handle real PHI.
+**This is the most important decision in the entire plan.**
 
-**Pre-requisites:** Phase 4 exit criteria met.
+After Phase 4's 4-week closed pilot, leadership makes a Go/No-Go/Iterate decision based on real production data — not opinions.
+
+#### Decision Framework
+
+| Signal | Threshold | Decision Implication |
+|---|---|---|
+| Doctor edit rate per note | <30% — strong | <50% — borderline | >50% — weak |
+| Time from recording end to signed note (median) | <4 min — strong | <7 min — borderline | >7 min — weak |
+| Sessions per doctor per week (Week 4) | >15 — strong | 8-15 — borderline | <8 — weak |
+| Doctor-reported note quality satisfaction (Week 4 avg) | >4.0 — strong | 3.5-4.0 — borderline | <3.5 — weak |
+| Doctors saying "I don't want to go back" | 4-5 of 5 — strong | 2-3 of 5 — borderline | 0-1 of 5 — weak |
+| Production stability (uptime, CRITICAL incidents) | >99.5%, 0 CRIT — strong | 99-99.5%, 1 CRIT — borderline | <99%, >1 CRIT — weak |
+
+#### Three Possible Outcomes
+
+**🟢 GREEN — Strong on 4+ signals → GO to V1.1**
+Confidence in core thesis confirmed. Begin Phase 5 (V1.1 Differentiation Build) immediately. Invest in pre-visit brief, semantic search, billing, native mobile.
+
+**🟡 YELLOW — Borderline on 3+ signals → ITERATE**
+Core thesis directionally right but execution needs improvement. Extend MVP pilot 4 more weeks with targeted fixes (typically: prompt engineering, UX friction, performance). Re-run gate at Week 8. Do NOT begin V1.1 differentiation work yet.
+
+**🔴 RED — Weak on 3+ signals → STOP / PIVOT**
+Core thesis is broken. Stop forward investment. Conduct deep customer discovery to understand why. Possible outcomes: pivot product positioning, pivot target segment, kill product. **Saves $200K+ of wasted V1.1 engineering.**
+
+#### Why This Gate Matters
+
+The original v2.6 plan committed to building pre-visit brief, search, billing, and native mobile *before* knowing if the basic loop worked. That's $200K-$300K of engineering on assumptions.
+
+This gate forces a deliberate, data-informed bet on V1.1 — or saves the team from making it.
+
+The gate is not a formality. Founders + CTO + PM + Lead Designer + US Medical Advisor all participate in the decision, with pilot doctor data front and center.
+
+---
+
+### 23.10 PHASE 5 — V1.1 Differentiation Build (Months 5-6) — *Conditional on Green Gate*
+
+**Goal:** Build the differentiator features that turn 60-day pilots into paid annual subscribers. Pre-visit brief, semantic search, subscription billing, full state-aware compliance, and native iOS app.
+
+**Pre-requisites:** MVP Validation Gate = GREEN.
 
 **Workstream Deliverables:**
 
 | Workstream | Deliverable |
 |---|---|
-| Compliance | HIPAA self-audit complete; SOC 2 Type I gap assessment via Vanta/Drata; data retention policies enforced; patient rights workflows (Module 10) |
-| Security | Third-party penetration test; remediation of Critical/High findings; cross-tenant isolation tests in CI; secret rotation policies; PHI log scrubbing middleware |
-| Subscription/Billing | Stripe integration end-to-end; 60-day trial; subscription lifecycle; webhook handling; invoice generation; cancellation + 90-day data retention |
-| Operations | Status page (status.clinrecall.com); incident response runbook; on-call rotation set up; Sentry + Application Insights alerting tuned |
-| AI Safety | Guardrails verified — no diagnoses, no medication dosages without doctor verification; prompt template integrity verification; quarterly red-team exercise plan |
-| Backend | Subscription endpoints (Module 7); patient rights endpoints (Module 6); admin endpoints with separate scope |
-| Frontend | Subscription management screen; trial countdown; payment method update; data export download |
+| AI Pipeline | Pre-visit brief generation pipeline (cross-session context aggregation + GPT-4o-mini); embedding generation for all notes (text-embedding-3-large); pgvector index optimization (HNSW) |
+| Backend | `/v1/patients/{id}/pre-visit-brief` endpoint; hybrid search endpoints (pgvector + full-text); follow-up tracking schema; full subscription/billing endpoints (Module 7); patient rights endpoints (Module 6); two-party consent state engine (Module 8); note versioning with amendments (Module 9) |
+| Frontend (PWA) | Pre-visit brief card (loads <1s); semantic+keyword search; full patient history view with follow-up indicators; subscription management screen; trial countdown; payment flow |
+| Native iOS (NEW) | React Native app with custom Swift audio module; jailbreak detection, certificate pinning; biometric note signing (Face ID/Touch ID); App Attest; offline-capable reads via Service Worker equivalent |
+| Caching | Redis caching strategy from Section 19.8.18 implemented; cache invalidation rules tested |
+| Performance | API SLOs verified for read endpoints (p95 250ms, search p95 800ms); PgBouncer in transaction mode; database query plans reviewed |
+| Compliance | MFA mandatory enforced for all doctors; full state-aware two-party consent; patient rights workflows automated; SOC 2 Type I gap assessment kicked off |
+| Auto-Scaling | Section 19.8.19 auto-scaling rules deployed (Container Apps + Functions Premium plan) |
+| Design | Pre-visit brief — the differentiator screen — polished to wow-factor; native iOS UX adaptations |
+| Billing | Stripe integration end-to-end; 60-day trial; subscription lifecycle; webhook handling; invoice generation |
 
 **Exit Criteria (Gate to Phase 6):**
-- ✅ Penetration test report shows no Critical/High open findings
-- ✅ HIPAA self-audit checklist 100% complete
-- ✅ Subscription billing tested end-to-end (signup, charge, cancel, refund)
-- ✅ Patient rights workflows demonstrable (export, deletion, correction)
-- ✅ Status page live; incident runbooks documented; on-call rotation active
-- ✅ Cross-tenant isolation tests passing in CI for every endpoint
+- ✅ Pre-visit brief renders <1s for any patient with ≥1 prior session
+- ✅ Semantic search finds "lumbar strain" when querying "back pain"
+- ✅ Stripe billing tested end-to-end (signup, charge, cancel, refund)
+- ✅ Native iOS app feature-complete in TestFlight
+- ✅ MFA active for all doctors (existing pilot doctors migrated)
+- ✅ Two-party consent enforcement live in 11 states
+- ✅ All Section 19.8 HIGH severity items addressed
 
-**Key Risks:** Penetration test reveals architectural issues → buffer 2 weeks for remediation. SOC 2 readiness assessment may surface gaps requiring back-fill into earlier phases.
-
-**Team Focus:** All hands on hardening; QA expands automation; Security lead drives pen test remediation.
+**Team Focus:** AI/ML on differentiator; Native iOS engineer (contractor) onboarded; Backend on billing + patient rights; Design ensures pre-visit brief screen has wow-factor.
 
 ---
 
-### 23.8 PHASE 6 — Closed Pilot (Month 6)
+### 23.11 PHASE 6 — V1.1 Extended Pilot (Month 7)
 
-**Goal:** 5 pilot doctors using the product with real patients, generating real PHI, providing weekly feedback. The first time the system handles real production workload.
+**Goal:** 15-20 additional doctors onboarded; pre-visit brief and search receive real-doctor feedback; native iOS in TestFlight with pilot users; ready for paid public launch.
 
-**Pre-requisites:** Phase 5 exit criteria met. Pilot doctors onboarded with patient consent processes ready.
+**Pre-requisites:** Phase 5 exit criteria met.
 
 **Workstream Deliverables:**
 
 | Workstream | Deliverable |
 |---|---|
-| Customer | 5 pilot doctors fully onboarded (signed, trained, recorded first session); weekly 30-min feedback calls scheduled |
-| Operations | 24/7 monitoring active; bug triage process running; daily ops standup; doctor-reported issues tracked in dedicated queue |
-| Engineering | Bug fixes from real usage (priority over new features); performance tuning based on production telemetry; AI quality improvements based on flagged notes |
-| MLOps | Real production conversations evaluated weekly; prompt template adjustments deployed via feature flags; hallucination rate tracked |
-| Design | Usability sessions with all 5 pilot doctors (15-min, biweekly); friction points documented; UX adjustments prioritized |
-| Compliance | Real audit logs reviewed weekly for anomalies; first quarterly access review |
+| Customer | 15-20 additional doctors onboarded (Family Medicine + Internal Medicine); cohort retention tracking begun; original 5 pilot doctors begin paid trial (with grandfather discount) |
+| Engineering | Top 10 friction points from MVP feedback resolved; performance optimization at higher concurrency; pre-visit brief quality refinement based on real cross-session data |
+| Marketing | Marketing site live (clinrecall.com); content: how-it-works, security/HIPAA explainer, doctor case studies, pricing |
+| Sales | Outbound to physician communities (Doximity, LinkedIn); referral program design; 3+ doctor case study videos with willing pilot doctors |
+| Compliance | SOC 2 Type I audit kicked off (~3 months); bug bounty private launch (HackerOne) |
+| Operations | CSM full-time at end of Month 7; tier 1 support process active; help docs published |
+| Mobile | Native iOS app refined based on TestFlight feedback; preparing for App Store submission |
 
 **Exit Criteria (Gate to Phase 7):**
-- ✅ All 5 pilot doctors actively using product (≥10 sessions/week each)
-- ✅ Note quality satisfaction >85% (doctor-reported)
-- ✅ No CRITICAL bugs open >24 hours
-- ✅ Pilot doctor NPS >40
-- ✅ At least 2 pilot doctors say "I don't want to go back to how I worked before"
-- ✅ Production stability: 99.9% uptime sustained for 4 consecutive weeks
+- ✅ 20+ doctors active on product
+- ✅ Trial-to-paid conversion intent measurable (paying customer pipeline visible)
+- ✅ Marketing site complete with 3+ doctor case studies
+- ✅ Stripe billing tested at scale (10+ live subscriptions in trial)
+- ✅ Native iOS app feature-complete and stable in TestFlight
+- ✅ Pre-visit brief view rate >70% of sessions
 
-**Key Risks:** Real PHI surfaces edge cases not covered by synthetic data. Pilot doctors may churn early if onboarding is rough → invest in white-glove onboarding. AI accuracy regression in real-world conditions → tighten MLOps loop.
-
-**Team Focus:** Customer Success + Engineering on stabilization; PM on feedback synthesis; minimal new feature work.
+**Team Focus:** Customer Success scaling onboarding; Engineering polish; Founders on marketing pipeline.
 
 ---
 
-### 23.9 PHASE 7 — Extended Pilot & Polish (Month 7)
+### 23.12 PHASE 7 — V1.1 Public Launch + iOS App Store (Month 8)
 
-**Goal:** 15-20 additional doctors onboarded; product polished based on Phase 6 feedback; marketing site live; ready for paid public launch.
+**Goal:** Paid subscriptions open to public; native iOS app live in App Store; product can scale beyond pilot cohort.
 
 **Pre-requisites:** Phase 6 exit criteria met.
 
@@ -3228,45 +3351,14 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 | Workstream | Deliverable |
 |---|---|
-| Customer | 15-20 additional doctors onboarded (mix of family medicine + internal medicine specialties); cohort retention tracking begun |
-| Engineering | Top 10 friction points from Phase 6 resolved; performance optimization at higher concurrency; specialty-specific note templates if Phase 6 surfaces clear specialty differences |
-| Marketing | Marketing site live (clinrecall.com); content: how-it-works, security/HIPAA explainer, doctor case studies from Phase 6, pricing page |
-| Sales | Outbound to physician communities (Doximity, LinkedIn); referral program design; case study videos with willing pilot doctors |
-| Compliance | SOC 2 Type I audit kicked off; bug bounty program private launch (HackerOne) |
-| Operations | Customer Success Manager (US-based, part-time) onboarded; support tier 1 process active; help docs published |
-
-**Exit Criteria (Gate to Phase 8):**
-- ✅ 20+ doctors active on product
-- ✅ Trial-to-paid conversion intent measurable (waitlist of paying customers)
-- ✅ All Phase 6 friction points resolved
-- ✅ Marketing site complete with 3+ doctor case studies
-- ✅ Stripe billing tested at scale (10+ live subscriptions in trial)
-- ✅ Native iOS app feature-complete in TestFlight
-
-**Key Risks:** Specialty-specific UX issues (e.g., cardiologist needs differ from family medicine) — V1 stays focused on family medicine + internal medicine, defer others. Marketing claims must be reviewed by legal — no FDA-violating language.
-
-**Team Focus:** Engineering finishing polish; Customer Success scaling onboarding; Founders on marketing and sales pipeline.
-
----
-
-### 23.10 PHASE 8 — Public Launch + Native iOS (Month 8)
-
-**Goal:** Paid subscriptions open to public; native iOS app live in App Store; product can scale beyond pilot cohort.
-
-**Pre-requisites:** Phase 7 exit criteria met.
-
-**Workstream Deliverables:**
-
-| Workstream | Deliverable |
-|---|---|
-| Mobile | Native iOS app via React Native + custom Swift audio module submitted to App Store; TestFlight → App Store transition; production-grade audio reliability |
-| Marketing | Public launch announcement; press outreach (HIT News, KevinMD, etc.); paid acquisition channels live (Google Search, Doximity ads); referral program live |
+| Mobile | Native iOS app submitted to App Store; TestFlight → App Store transition; production-grade audio reliability validated |
+| Marketing | Public launch announcement; press outreach (HIT News, KevinMD); paid acquisition channels live (Google Search, Doximity ads); referral program live |
 | Customer | Self-serve signup flow polished; trial-to-paid funnel measured; cohort retention dashboards live |
-| Operations | Customer Success Manager full-time; on-call expanded; SLA monitoring per doctor cohort |
-| Compliance | SOC 2 Type I audit in progress (~3 months); bug bounty private program with 5+ active researchers |
+| Operations | On-call rotation expanded; per-doctor SLA monitoring |
+| Compliance | SOC 2 Type I audit in progress; bug bounty active with 5+ researchers |
 | AI/ML | Weekly evaluation cycles institutionalized; doctor feedback loop integrated into prompt iteration |
 
-**Exit Criteria (Gate to Phase 9):**
+**Exit Criteria (Gate to Phase 8):**
 - ✅ Native iOS app live in App Store with 4+ star rating from initial reviews
 - ✅ 50+ paying doctors
 - ✅ MRR >$5,000
@@ -3274,29 +3366,28 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 - ✅ Customer-reported critical bugs <2/week
 - ✅ Trial-to-paid conversion ≥10% (industry benchmark)
 
-**Key Risks:** App Store review may surface compliance issues (microphone usage, health claims) — submit to TestFlight early in Phase 7 to surface issues. Public traffic exposes scaling issues invisible at pilot scale.
-
 **Team Focus:** Mobile + Marketing dominate; Engineering on scale operations; Customer Success on conversion optimization.
 
 ---
 
-### 23.11 PHASE 9 — Year 1 Optimization (Months 9-12)
+### 23.13 PHASE 8 — V1.2 Year 1 Optimization (Months 9-12)
 
-**Goal:** Scale to 500 paying doctors; achieve SOC 2 Type I; open native Android; close Year 1 with proven unit economics and Series Seed-ready metrics.
+**Goal:** Scale to 500 paying doctors; achieve SOC 2 Type I; launch native Android; close Year 1 with proven unit economics and Series Seed-ready metrics.
 
-**Pre-requisites:** Phase 8 exit criteria met.
+**Pre-requisites:** Phase 7 exit criteria met.
 
 **Workstream Deliverables:**
 
 | Workstream | Deliverable |
 |---|---|
 | Compliance | SOC 2 Type I report achieved; SOC 2 Type II preparation begun |
-| Mobile | Native Android app live in Play Store (Month 10) |
-| Engineering | Database optimizations (read replicas if needed); auto-scaling tuned; cost-per-doctor monitored monthly; performance regression alerts |
-| AI/ML | Multi-specialty prompt templates (initially family medicine; cardiology and orthopedics evaluated based on demand) |
+| Mobile (Android) | Native Android app live in Play Store (Month 10) — same React Native codebase + Kotlin audio module |
+| Engineering | Database optimizations (read replicas if needed); auto-scaling tuned per real load; cost-per-doctor monitored monthly; performance regression alerts |
+| AI/ML | Multi-specialty prompt templates (Family Medicine refined; Cardiology and Orthopedics evaluated based on demand); MLOps fully institutionalized |
 | Customer | Onboarding fully self-serve; in-app help and FAQs; tier 1 support metrics tracked; churn analysis at cohort level |
 | Marketing | Content marketing engine running; SEO traction; partnership conversations with state medical associations and specialty societies |
 | Funding | Series Seed close ($750K-$1M) with 18+ months runway extended; investor metrics deck up to date |
+| Operations | Multi-region DR activated (West US 2 warm-standby); business continuity tabletop exercise |
 
 **Exit Criteria (Year 1 Close):**
 - ✅ 500+ paying doctors (or revised target with explanation)
@@ -3314,25 +3405,30 @@ PHASE 9  ─ Year 1 Optimization                Months 9-12     Native Android, 
 
 ---
 
-### 23.12 Phase Effort & Team Allocation Summary
+### 23.14 Phase Effort & Team Allocation Summary
 
-| Phase | Duration | Primary Team Focus | Estimated Effort (Person-Weeks) |
-|---|---|---|---|
-| Phase 0 | 4 weeks | Founders + Legal + Regulatory | 24 (mostly external advisors) |
-| Phase 1 | 4 weeks | All-hands infrastructure | 36 (9 FTE × 4 weeks) |
-| Phase 2 | 4 weeks | Backend + Frontend + AI/ML | 36 |
-| Phase 3 | 4 weeks | AI/ML + Frontend (note review) | 36 |
-| Phase 4 | 4 weeks | AI/ML + Backend (search) | 36 |
-| Phase 5 | 4 weeks | Compliance + Security + QA | 36 |
-| Phase 6 | 4 weeks | Customer Success + Engineering ops | 36 |
-| Phase 7 | 4 weeks | Mobile + Marketing + Engineering | 40 (CSM joins) |
-| Phase 8 | 4 weeks | Mobile + Marketing + Operations | 40 |
-| Phase 9 | 16 weeks | Scale operations + Compliance | 160 |
-| **Total Year 1** | **52 weeks** | — | **~480 person-weeks** |
+| Phase | Track | Duration | Primary Team Focus | Estimated Effort (Person-Weeks) |
+|---|---|---|---|---|
+| Phase 0 | Pre-Dev | 4 weeks | Founders + Legal + Regulatory | 24 (mostly external advisors) |
+| Phase 1 | MVP | 4 weeks | All-hands infrastructure (stripped) | 36 (9 FTE × 4 weeks) |
+| Phase 2 | MVP | 4 weeks | Backend + Frontend + AI/ML — single core loop | 36 |
+| Phase 3 | MVP | 4 weeks | Compliance + Security + Pilot Prep | 36 |
+| Phase 4 | MVP | 4 weeks | Customer Success + Engineering ops + MLOps | 36 |
+| **MVP Validation Gate** | — | — | Decision meeting (1 day) | 0 |
+| Phase 5 | V1.1 | 8 weeks | AI/ML differentiator + Backend + Native iOS contractor | 80 |
+| Phase 6 | V1.1 | 4 weeks | Engineering polish + Marketing + Customer Success | 40 |
+| Phase 7 | V1.1 | 4 weeks | Mobile launch + Marketing + Operations | 40 |
+| Phase 8 | V1.2 | 16 weeks | Scale operations + Compliance (SOC 2) + Android | 160 |
+| **Total Year 1** | — | **52 weeks** | — | **~488 person-weeks** |
+
+**Critical timing comparison:**
+- v2.6 plan: First doctor with real PHI = end of Month 6 (24 weeks from kickoff)
+- **v2.7 plan: First doctor with real PHI = end of Month 4 (16 weeks from kickoff)**
+- **8 weeks earlier = 2 months of de-risked feedback** before committing $200K+ to V1.1 differentiator features
 
 ---
 
-### 23.13 Cross-Cutting Engineering Practices (All Phases)
+### 23.15 Cross-Cutting Engineering Practices (All Phases)
 
 These practices begin in Phase 1 and continue throughout:
 
@@ -3350,7 +3446,7 @@ These practices begin in Phase 1 and continue throughout:
 
 ---
 
-### 23.14 Definition of "Done" (Applies to Every Feature)
+### 23.16 Definition of "Done" (Applies to Every Feature)
 
 A feature is not "done" until ALL the following are true:
 
@@ -3370,7 +3466,7 @@ This definition exists because "done" is the most over-claimed status in softwar
 
 ---
 
-### 23.15 Risk-Driven Phase Adjustments
+### 23.17 Risk-Driven Phase Adjustments
 
 Phases may need adjustment based on real-world findings. The decision framework:
 
@@ -3387,14 +3483,14 @@ The goal is not to follow the plan — it's to ship a product doctors love, prof
 
 ---
 
-### 23.16 What Comes After Phase 9 (Year 2 Outlook)
+### 23.18 What Comes After Phase 8 (Year 2 Outlook)
 
 Year 2 priorities derived from Year 1 phase outcomes — not pre-committed but anticipated:
 
-- **EHR integration** (Epic, Cerner connectors) — Phase 10-11
-- **ConsentDoc Phase 2 product** for hospital surgical consent (Section 20.1)
+- **EHR integration** (Epic, Cerner connectors)
+- **ConsentDoc product** for hospital surgical consent (Section 20.1)
 - **SOC 2 Type II** completion
-- **Multi-specialty templates** beyond family medicine
+- **Multi-specialty templates** beyond Family Medicine + Internal Medicine
 - **HITRUST certification** preparation for hospital sales
 - **International expansion** (Canada first per Section 19.7)
 - **Series A funding** based on validated metrics
@@ -3403,9 +3499,27 @@ These items move into discrete phases as Year 1 data informs prioritization.
 
 ---
 
+### 23.19 The MVP-First Bet — Why It Matters
+
+The discipline encoded in this section can be summarised as a single principle:
+
+> **Spend the smallest possible amount of money to learn whether the most important thing is true.**
+
+The most important thing is whether AI-generated clinical notes are accurate enough that doctors will sign them without major edits. Every other product capability — pre-visit briefs, search, native mobile, billing — is downstream of that question.
+
+By front-loading **only the work needed to test that question**, we:
+- Get to real-doctor feedback in ~16 weeks instead of ~24 weeks
+- Save $200K-$300K of engineering investment that would otherwise occur on an unvalidated thesis
+- Earn the right to invest confidently in differentiation
+- Or, if the thesis is wrong, learn it cheaply and pivot before exhausting runway
+
+This is not "lean for the sake of lean." It's optimal capital allocation under uncertainty — exactly what an early-stage healthcare AI product requires.
+
+---
+
 *This phased strategy is the engineering execution arm of the BRD. Sections 1-22 define the what and why. Section 23 defines the how and when.*
 
 ---
 
-*ClinRecall BRD v2.6 — Confidential — April 25, 2026*
-*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering (23 findings). v2.5 — New Section 9 User Experience Design; sections renumbered. v2.6 — New Section 23 Phased Implementation Strategy: 9 sequential phases (Phase 0 Pre-Dev through Phase 9 Year 1 Optimization), workstream deliverables, exit criteria, risk gates, definition-of-done. Engineering execution plan complete.*
+*ClinRecall BRD v2.7 — Confidential — April 25, 2026*
+*v2.0 — Senior Architect + PM review. v2.1 — React Native + native audio modules. v2.2 — Backend API design. v2.3 — Azure + GPT-4o; 92% gross margin. v2.4 — Section 19.8 Security & Performance Engineering. v2.5 — New Section 9 User Experience Design. v2.6 — Section 23 Phased Implementation Strategy. v2.7 — Section 23 restructured around MVP-first discipline: MVP Track (Months 1-4) + MVP Validation Gate + V1.1 Differentiation (Months 5-8) + V1.2 Optimization (Months 9-12). Pre-visit brief, semantic search, billing, native mobile, MFA, SOC 2 deferred from MVP to V1.1. First doctor with real PHI in 16 weeks instead of 24.*
