@@ -1,10 +1,23 @@
 import React, { useState } from 'react'
+import axios from 'axios'
 import useProjects from '../hooks/useProjects'
 import usePIs from '../hooks/usePIs'
 
 export default function SettingsPage() {
   const { projects, loading, addProject, removeProject, updateProject } = useProjects()
   const { pis, loading: pisLoading, createPI, deletePI } = usePIs()
+  const [disconnecting, setDisconnecting] = useState(false)
+
+  const handleDisconnect = async () => {
+    if (!confirm('Disconnect Jira? You will need to re-authenticate to use the app.')) return
+    setDisconnecting(true)
+    try {
+      await axios.get('/oauth/jira/logout')
+      window.location.href = '/'
+    } finally {
+      setDisconnecting(false)
+    }
+  }
   const [key, setKey] = useState('')
   const [name, setName] = useState('')
   const [status, setStatus] = useState(null)
@@ -72,6 +85,14 @@ export default function SettingsPage() {
           <h1 className="page-header__title">Tracked Projects</h1>
           <span className="page-header__sub">Add Jira projects to monitor their initiatives</span>
         </div>
+        <button
+          className="btn btn--danger"
+          onClick={handleDisconnect}
+          disabled={disconnecting}
+          style={{ alignSelf: 'center' }}
+        >
+          {disconnecting ? 'Disconnecting...' : 'Disconnect Jira'}
+        </button>
       </div>
 
       <form className="settings-form" onSubmit={handleAdd}>

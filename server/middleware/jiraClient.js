@@ -27,7 +27,7 @@ async function jiraClientMiddleware(req, res, next) {
     }
   }
 
-  req.jira = new JiraClient({ accessToken: auth.access_token, cloudId: auth.cloud_id })
+  req.jira = new JiraClient({ accessToken: auth.access_token, cloudId: auth.cloud_id, siteUrl: auth.site_url })
   next()
 }
 

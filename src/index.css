@@ -1097,3 +1097,50 @@ button {
   .pf-person-row { flex-wrap: wrap; }
 }
 .pi-timeline__legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* ── Team Activity ── */
+.ta-section { margin-bottom: 32px; }
+.ta-subsection { }
+.ta-subsection__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #42526E;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px 0;
+}
+.ta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.ta-table th {
+  background: #F4F5F7;
+  color: #5E6C84;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid #DFE1E6;
+}
+.ta-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #F4F5F7;
+  color: #172B4D;
+}
+.ta-table tr:hover td { background: #FAFBFC; }
+.ta-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  background: #DFE1E6;
+  color: #42526E;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+}

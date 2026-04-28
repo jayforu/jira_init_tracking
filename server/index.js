@@ -1,4 +1,5 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') })
+require('events').EventEmitter.defaultMaxListeners = 30
 
 const express = require('express')
 const cors = require('cors')
@@ -23,6 +24,7 @@ app.use('/api/jira', require('./routes/jira'))
 app.use('/api/executive', require('./routes/executive'))
 app.use('/api/pis', require('./routes/pis'))
 app.use('/api/portfolio', require('./routes/portfolio'))
+app.use('/api/team-activity', require('./routes/teamActivity'))
 
 app.get('/api/health', (_, res) => res.json({ ok: true }))
 

@@ -23,6 +23,9 @@ export default function Nav() {
         <Link to="/portfolio" className={`nav__link ${pathname === '/portfolio' ? 'nav__link--active' : ''}`}>
           Portfolio
         </Link>
+        <Link to="/team-activity" className={`nav__link ${pathname === '/team-activity' ? 'nav__link--active' : ''}`}>
+          Team Activity
+        </Link>
       </div>
       <Link to="/settings">
         <button className="nav__settings">⚙ Settings</button>
