@@ -2,6 +2,32 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import useProjects from '../hooks/useProjects'
 import usePIs from '../hooks/usePIs'
+import { useBoards } from '../hooks/useAgile'
+
+function TrackedBoardSelector({ project, updateProject }) {
+  const { boards, loading } = useBoards(project.key)
+  if (loading) return <span style={{ color: '#6B778C', fontSize: 11 }}>Loading boards…</span>
+  if (!boards.length) return <span style={{ color: '#6B778C', fontSize: 11 }}>No boards available</span>
+  return (
+    <select
+      className="pf-select"
+      value={project.tracked_board_id || ''}
+      onChange={e => {
+        const b = boards.find(x => String(x.id) === e.target.value)
+        updateProject(project.key, {
+          tracked_board_id: b ? b.id : null,
+          tracked_board_name: b ? b.name : null
+        })
+      }}
+      style={{ fontSize: 12, minWidth: 200 }}
+    >
+      <option value="">— None —</option>
+      {boards.map(b => (
+        <option key={b.id} value={b.id}>{b.name} ({b.type})</option>
+      ))}
+    </select>
+  )
+}
 
 export default function SettingsPage() {
   const { projects, loading, addProject, removeProject, updateProject } = useProjects()
@@ -128,6 +154,7 @@ export default function SettingsPage() {
               <th>Display Name</th>
               <th>Project Key</th>
               <th>Test Source</th>
+              <th>Tracked Board</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -135,7 +162,7 @@ export default function SettingsPage() {
           <tbody>
             {projects.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#6B778C' }}>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#6B778C' }}>
                   No projects configured yet. Add one above.
                 </td>
               </tr>
@@ -172,6 +199,9 @@ export default function SettingsPage() {
                        testSource === 'both'    ? 'Tests from both epics and their stories (deduplicated)' :
                                                   'Tests linked directly to epics'}
                     </div>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <TrackedBoardSelector project={p} updateProject={updateProject} />
                   </td>
                   <td style={{ padding: '12px' }}>
                     <span className="status-badge status-badge--connected">Connected</span>

@@ -67,7 +67,6 @@ async function syncProject(projectKey) {
 
     // 2. Fetch epics + subtasks + tests for each initiative
     const allEpics = []
-    const allDevData = []
     for (const initiative of initiatives) {
       const rawEpics = await jira.searchJQL(
         `parent = ${initiative.key} AND issuetype = Epic ORDER BY created ASC`,
@@ -111,16 +110,6 @@ async function syncProject(projectKey) {
           }
           testKeys = extractTestKeys(links)
         }
-
-        // Fetch PR + commit data per story in parallel (background, stored for Team Activity)
-        const storyDevData = await Promise.all(stories.map(async story => {
-          const [prs, commits] = await Promise.all([
-            jira.getPRsForIssue(story.id),
-            jira.getCommitsForIssue(story.id)
-          ])
-          return { story_key: story.key, epic_key: epic.key, project_key: projectKey, prs, commits }
-        }))
-        allDevData.push(...storyDevData)
 
         // Aggregate child-item assignees
         const memberMap = {}
@@ -195,17 +184,12 @@ async function syncProject(projectKey) {
     for (const key of pinnedKeys) {
       db.get('initiatives').remove({ key, project_key: projectKey }).write()
       db.get('epics').remove({ initiative_key: key, project_key: projectKey }).write()
-      db.get('story_dev_data').remove({ project_key: projectKey, epic_key: { $in: allEpics.filter(e => e.initiative_key === key).map(e => e.key) } }).write()
     }
-    db.get('story_dev_data').remove({ project_key: projectKey }).write()
     if (initiatives.length) {
       db.get('initiatives').push(...initiatives.map(i => ({ ...i, synced_at: now }))).write()
     }
     if (allEpics.length) {
       db.get('epics').push(...allEpics.map(e => ({ ...e, synced_at: now }))).write()
-    }
-    if (allDevData.length) {
-      db.get('story_dev_data').push(...allDevData.map(d => ({ ...d, synced_at: now }))).write()
     }
 
     db.get('sync_state').set(projectKey, { status: 'idle', last_synced_at: now, error: null }).write()

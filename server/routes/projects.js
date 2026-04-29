@@ -39,7 +39,7 @@ router.patch('/:key', (req, res) => {
   const project = db.get('projects').find({ key }).value()
   if (!project) return res.status(404).json({ error: 'Project not found' })
 
-  const allowed = ['test_source']
+  const allowed = ['test_source', 'tracked_board_id', 'tracked_board_name']
   const updates = {}
   for (const field of allowed) {
     if (req.body[field] !== undefined) updates[field] = req.body[field]

@@ -18,8 +18,7 @@ db.defaults({
   sync_state: {},
   pis: [],
   pi_initiatives: [],
-  pi_epics: [],
-  story_dev_data: []
+  pi_epics: []
 }).write()
 
 module.exports = db

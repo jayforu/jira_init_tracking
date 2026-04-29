@@ -25,6 +25,7 @@ app.use('/api/executive', require('./routes/executive'))
 app.use('/api/pis', require('./routes/pis'))
 app.use('/api/portfolio', require('./routes/portfolio'))
 app.use('/api/team-activity', require('./routes/teamActivity'))
+app.use('/api/agile', require('./routes/agile'))
 
 app.get('/api/health', (_, res) => res.json({ ok: true }))
 

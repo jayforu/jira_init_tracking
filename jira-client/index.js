@@ -79,6 +79,134 @@ class JiraClient {
     return res.data.issueTypes || []
   }
 
+  // ── Agile API (boards + sprints) — uses Basic Auth via site URL ───────────
+
+  async getBoards(projectKey) {
+    const email = process.env.JIRA_EMAIL
+    const apiToken = process.env.JIRA_API_TOKEN
+    if (!email || !apiToken || !this.siteUrl) return []
+    try {
+      const all = []
+      let startAt = 0
+      while (true) {
+        const res = await axios.get(`${this.siteUrl}/rest/agile/1.0/board`, {
+          auth: { username: email, password: apiToken },
+          params: { projectKeyOrId: projectKey, maxResults: 50, startAt }
+        })
+        all.push(...(res.data.values || []))
+        if (res.data.isLast || !res.data.values?.length) break
+        startAt += 50
+      }
+      return all.map(b => ({ id: b.id, name: b.name, type: b.type }))
+    } catch {
+      return []
+    }
+  }
+
+  async getBoardFilterJQL(boardId) {
+    const email = process.env.JIRA_EMAIL
+    const apiToken = process.env.JIRA_API_TOKEN
+    if (!email || !apiToken || !this.siteUrl) return null
+    try {
+      const config = await axios.get(`${this.siteUrl}/rest/agile/1.0/board/${boardId}/configuration`, {
+        auth: { username: email, password: apiToken }
+      })
+      const filterId = config.data.filter?.id
+      if (!filterId) return null
+      const filter = await axios.get(`${this.siteUrl}/rest/api/3/filter/${filterId}`, {
+        auth: { username: email, password: apiToken }
+      })
+      const baseJQL = filter.data.jql
+      if (!baseJQL) return null
+      const stripOrderBy = q => q.replace(/\s+ORDER\s+BY\s+.*$/i, '').trim()
+      const parts = [`(${stripOrderBy(baseJQL)})`]
+
+      // subQuery — e.g. kanban "fixVersion in unreleasedVersions()"
+      const subQuery = config.data.subQuery?.query
+      if (subQuery) parts.push(`(${stripOrderBy(subQuery)})`)
+
+      // Restrict to the issues actually rendered on the board across all
+      // swimlanes (Group: Queries). Returns numeric issue IDs from Jira's
+      // internal allData endpoint — much more precise than approximating via
+      // JQL because it captures the exact set the board UI displays.
+      const visibleIds = await this.getBoardVisibleIssueIds(boardId)
+      if (visibleIds && visibleIds.length) {
+        parts.push(`id in (${visibleIds.join(',')})`)
+      }
+
+      return parts.join(' AND ')
+    } catch {
+      return null
+    }
+  }
+
+  // Fetch the issues currently rendered on a board (across all swimlanes,
+  // including the default catch-all). Uses Jira's internal "allData" endpoint
+  // which is undocumented but stable on Cloud. Returns null on failure so the
+  // caller can skip the constraint and fall back to the saved-filter scope.
+  async getBoardVisibleIssueIds(boardId) {
+    const email = process.env.JIRA_EMAIL
+    const apiToken = process.env.JIRA_API_TOKEN
+    if (!email || !apiToken || !this.siteUrl) return null
+    try {
+      const res = await axios.get(`${this.siteUrl}/rest/greenhopper/1.0/xboard/work/allData.json`, {
+        params: { rapidViewId: boardId },
+        auth: { username: email, password: apiToken }
+      })
+      const lanes = res.data?.swimlanesData?.customSwimlanesData?.swimlanes
+        || res.data?.customSwimlanesData?.swimlanes
+        || []
+      const ids = new Set()
+      for (const lane of lanes) {
+        for (const id of (lane.issueIds || [])) ids.add(id)
+      }
+      // Some boards may not use custom swimlanes — fall back to issuesData if so
+      if (!ids.size && Array.isArray(res.data?.issuesData?.issues)) {
+        for (const issue of res.data.issuesData.issues) {
+          if (issue.id) ids.add(Number(issue.id))
+        }
+      }
+      return ids.size ? [...ids] : null
+    } catch {
+      return null
+    }
+  }
+
+  async getBoardQuickFilters(boardId) {
+    const email = process.env.JIRA_EMAIL
+    const apiToken = process.env.JIRA_API_TOKEN
+    if (!email || !apiToken || !this.siteUrl) return []
+    try {
+      const res = await axios.get(`${this.siteUrl}/rest/agile/1.0/board/${boardId}/quickfilter`, {
+        auth: { username: email, password: apiToken }
+      })
+      const values = res.data?.values || []
+      return values
+        .map(v => ({ id: v.id, name: v.name, jql: v.jql || v.query, description: v.description || '' }))
+        .filter(v => v.jql && v.jql.trim())
+    } catch {
+      return []
+    }
+  }
+
+  async getSprints(boardId) {
+    const email = process.env.JIRA_EMAIL
+    const apiToken = process.env.JIRA_API_TOKEN
+    if (!email || !apiToken || !this.siteUrl) return []
+    try {
+      const res = await axios.get(`${this.siteUrl}/rest/agile/1.0/board/${boardId}/sprint`, {
+        auth: { username: email, password: apiToken },
+        params: { state: 'active,closed', maxResults: 50 }
+      })
+      return (res.data.values || []).map(s => ({
+        id: s.id, name: s.name, state: s.state,
+        start_date: s.startDate, end_date: s.endDate
+      }))
+    } catch {
+      return []
+    }
+  }
+
   async getDevSummary(issueId) {
     const email    = process.env.JIRA_EMAIL
     const apiToken = process.env.JIRA_API_TOKEN
@@ -152,10 +280,10 @@ class JiraClient {
       for (const detail of (res.data?.detail || [])) {
         for (const pr of (detail.pullRequests || [])) {
           prs.push({
-            title: pr.title,
+            title: pr.name,
             status: pr.status,
             url: pr.url,
-            created_at: pr.created,
+            last_update: pr.lastUpdate,
             author: pr.author?.name || null
           })
         }
