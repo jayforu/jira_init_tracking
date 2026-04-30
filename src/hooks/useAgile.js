@@ -7,9 +7,10 @@ export function useBoards(project) {
   const [error, setError] = useState(null)
 
   const load = useCallback(async () => {
+    setBoards([])
+    setError(null)
     if (!project) return
     setLoading(true)
-    setError(null)
     try {
       const { data } = await axios.get(`/api/agile/boards?project=${project}`)
       setBoards(data)
@@ -30,7 +31,8 @@ export function useSprints(boardId) {
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
-    if (!boardId) { setSprints([]); return }
+    setSprints([])
+    if (!boardId) return
     setLoading(true)
     try {
       const { data } = await axios.get(`/api/agile/sprints?board=${boardId}`)

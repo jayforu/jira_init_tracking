@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 
 function buildParams({ boardId, sprintId, from, to, quickFilterIds }) {
@@ -27,19 +27,22 @@ export function useTeamActivity({ boardId, sprintId, from, to, quickFilterIds })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const qfk = qfKey(quickFilterIds)
+  const reqIdRef = useRef(0)
 
   const load = useCallback(async () => {
     const params = buildParams({ boardId, sprintId, from, to, quickFilterIds })
-    if (!params) return
-    setLoading(true)
+    const myReqId = ++reqIdRef.current
+    setData(null)
     setError(null)
+    if (!params) { setLoading(false); return }
+    setLoading(true)
     try {
       const { data: resp } = await axios.get(`/api/team-activity?${params}`)
-      setData(resp)
+      if (reqIdRef.current === myReqId) setData(resp)
     } catch (e) {
-      setError(e.response?.data?.error || e.message)
+      if (reqIdRef.current === myReqId) setError(e.response?.data?.error || e.message)
     } finally {
-      setLoading(false)
+      if (reqIdRef.current === myReqId) setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId, sprintId, from, to, qfk])
@@ -53,19 +56,22 @@ export function useTeamActivityPRs({ boardId, sprintId, from, to, quickFilterIds
   const [prs, setPRs] = useState(null)
   const [loading, setLoading] = useState(false)
   const qfk = qfKey(quickFilterIds)
+  const reqIdRef = useRef(0)
 
   const load = useCallback(async () => {
-    if (!enabled) return
+    const myReqId = ++reqIdRef.current
+    setPRs(null)
+    if (!enabled) { setLoading(false); return }
     const params = buildParams({ boardId, sprintId, from, to, quickFilterIds })
-    if (!params) return
+    if (!params) { setLoading(false); return }
     setLoading(true)
     try {
       const { data: resp } = await axios.get(`/api/team-activity/prs?${params}`)
-      setPRs(resp.prs_by_author)
+      if (reqIdRef.current === myReqId) setPRs(resp.prs_by_author)
     } catch {
-      setPRs(null)
+      if (reqIdRef.current === myReqId) setPRs(null)
     } finally {
-      setLoading(false)
+      if (reqIdRef.current === myReqId) setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId, sprintId, from, to, qfk, enabled])
@@ -79,19 +85,22 @@ export function useTeamActivityCommits({ boardId, sprintId, from, to, quickFilte
   const [commits, setCommits] = useState(null)
   const [loading, setLoading] = useState(false)
   const qfk = qfKey(quickFilterIds)
+  const reqIdRef = useRef(0)
 
   const load = useCallback(async () => {
-    if (!enabled) return
+    const myReqId = ++reqIdRef.current
+    setCommits(null)
+    if (!enabled) { setLoading(false); return }
     const params = buildParams({ boardId, sprintId, from, to, quickFilterIds })
-    if (!params) return
+    if (!params) { setLoading(false); return }
     setLoading(true)
     try {
       const { data: resp } = await axios.get(`/api/team-activity/commits?${params}`)
-      setCommits(resp.commits_by_author)
+      if (reqIdRef.current === myReqId) setCommits(resp.commits_by_author)
     } catch {
-      setCommits(null)
+      if (reqIdRef.current === myReqId) setCommits(null)
     } finally {
-      setLoading(false)
+      if (reqIdRef.current === myReqId) setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId, sprintId, from, to, qfk, enabled])
@@ -106,20 +115,23 @@ export function useTeamActivityTrends({ boardId, from, to, quickFilterIds, enabl
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const qfk = qfKey(quickFilterIds)
+  const reqIdRef = useRef(0)
 
   const load = useCallback(async () => {
-    if (!enabled || !boardId || !from || !to) return
-    setLoading(true)
+    const myReqId = ++reqIdRef.current
+    setData(null)
     setError(null)
+    if (!enabled || !boardId || !from || !to) { setLoading(false); return }
+    setLoading(true)
     try {
       const params = new URLSearchParams({ boardId, from, to })
       if (quickFilterIds && quickFilterIds.length) params.set('quickFilterIds', quickFilterIds.join(','))
       const { data: resp } = await axios.get(`/api/team-activity/trends?${params}`)
-      setData(resp)
+      if (reqIdRef.current === myReqId) setData(resp)
     } catch (e) {
-      setError(e.response?.data?.error || e.message)
+      if (reqIdRef.current === myReqId) setError(e.response?.data?.error || e.message)
     } finally {
-      setLoading(false)
+      if (reqIdRef.current === myReqId) setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId, from, to, qfk, enabled])
